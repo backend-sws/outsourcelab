@@ -13,6 +13,8 @@
 
     @include('partials.footer')
     
+    @include('partials.modals.login')
+    
     @include('partials.scripts')
 </body>
 </html>

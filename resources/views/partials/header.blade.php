@@ -10,7 +10,14 @@
             </div>
             <div class="flex items-center space-x-6">
                 <button class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="fas fa-shopping-cart text-gray-500 mr-2"></i> Cart <span class="bg-gray-200 text-xs rounded-full px-2 py-0.5 ml-1 font-bold">0</span></button>
-                <button class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="far fa-user text-gray-500 mr-2"></i> Profile</button>
+                @php
+                    $loggedInPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
+                @endphp
+                @if($loggedInPatient)
+                    <a href="{{ route('patient.dashboard') }}" class="flex items-center font-semibold border border-brand-secondary rounded-full px-5 py-2 shadow-sm bg-brand-light/10 hover:bg-brand-light/20 transition text-brand-dark"><i class="far fa-user text-brand-secondary mr-2"></i> {{ explode(' ', $loggedInPatient->name ?? 'Guest')[0] }}</a>
+                @else
+                    <button onclick="window.openLoginModal()" class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="far fa-user text-gray-500 mr-2"></i> Profile</button>
+                @endif
             </div>
         </div>
     </div>

@@ -164,9 +164,9 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
     <!-- Routine Health Checkups -->
-<div class="container mx-auto px-4 py-8 flex flex-col md:flex-row gap-6">
+<div class="container mx-auto px-4 py-8 flex flex-col gap-6">
     <!-- Men -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full md:w-1/2 relative">
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for men</h3>
             <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
@@ -201,7 +201,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 
     <!-- Women -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full md:w-1/2 relative">
+    <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for women</h3>
             <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
             <!-- Above 60 -->
             <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1506863530036-1efed632230a?w=400&h=400&fit=crop" alt="Above 60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
+                <img src="https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?auto=format&fit=crop&w=400&h=400&q=80" alt="Above 60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
                 <span class="font-bold text-gray-800 text-sm group-hover:text-pink-600 transition-colors">Above 60</span>
                 <span class="text-xs text-gray-400 block mt-1">Years</span>
             </div>
