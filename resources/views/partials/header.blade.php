@@ -9,7 +9,7 @@
                 </div>
             </div>
             <div class="flex items-center space-x-6">
-                <button class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="fas fa-shopping-cart text-gray-500 mr-2"></i> Cart <span class="bg-gray-200 text-xs rounded-full px-2 py-0.5 ml-1 font-bold">0</span></button>
+                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="fas fa-shopping-cart text-gray-500 mr-2"></i> Cart <span id="cartCount" class="bg-gray-200 text-xs rounded-full px-2 py-0.5 ml-1 font-bold">0</span></button>
                 @php
                     $loggedInPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
                 @endphp

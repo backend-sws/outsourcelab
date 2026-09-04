@@ -14,6 +14,7 @@
     @include('partials.footer')
     
     @include('partials.modals.login')
+    @include('partials.modals.add-member')
     
     @include('partials.scripts')
 </body>

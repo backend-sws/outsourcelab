@@ -431,7 +431,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
                     </div>
                 </div>
-                <button class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                <button onclick="addToCart(this)" class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
@@ -478,7 +478,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="text-2xl font-black text-gray-900 tracking-tight">₹2499</div>
                     </div>
                 </div>
-                <button class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                <button onclick="addToCart(this)" class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
@@ -525,7 +525,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
                     </div>
                 </div>
-                <button class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                <button onclick="addToCart(this)" class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
@@ -572,7 +572,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="text-2xl font-black text-gray-900 tracking-tight">₹3399</div>
                     </div>
                 </div>
-                <button class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                <button onclick="addToCart(this)" class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
