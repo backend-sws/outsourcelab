@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="bg-gray-50 min-h-screen py-8">
     <div class="container mx-auto px-4 max-w-6xl">
         <!-- Progress Bar -->
@@ -77,8 +75,8 @@
                         <div class="flex-1">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h3 class="font-bold text-gray-900 text-lg flex items-center">{{ explode(' ', $patient->name ?? 'Guest')[0] }} <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase">{{ $patient->relation ?? 'Self' }}</span></h3>
-                                    <p class="text-xs text-gray-500 font-semibold mt-1">{{ $patient->age ?? '25' }} Years | {{ ucfirst($patient->gender ?? 'Male') }} | <button class="text-brand-dark underline font-bold">Edit</button></p>
+                                    <h3 class="font-bold text-gray-900 text-lg flex items-center"><?php echo e(explode(' ', $patient->name ?? 'Guest')[0]); ?> <span class="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase"><?php echo e($patient->relation ?? 'Self'); ?></span></h3>
+                                    <p class="text-xs text-gray-500 font-semibold mt-1"><?php echo e($patient->age ?? '25'); ?> Years | <?php echo e(ucfirst($patient->gender ?? 'Male')); ?> | <button class="text-brand-dark underline font-bold">Edit</button></p>
                                 </div>
                                 <div class="font-bold text-gray-800">(1) <i class="fas fa-chevron-up text-gray-400 ml-2"></i></div>
                             </div>
@@ -321,7 +319,7 @@
                     <button id="btnNext" onclick="nextStep()" class="w-full bg-brand-dark text-white font-bold py-3.5 rounded-xl hover:bg-brand-secondary transition shadow-sm text-lg">Next</button>
                     
                     <div id="btnPay" class="hidden flex gap-3 mt-2">
-                        <button onclick="payOnCollection()" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3.5 rounded-xl hover:bg-gray-300 transition shadow-sm text-sm">Pay On Collection</button>
+                        <button onclick="window.location.href='/patient/bookings'" class="flex-1 bg-gray-200 text-gray-800 font-bold py-3.5 rounded-xl hover:bg-gray-300 transition shadow-sm text-sm">Pay On Collection</button>
                         <button class="flex-1 bg-rose-600 text-white font-bold py-3.5 rounded-xl hover:bg-rose-700 transition shadow-sm text-sm">Pay Now</button>
                     </div>
                     
@@ -334,7 +332,7 @@
 
 <script>
     // --- Cart Data (keyed by patient ID) ---
-    const checkoutPatientId = "{{ session('patient_id', 'guest') }}";
+    const checkoutPatientId = "<?php echo e(session('patient_id', 'guest')); ?>";
     const checkoutCartKey = 'cart_' + checkoutPatientId;
 
     function getCheckoutCart() {
@@ -397,64 +395,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         renderCheckoutCart();
     });
-
-    function payOnCollection() {
-        let cart = getCheckoutCart();
-        if (cart.length === 0) {
-            alert('Your cart is empty!');
-            return;
-        }
-
-        // Get selected date
-        let activeDateEl = document.querySelector('.date-item.active-date');
-        let selectedDate = activeDateEl ? activeDateEl.innerText.trim().replace(/\n/g, ' ') : new Date().toDateString();
-
-        // Get selected slot
-        let activeSlotEl = document.querySelector('.slot-item.active-slot');
-        let selectedSlot = activeSlotEl ? activeSlotEl.innerText.trim() : '07:00 AM - 08:00 AM';
-
-        // Get pincode
-        let pincode = document.getElementById('pincodeInput') ? document.getElementById('pincodeInput').value : '';
-
-        // Combine date + slot into datetime string
-        let bookingDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-
-        let btn = event.target;
-        btn.disabled = true;
-        btn.innerText = 'Booking...';
-
-        fetch("{{ route('patient.place_booking') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({
-                cart: cart,
-                payment_method: 'Cash',
-                collection_type: 'Home Collection',
-                booking_date: bookingDate,
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                // Clear cart from localStorage
-                localStorage.removeItem(checkoutCartKey);
-                // Redirect to bookings
-                window.location.href = "{{ route('patient.bookings') }}";
-            } else {
-                alert('Booking failed: ' + (data.message || 'Unknown error'));
-                btn.disabled = false;
-                btn.innerText = 'Pay On Collection';
-            }
-        })
-        .catch(() => {
-            alert('Network error. Please try again.');
-            btn.disabled = false;
-            btn.innerText = 'Pay On Collection';
-        });
-    }
 
     let currentStep = 1;
     const validPincodes = ['800001', '800002', '110001', '400001']; 
@@ -656,4 +596,6 @@
         });
     });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\lab\lab\resources\views/checkout/index.blade.php ENDPATH**/ ?>

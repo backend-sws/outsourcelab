@@ -1,5 +1,5 @@
-@extends('layouts.app')
-@section('content')
+
+<?php $__env->startSection('content'); ?>
     <!-- Global Glassy Blurred Background -->
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-slate-50/30 backdrop-blur-3xl">
         <!-- Soft animated color blobs -->
@@ -8,8 +8,8 @@
         <div class="absolute -bottom-[20%] left-[20%] w-[70vw] h-[70vw] bg-red-200/10 rounded-full mix-blend-multiply filter blur-[150px] animate-[pulse_12s_ease-in-out_infinite_4s]"></div>
     </div>
 
-    @include('home.hero')
-    @include('home.stats')
+    <?php echo $__env->make('home.hero', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('home.stats', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- Routine Health Checkups -->
 <div class="container mx-auto px-4 py-8 flex flex-col gap-6">
@@ -100,7 +100,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_thyroid.jpg') }}" alt="Thyroid" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_thyroid.jpg')); ?>" alt="Thyroid" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Thyroid</span>
                     </div>
@@ -110,7 +110,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_hormones.jpg') }}" alt="Hormones" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_hormones.jpg')); ?>" alt="Hormones" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Hormones</span>
                     </div>
@@ -120,7 +120,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_lifestyle.jpg') }}" alt="Lifestyle" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_lifestyle.jpg')); ?>" alt="Lifestyle" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Lifestyle</span>
                     </div>
@@ -130,7 +130,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_cancer.jpg') }}" alt="Cancer" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_cancer.jpg')); ?>" alt="Cancer" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Cancer</span>
                     </div>
@@ -140,7 +140,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_combo.jpg') }}" alt="Combo" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_combo.jpg')); ?>" alt="Combo" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Combo</span>
                     </div>
@@ -150,7 +150,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_pregnancy.jpg') }}" alt="Pregnancy" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_pregnancy.jpg')); ?>" alt="Pregnancy" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Pregnancy</span>
                     </div>
@@ -160,7 +160,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_allergy.jpg') }}" alt="Allergy" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_allergy.jpg')); ?>" alt="Allergy" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Allergy</span>
                     </div>
@@ -170,7 +170,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_arthritis.jpg') }}" alt="Arthritis" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_arthritis.jpg')); ?>" alt="Arthritis" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Arthritis</span>
                     </div>
@@ -180,7 +180,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_std.jpg') }}" alt="STD" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_std.jpg')); ?>" alt="STD" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">STD</span>
                     </div>
@@ -190,7 +190,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_anemia.jpg') }}" alt="Anemia" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_anemia.jpg')); ?>" alt="Anemia" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Anemia</span>
                     </div>
@@ -200,7 +200,7 @@
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
                     <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
                         <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_antenatal.jpg') }}" alt="Antenatal" class="w-full h-full object-cover">
+                            <img src="<?php echo e(asset('icons/icon_antenatal.jpg')); ?>" alt="Antenatal" class="w-full h-full object-cover">
                         </div>
                         <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Antenatal</span>
                     </div>
@@ -1648,4 +1648,6 @@
 </div>
 
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\lab\lab\resources\views/welcome.blade.php ENDPATH**/ ?>

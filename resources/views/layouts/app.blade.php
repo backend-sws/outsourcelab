@@ -14,7 +14,9 @@
     @include('partials.footer')
     
     @include('partials.modals.login')
-    @include('partials.modals.add-member')
+    @include('patient.modals.add-member')
+    @include('patient.modals.change-address')
+    @include('patient.modals.add-address')
     
     @include('partials.scripts')
 </body>

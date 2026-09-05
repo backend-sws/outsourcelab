@@ -17,7 +17,7 @@
         });
 
         // Cart Logic - keyed by patient ID to prevent stale data
-        const cartPatientId = "{{ session('patient_id', 'guest') }}";
+        const cartPatientId = "<?php echo e(session('patient_id', 'guest')); ?>";
         const cartKey = 'cart_' + cartPatientId;
 
         // Clean up old-style cart key if present
@@ -89,10 +89,10 @@
                 return;
             }
 
-            const isLoggedIn = "{{ session()->has('patient_id') ? 'true' : 'false' }}" === "true";
+            const isLoggedIn = "<?php echo e(session()->has('patient_id') ? 'true' : 'false'); ?>" === "true";
             
             if (isLoggedIn) {
-                window.location.href = "{{ route('checkout.index') }}";
+                window.location.href = "<?php echo e(route('checkout.index')); ?>";
             } else {
                 if(window.openLoginModal) {
                     window.openLoginModal();
@@ -100,3 +100,4 @@
             }
         }
     </script>
+<?php /**PATH D:\lab\lab\resources\views/partials/scripts.blade.php ENDPATH**/ ?>
