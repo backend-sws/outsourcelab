@@ -31,20 +31,22 @@
             </div>
             
             <!-- Center: Links -->
-            <div class="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-24">
-                <a href="/" class="text-brand-secondary font-extrabold flex items-center text-lg hover:text-brand-primary transition"><i class="fas fa-home mr-2"></i> Home</a>
+            <div class="hidden lg:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-10">
+                <a href="/" class="text-brand-secondary font-extrabold flex items-center text-base hover:text-brand-primary transition"><i class="fas fa-home mr-1.5"></i> Home</a>
                 @if($loggedInPatient)
-                    <a href="{{ route('patient.bookings') }}" class="text-brand-dark font-extrabold flex items-center text-lg hover:text-brand-secondary transition"><i class="far fa-calendar-check mr-2"></i> My Bookings</a>
-                    <a href="{{ route('patient.reports') }}" class="text-brand-dark font-extrabold flex items-center text-lg hover:text-brand-secondary transition"><i class="far fa-file-alt mr-2"></i> My Reports</a>
+                    <a href="{{ route('patient.bookings') }}" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="far fa-calendar-check mr-1.5"></i> My Bookings</a>
+                    <a href="{{ route('patient.reports') }}" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="far fa-file-alt mr-1.5"></i> My Reports</a>
                 @else
-                    <button onclick="window.openLoginModal()" class="text-brand-dark font-extrabold flex items-center text-lg hover:text-brand-secondary transition"><i class="far fa-calendar-check mr-2"></i> My Bookings</button>
-                    <button onclick="window.openLoginModal()" class="text-brand-dark font-extrabold flex items-center text-lg hover:text-brand-secondary transition"><i class="far fa-file-alt mr-2"></i> My Reports</button>
+                    <button onclick="window.openLoginModal()" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="far fa-calendar-check mr-1.5"></i> My Bookings</button>
+                    <button onclick="window.openLoginModal()" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="far fa-file-alt mr-1.5"></i> My Reports</button>
                 @endif
+                <a href="/#reviews" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="fas fa-star mr-1.5 text-amber-400"></i> Reviews</a>
+                <a href="/#contact-enquiry" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition"><i class="fas fa-envelope-open-text mr-1.5 text-teal-600"></i> Enquiry</a>
             </div>
 
             <!-- Right: Phone -->
             <div class="font-bold text-brand-dark flex items-center text-xl flex-none bg-brand-light/20 px-4 py-2 rounded-full border border-brand-light/50 shadow-sm">
-                <i class="fas fa-phone-alt text-brand-secondary mr-3 text-lg animate-pulse"></i> 898 898 8787
+                <i class="fas fa-phone-alt text-brand-secondary mr-3 text-lg animate-pulse"></i> +91 0000000000
             </div>
         </div>
     </nav>

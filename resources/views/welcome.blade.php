@@ -17,10 +17,16 @@
     <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for men</h3>
-            <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+            <div class="flex items-center space-x-3">
+                <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+                <div class="flex space-x-1.5">
+                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                </div>
+            </div>
         </div>
 
-        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar">
+        <div id="men-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
             <!-- Under 30 -->
             <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
                 <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -52,10 +58,16 @@
     <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for women</h3>
-            <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+            <div class="flex items-center space-x-3">
+                <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+                <div class="flex space-x-1.5">
+                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-pink-600 hover:border-pink-500 transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-pink-600 transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                </div>
+            </div>
         </div>
 
-        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar">
+        <div id="women-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
             <!-- Under 30 -->
             <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
                 <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -89,7 +101,13 @@
 <div class="container mx-auto px-4 py-10">
     <div class="flex justify-between items-center mb-6">
         <h2 class="section-title mb-0">Doctors Curated Health Checkup Packages</h2>
-        <a href="#" class="text-brand-dark font-bold text-sm hover:underline">See All</a>
+        <div class="flex items-center space-x-3">
+            <a href="#" class="text-brand-dark font-bold text-sm hover:underline">See All</a>
+            <div class="flex space-x-1.5">
+                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slidePrev();}else{document.querySelector('.categorySwiper')?.scrollBy({left:-220,behavior:'smooth'});}" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slideNext();}else{document.querySelector('.categorySwiper')?.scrollBy({left:220,behavior:'smooth'});}" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+            </div>
+        </div>
     </div>
 
     <div class="swiper categorySwiper">
@@ -225,6 +243,9 @@
 </style>
 
 
+    <!-- Single Health Checkup (Individual Tests Managed by Admin) -->
+    @include('partials.single-tests-section')
+
     <!-- Top Booked Health Checkup Packages -->
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-end mb-6">
@@ -233,14 +254,15 @@
             <p class="text-xs text-gray-500 italic">Chosen by Doctors, Trusted by Patients</p>
         </div>
         <div class="flex space-x-2">
-            <button class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark"><i class="fas fa-chevron-left text-xs"></i></button>
-            <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center"><i class="fas fa-chevron-right text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('top-booked-slider').scrollBy({left: -350, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('top-booked-slider').scrollBy({left: 350, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Package Card 1 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80');">
+    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth">
+        @forelse($packages as $package)
+        <!-- Package Card -->
+        <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('{{ $package->image ? Storage::url($package->image) : 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80' }}');">
             <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
             <div class="relative z-10">
@@ -250,7 +272,7 @@
                         <i class="fas fa-shield-alt text-sm"></i>
                     </div>
                 </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Fit India Full Body Checkup With Vitamin Screening...</h3>
+                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">{{ $package->name }}</h3>
                 <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
                     <div class="text-center">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
@@ -259,191 +281,48 @@
                     <div class="w-px h-8 bg-gray-200"></div>
                     <div class="text-center">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">98</p>
+                        <p class="text-sm font-bold text-gray-800">{{ is_array($package->parameters) ? count($package->parameters) : 0 }}</p>
                     </div>
                 </div>
+                
+                @if(!empty($package->parameters) && is_array($package->parameters))
                 <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+6 More</span>
+                    @foreach(array_slice($package->parameters, 0, 3) as $param)
+                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-check-circle text-brand-secondary mr-1.5"></i> {{ \Illuminate\Support\Str::limit($param, 15) }}</span>
+                    @endforeach
+                    @if(count($package->parameters) > 3)
+                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+{{ count($package->parameters) - 3 }} More</span>
+                    @endif
                 </div>
+                @endif
+                
+                @if($package->description)
+                <p class="text-xs text-gray-600 mb-6 line-clamp-2">{{ $package->description }}</p>
+                @endif
+                
             </div>
             <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
                 <div class="flex items-end justify-between mb-4">
                     <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹4000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</div>
                     </div>
                 </div>
                 <button onclick="addToCart(this)" 
-                    data-name="Fit India Full Body Checkup With Vitamin Screening with Free Heart Test (HsCRP)"
-                    data-price="1799" data-mrp="4000" data-params="Includes 98 Parameters"
+                    data-name="{{ $package->name }}"
+                    data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ is_array($package->parameters) ? count($package->parameters) : 0 }} Parameters"
                     class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
             </div>
         </div>
-
-        <!-- Package Card 2 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-blue-50/80 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200/50 backdrop-blur-sm">MOST BOOKED</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Advance Plus Full Body Checkup with Free Heart Test</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">100</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+13 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹5600</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹2499</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="Advance Plus Full Body Checkup with Free Heart Test"
-                    data-price="2499" data-mrp="5600" data-params="Includes 100 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
-
-        <!-- Package Card 3 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-purple-50/80 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/50 backdrop-blur-sm">POPULAR</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Annual Full Body Checkup - Advance</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">98</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+6 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹4000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="Annual Full Body Checkup - Advance"
-                    data-price="1799" data-mrp="4000" data-params="Includes 98 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
-
-        <!-- Package Card 4 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-purple-50/80 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/50 backdrop-blur-sm">POPULAR</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">One Plus Full Body Checkup with Free Heart Test...</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">100</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+13 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹7000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">51% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹3399</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="One Plus Full Body Checkup with Free Heart Test"
-                    data-price="3399" data-mrp="7000" data-params="Includes 100 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
+        @empty
+        <div class="text-gray-500 italic p-4">No packages available at the moment.</div>
+        @endforelse
     </div>
 </div>
-
-
     <!-- Unhealthy Habits -->
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8" id="habits-section">
     <div class="bg-gray-50 rounded-2xl p-6">
         <div class="flex justify-between items-end mb-4">
             <div>
@@ -451,202 +330,79 @@
                 <p class="text-xs text-gray-500">Understand how daily habits may be impacting your health.</p>
             </div>
             <div class="flex space-x-2">
-                <button class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark"><i class="fas fa-chevron-left text-xs"></i></button>
-                <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center"><i class="fas fa-chevron-right text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('habits-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('habits-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar">
-            <button class="bg-brand-dark text-white px-4 py-2 rounded-lg text-sm font-bold min-w-max">All</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-hamburger mr-2 text-orange-400"></i> Junk Food</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-couch mr-2 text-purple-400"></i> Sedentary Lifestyle</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-smoking mr-2 text-gray-400"></i> Smoking</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-glass-martini-alt mr-2 text-red-400"></i> Alcohol</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-brain mr-2 text-pink-400"></i> Stress</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-angry mr-2 text-red-600"></i> Anger</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
+        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar" id="habits-tabs">
+            <button onclick="filterPackages('habit', 'All', this)" class="habit-tab bg-brand-dark text-white px-4 py-2 rounded-lg text-sm font-bold min-w-max">All</button>
+            <button onclick="filterPackages('habit', 'Junk Food', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-hamburger mr-2 text-orange-400"></i> Junk Food</button>
+            <button onclick="filterPackages('habit', 'Sedentary Lifestyle', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-couch mr-2 text-purple-400"></i> Sedentary Lifestyle</button>
+            <button onclick="filterPackages('habit', 'Smoking', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-smoking mr-2 text-gray-400"></i> Smoking</button>
+            <button onclick="filterPackages('habit', 'Alcohol', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-glass-martini-alt mr-2 text-red-400"></i> Alcohol</button>
+            <button onclick="filterPackages('habit', 'Stress', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-brain mr-2 text-pink-400"></i> Stress</button>
+            <button onclick="filterPackages('habit', 'Anger', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-angry mr-2 text-red-600"></i> Anger</button>
+            <button onclick="filterPackages('habit', 'Sleepless', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <!-- Habit Package 1 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+        <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-6">
+            @forelse($habitPackages as $package)
+            <!-- Habit Package -->
+            <div class="habit-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group" data-category="{{ $package->subcategory }}">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-brand-dark transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
                         <div class="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 mb-2">
-                            <i class="fas fa-battery-quarter text-sm"></i>
+                            <i class="fas fa-notes-medical text-sm"></i>
                         </div>
-                        <span class="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-1 rounded-md">LIFESTYLE</span>
+                        <span class="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase">{{ $package->subcategory }}</span>
                     </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Low Energy Screening Package</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
+                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">{{ $package->name }}</h4>
+                    
                     <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
+                        <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
                             <p class="text-sm font-bold text-gray-800">12 hrs</p>
                         </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
+                        <div class="w-px h-8 bg-gray-200 mx-2"></div>
+                        <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">33</p>
+                            <p class="text-sm font-bold text-gray-800">{{ is_array($package->parameters) ? count($package->parameters) : 0 }}</p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">This test helps diagnose the root cause of constant fatigue or other low-energy</p>
+                    @if($package->description)
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">{{ $package->description }}</p>
+                    @endif
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-end justify-between mb-4">
                         <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹1700</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">53% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹799</div>
+                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</div>
                         </div>
                     </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                    <button onclick="addToCart(this)" 
+                        data-name="{{ $package->name }}"
+                        data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ is_array($package->parameters) ? count($package->parameters) : 0 }} Parameters"
+                        class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
                     <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
                 </div>
             </div>
-
-            <!-- Habit Package 2 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
-                            <i class="fas fa-procedures text-sm"></i>
-                        </div>
-                        <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-md">LIFESTYLE</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Fatigue Syndrome Test</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">62</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">It helps diagnose the cause behind chronic fatigue & help a doctor guide treatment.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹3500</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">54% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹1599</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Habit Package 3 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-700 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-2">
-                            <i class="fas fa-angry text-sm"></i>
-                        </div>
-                        <span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-1 rounded-md">EMOTIONAL</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Anger Impact Package - Extended</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">56</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">CBC, HbA1C, Lipid Profile, LFT, Iron Studies, CRP, TSH, Vitamin D</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹3000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">63% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹1099</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Habit Package 4 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 mb-2">
-                            <i class="fas fa-hamburger text-sm"></i>
-                        </div>
-                        <span class="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md">DIET</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Junk Food Test</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">12 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">40</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Evaluates key health markers affected by high junk food and sugar consumption.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹2000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">50% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹999</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
+            @empty
+            <div class="text-gray-500 italic p-4">No habit packages available yet.</div>
+            @endforelse
         </div>
+    </div>
+</div>
     </div>
 </div>
 
 
     <!-- Femcliffe Health Packages -->
-<div class="bg-pink-50/50 py-8 mt-8 rounded-[2rem] mx-4 lg:mx-0">
+<div class="bg-pink-50/50 py-8 mt-8 rounded-[2rem] mx-4 lg:mx-0" id="femcliffe-section">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-end mb-6">
             <div>
@@ -654,25 +410,26 @@
                 <p class="text-xs text-gray-500 mt-2">India's First She-Centric Diagnostic Platform <a href="#" class="text-pink-500 underline font-bold hover:text-pink-700 transition">Know More</a></p>
             </div>
             <div class="flex space-x-2">
-                <button class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark transition-colors"><i class="fas fa-chevron-left text-xs"></i></button>
-                <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-black transition-colors"><i class="fas fa-chevron-right text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('femcliffe-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-pink-200 bg-white flex items-center justify-center text-gray-500 hover:text-pink-600 hover:border-pink-500 transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('femcliffe-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-pink-600 transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
             </div>
         </div>
 
         <!-- Tabs -->
-        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar">
-            <button class="bg-pink-500 text-white px-5 py-2 rounded-xl text-sm font-bold min-w-max shadow-md">All</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Pregnancy</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Wellness</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">PCOS/PCOD</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Sexual Health</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Menstrual Health</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Cancer</button>
+        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar" id="femcliffe-tabs">
+            <button onclick="filterPackages('femcliffe', 'All', this)" class="bg-brand-dark text-white px-5 py-2 rounded-xl text-sm font-bold min-w-max shadow-md transition-colors">All</button>
+            <button onclick="filterPackages('femcliffe', 'Pregnancy', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Pregnancy</button>
+            <button onclick="filterPackages('femcliffe', 'Wellness', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Wellness</button>
+            <button onclick="filterPackages('femcliffe', 'PCOS/PCOD', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">PCOS/PCOD</button>
+            <button onclick="filterPackages('femcliffe', 'Sexual Health', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Sexual Health</button>
+            <button onclick="filterPackages('femcliffe', 'Menstrual Health', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Menstrual Health</button>
+            <button onclick="filterPackages('femcliffe', 'Cancer', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Cancer</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-            <!-- Femcliffe Package 1 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+        <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
+            @forelse($femcliffePackages as $package)
+            <!-- Femcliffe Package -->
+            <div class="femcliffe-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group" data-category="{{ $package->subcategory }}">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -680,9 +437,8 @@
                             <i class="fas fa-venus text-sm"></i>
                         </div>
                     </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Thyroid Profile Total</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
+                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">{{ $package->name }}</h4>
+                    
                     <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
@@ -691,155 +447,33 @@
                         <div class="w-px h-8 bg-pink-200 mx-2"></div>
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">3</p>
+                            <p class="text-sm font-bold text-gray-800">{{ is_array($package->parameters) ? count($package->parameters) : 0 }}</p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">A comprehensive thyroid panel measuring total T3, total T4, and TSH.</p>
+                    @if($package->description)
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">{{ $package->description }}</p>
+                    @endif
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-end justify-between mb-4">
                         <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹1000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">57% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹429</div>
+                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</div>
                         </div>
                     </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
+                    <button onclick="addToCart(this)" 
+                        data-name="{{ $package->name }}"
+                        data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ is_array($package->parameters) ? count($package->parameters) : 0 }} Parameters"
+                        class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
                     <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
                 </div>
             </div>
-
-            <!-- Femcliffe Package 2 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Stay Fit Plus Full Body Checkup With Free RA Factor</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">89</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Complete health checkup designed specifically for women's wellness.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹6800</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">62% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹2599</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Femcliffe Package 3 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Master Full Body Checkup Package - Women</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">107</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Assesses parameters like TSH, LH-FSH, CBC, lipid profile, vit D & B12.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹9000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">48% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹4699</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Femcliffe Package 4 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">TSH Test</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">12 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">1</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Measures Thyroid Stimulating Hormone levels to check thyroid function.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹400</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">25% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹299</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
+            @empty
+            <div class="text-gray-500 italic p-4">No femcliffe packages available yet.</div>
+            @endforelse
         </div>
-        </div>
+    </div>
 </div>
 
 
@@ -1154,7 +788,13 @@
         <div class="md:w-1/3 relative z-10">
             <h2 class="text-3xl font-extrabold text-brand-dark mb-4 leading-tight">Decode Your DNA for a Healthier Tomorrow</h2>
             <p class="text-sm text-gray-700 mb-6 leading-relaxed">Your genetic blueprint holds the key to proactive healthcare. Discover personalized insights to prevent diseases, optimize your diet, and make informed lifestyle choices.</p>
-            <a href="#" class="inline-flex items-center font-bold text-white bg-brand-dark px-6 py-3 rounded-full hover:bg-brand-secondary transition transform hover:scale-105 shadow-lg mb-6">Explore GeneCliffe <i class="fas fa-arrow-right ml-2"></i></a>
+            <div class="flex flex-wrap items-center gap-3 mb-6">
+                <a href="#" class="inline-flex items-center font-bold text-white bg-brand-dark px-6 py-3 rounded-full hover:bg-brand-secondary transition transform hover:scale-105 shadow-lg">Explore GeneCliffe <i class="fas fa-arrow-right ml-2"></i></a>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: -330, behavior: 'smooth'})" class="w-9 h-9 rounded-full bg-white text-brand-dark border border-green-200 flex items-center justify-center hover:bg-brand-secondary hover:text-white shadow-sm transition active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                    <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-9 h-9 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary shadow-md transition active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
         </div>
         
         <div class="md:w-2/3 w-full relative z-10">
@@ -1172,7 +812,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Unlock your complete genetic profile to identify silent mutations and understand your body at a cellular level.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1187,7 +827,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Early detection saves lives. Learn if you carry genetic markers for hereditary cancers, cardiac issues, and more.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center hover:bg-blue-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center hover:bg-blue-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1202,7 +842,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Stop guessing your diet. Discover exactly which foods your body processes best and which ones to avoid entirely.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center hover:bg-yellow-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center hover:bg-yellow-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1217,7 +857,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Map the millions of bacteria in your gut to resolve chronic digestion issues and boost your immune system organically.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1273,8 +913,8 @@
             <p class="text-xs text-gray-500 mt-1">Slide to explore packages for your loved ones</p>
         </div>
         <div class="flex space-x-2">
-            <button onclick="document.getElementById('family-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm"><i class="fas fa-chevron-left text-xs"></i></button>
-            <button onclick="document.getElementById('family-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-md"><i class="fas fa-chevron-right text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('family-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('family-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-md active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
         </div>
     </div>
 
@@ -1647,5 +1287,11 @@
     </div>
 </div>
 
+
+    <!-- Patient Reviews & Testimonials Section -->
+    @include('partials.reviews-section')
+
+    <!-- Contact & Quick Medical Enquiry Section -->
+    @include('partials.enquiry-section')
 
 @endsection

@@ -7,8 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     protected $fillable = [
-        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email'
+        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp'
     ];
+
+    protected $hidden = [
+        'password',
+        'otp',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'password' => 'hashed',
+        ];
+    }
 
     public function familyMembers()
     {

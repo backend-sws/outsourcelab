@@ -4,28 +4,105 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Patient;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class PatientProfileController extends Controller
 {
     public function login(Request $request)
     {
-        $mobile = $request->input('mobile');
-        if (!$mobile) {
-            return response()->json(['success' => false]);
+        $email = $request->input('email');
+        $password = $request->input('password');
+
+        if (!$email || !$password) {
+            return response()->json(['success' => false, 'message' => 'Email and password required.']);
         }
 
-        $patient = Patient::where('mobile', $mobile)->first();
+        // Check if Admin
+        if (\Illuminate\Support\Facades\Auth::attempt(['email' => $email, 'password' => $password])) {
+            $request->session()->regenerate();
+            return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
+        }
+
+        // Check if Patient
+        $patient = Patient::where('email', $email)->first();
 
         if ($patient) {
-            // Returning user
-            session(['patient_id' => $patient->id]);
-            return response()->json(['redirect' => route('patient.dashboard')]);
+            if (Hash::check($password, $patient->password)) {
+                session(['patient_id' => $patient->id]);
+                return response()->json(['success' => true, 'redirect' => route('patient.dashboard')]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Invalid password.']);
+            }
         } else {
-            // New user shell
-            $patient = Patient::create(['mobile' => $mobile]);
-            session(['patient_id' => $patient->id]);
-            return response()->json(['redirect' => route('patient.profile.edit')]);
+            return response()->json(['success' => false, 'message' => 'Account not found. Please register.']);
         }
+    }
+
+    public function register(Request $request)
+    {
+        $email = $request->input('email');
+        $password = $request->input('password');
+        
+        if (!$email || !$password) {
+            return response()->json(['success' => false, 'message' => 'Email and password required.']);
+        }
+        
+        if (Patient::where('email', $email)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Email already registered. Please login.']);
+        }
+        
+        $patient = Patient::create([
+            'email' => $email,
+            'password' => Hash::make($password)
+        ]);
+        
+        session(['patient_id' => $patient->id]);
+        return response()->json(['success' => true, 'redirect' => route('patient.profile.edit')]);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $email = $request->input('email');
+        $patient = Patient::where('email', $email)->first();
+
+        if (!$patient) {
+            return response()->json(['success' => false, 'message' => 'Email not found.']);
+        }
+
+        $otp = rand(1000, 9999);
+        $patient->otp = $otp;
+        $patient->save();
+
+        // Simulate sending email by logging it
+        Log::info("OTP for password reset for {$email} is: {$otp}");
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'OTP sent to email.',
+            'debug_otp' => $otp // Keeping this for testing as discussed
+        ]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $email = $request->input('email');
+        $otp = $request->input('otp');
+        $newPassword = $request->input('password');
+
+        $patient = Patient::where('email', $email)->where('otp', $otp)->first();
+
+        if (!$patient) {
+            return response()->json(['success' => false, 'message' => 'Invalid OTP or email.']);
+        }
+
+        $patient->password = Hash::make($newPassword);
+        $patient->otp = null;
+        $patient->save();
+
+        session(['patient_id' => $patient->id]);
+        return response()->json(['success' => true, 'redirect' => route('patient.dashboard')]);
     }
 
     public function dashboard()

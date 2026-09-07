@@ -1,4 +1,3 @@
-
 <?php $__env->startSection('content'); ?>
     <!-- Global Glassy Blurred Background -->
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-slate-50/30 backdrop-blur-3xl">
@@ -17,10 +16,16 @@
     <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for men</h3>
-            <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+            <div class="flex items-center space-x-3">
+                <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+                <div class="flex space-x-1.5">
+                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                </div>
+            </div>
         </div>
 
-        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar">
+        <div id="men-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
             <!-- Under 30 -->
             <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
                 <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -52,10 +57,16 @@
     <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
             <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for women</h3>
-            <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+            <div class="flex items-center space-x-3">
+                <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
+                <div class="flex space-x-1.5">
+                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-pink-600 hover:border-pink-500 transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-pink-600 transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                </div>
+            </div>
         </div>
 
-        <div class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar">
+        <div id="women-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
             <!-- Under 30 -->
             <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
                 <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -89,7 +100,13 @@
 <div class="container mx-auto px-4 py-10">
     <div class="flex justify-between items-center mb-6">
         <h2 class="section-title mb-0">Doctors Curated Health Checkup Packages</h2>
-        <a href="#" class="text-brand-dark font-bold text-sm hover:underline">See All</a>
+        <div class="flex items-center space-x-3">
+            <a href="#" class="text-brand-dark font-bold text-sm hover:underline">See All</a>
+            <div class="flex space-x-1.5">
+                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slidePrev();}else{document.querySelector('.categorySwiper')?.scrollBy({left:-220,behavior:'smooth'});}" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slideNext();}else{document.querySelector('.categorySwiper')?.scrollBy({left:220,behavior:'smooth'});}" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
+            </div>
+        </div>
     </div>
 
     <div class="swiper categorySwiper">
@@ -225,6 +242,9 @@
 </style>
 
 
+    <!-- Single Health Checkup (Individual Tests Managed by Admin) -->
+    <?php echo $__env->make('partials.single-tests-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
     <!-- Top Booked Health Checkup Packages -->
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-end mb-6">
@@ -233,14 +253,15 @@
             <p class="text-xs text-gray-500 italic">Chosen by Doctors, Trusted by Patients</p>
         </div>
         <div class="flex space-x-2">
-            <button class="w-8 h-8 rounded-full border flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark"><i class="fas fa-chevron-left text-xs"></i></button>
-            <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center"><i class="fas fa-chevron-right text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('top-booked-slider').scrollBy({left: -350, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('top-booked-slider').scrollBy({left: 350, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Package Card 1 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80');">
+    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth">
+        <?php $__empty_1 = true; $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <!-- Package Card -->
+        <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('<?php echo e($package->image ? Storage::url($package->image) : 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80'); ?>');">
             <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
             <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
             <div class="relative z-10">
@@ -250,7 +271,7 @@
                         <i class="fas fa-shield-alt text-sm"></i>
                     </div>
                 </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Fit India Full Body Checkup With Vitamin Screening...</h3>
+                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all"><?php echo e($package->name); ?></h3>
                 <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
                     <div class="text-center">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
@@ -259,185 +280,44 @@
                     <div class="w-px h-8 bg-gray-200"></div>
                     <div class="text-center">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">98</p>
+                        <p class="text-sm font-bold text-gray-800"><?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?></p>
                     </div>
                 </div>
+                
+                <?php if(!empty($package->parameters) && is_array($package->parameters)): ?>
                 <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+6 More</span>
+                    <?php $__currentLoopData = array_slice($package->parameters, 0, 3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $param): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-check-circle text-brand-secondary mr-1.5"></i> <?php echo e(\Illuminate\Support\Str::limit($param, 15)); ?></span>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php if(count($package->parameters) > 3): ?>
+                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+<?php echo e(count($package->parameters) - 3); ?> More</span>
+                    <?php endif; ?>
                 </div>
+                <?php endif; ?>
+                
+                <?php if($package->description): ?>
+                <p class="text-xs text-gray-600 mb-6 line-clamp-2"><?php echo e($package->description); ?></p>
+                <?php endif; ?>
+                
             </div>
             <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
                 <div class="flex items-end justify-between mb-4">
                     <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹4000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
+                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></div>
                     </div>
                 </div>
                 <button onclick="addToCart(this)" 
-                    data-name="Fit India Full Body Checkup With Vitamin Screening with Free Heart Test (HsCRP)"
-                    data-price="1799" data-mrp="4000" data-params="Includes 98 Parameters"
+                    data-name="<?php echo e($package->name); ?>"
+                    data-price="<?php echo e($package->price); ?>" data-mrp="<?php echo e($package->price); ?>" data-params="Includes <?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?> Parameters"
                     class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
                 <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
             </div>
         </div>
-
-        <!-- Package Card 2 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-blue-50/80 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200/50 backdrop-blur-sm">MOST BOOKED</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Advance Plus Full Body Checkup with Free Heart Test</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">100</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+13 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹5600</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹2499</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="Advance Plus Full Body Checkup with Free Heart Test"
-                    data-price="2499" data-mrp="5600" data-params="Includes 100 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
-
-        <!-- Package Card 3 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-purple-50/80 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/50 backdrop-blur-sm">POPULAR</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">Annual Full Body Checkup - Advance</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">98</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+6 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹4000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">55% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹1799</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="Annual Full Body Checkup - Advance"
-                    data-price="1799" data-mrp="4000" data-params="Includes 98 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
-
-        <!-- Package Card 4 -->
-        <div class="rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1581594693702-fbdc51b2763b?auto=format&fit=crop&w=600&q=80');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-purple-50/80 text-purple-700 text-xs font-bold px-3 py-1 rounded-full border border-purple-200/50 backdrop-blur-sm">POPULAR</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
-                    </div>
-                </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">One Plus Full Body Checkup with Free Heart Test...</h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                    </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-gray-800">100</p>
-                    </div>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-heart text-red-400 mr-1.5"></i> Heart</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-tint text-blue-400 mr-1.5"></i> Diabetes</span>
-                    <span class="bg-white/80 backdrop-blur-sm text-gray-700 text-[10px] px-2 py-1 rounded-md border border-gray-200/50 flex items-center shadow-sm"><i class="fas fa-lungs text-gray-400 mr-1.5"></i> Lungs</span>
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+13 More</span>
-                </div>
-            </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-4">
-                    <div>
-                        <div class="flex items-center gap-2 mb-0.5">
-                            <span class="text-xs text-gray-400 line-through">₹7000</span>
-                            <span class="bg-green-100/90 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">51% OFF</span>
-                        </div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹3399</div>
-                    </div>
-                </div>
-                <button onclick="addToCart(this)" 
-                    data-name="One Plus Full Body Checkup with Free Heart Test"
-                    data-price="3399" data-mrp="7000" data-params="Includes 100 Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                    <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">For Extra 10% OFF With RC VIP</p>
-            </div>
-        </div>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+        <div class="text-gray-500 italic p-4">No packages available at the moment.</div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -451,8 +331,8 @@
                 <p class="text-xs text-gray-500">Understand how daily habits may be impacting your health.</p>
             </div>
             <div class="flex space-x-2">
-                <button class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark"><i class="fas fa-chevron-left text-xs"></i></button>
-                <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center"><i class="fas fa-chevron-right text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('habits-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('habits-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
             </div>
         </div>
 
@@ -468,9 +348,9 @@
             <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+        <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-6">
             <!-- Habit Package 1 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-brand-dark transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -513,7 +393,7 @@
             </div>
 
             <!-- Habit Package 2 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -556,7 +436,7 @@
             </div>
 
             <!-- Habit Package 3 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-700 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -599,7 +479,7 @@
             </div>
 
             <!-- Habit Package 4 -->
-            <div class="bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -654,8 +534,8 @@
                 <p class="text-xs text-gray-500 mt-2">India's First She-Centric Diagnostic Platform <a href="#" class="text-pink-500 underline font-bold hover:text-pink-700 transition">Know More</a></p>
             </div>
             <div class="flex space-x-2">
-                <button class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-400 hover:text-brand-dark hover:border-brand-dark transition-colors"><i class="fas fa-chevron-left text-xs"></i></button>
-                <button class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-black transition-colors"><i class="fas fa-chevron-right text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('femcliffe-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-pink-200 bg-white flex items-center justify-center text-gray-500 hover:text-pink-600 hover:border-pink-500 transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                <button type="button" onclick="document.getElementById('femcliffe-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-pink-600 transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
             </div>
         </div>
 
@@ -670,9 +550,9 @@
             <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Cancer</button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+        <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
             <!-- Femcliffe Package 1 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -714,7 +594,7 @@
             </div>
 
             <!-- Femcliffe Package 2 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -756,7 +636,7 @@
             </div>
 
             <!-- Femcliffe Package 3 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -798,7 +678,7 @@
             </div>
 
             <!-- Femcliffe Package 4 -->
-            <div class="bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -1154,7 +1034,13 @@
         <div class="md:w-1/3 relative z-10">
             <h2 class="text-3xl font-extrabold text-brand-dark mb-4 leading-tight">Decode Your DNA for a Healthier Tomorrow</h2>
             <p class="text-sm text-gray-700 mb-6 leading-relaxed">Your genetic blueprint holds the key to proactive healthcare. Discover personalized insights to prevent diseases, optimize your diet, and make informed lifestyle choices.</p>
-            <a href="#" class="inline-flex items-center font-bold text-white bg-brand-dark px-6 py-3 rounded-full hover:bg-brand-secondary transition transform hover:scale-105 shadow-lg mb-6">Explore GeneCliffe <i class="fas fa-arrow-right ml-2"></i></a>
+            <div class="flex flex-wrap items-center gap-3 mb-6">
+                <a href="#" class="inline-flex items-center font-bold text-white bg-brand-dark px-6 py-3 rounded-full hover:bg-brand-secondary transition transform hover:scale-105 shadow-lg">Explore GeneCliffe <i class="fas fa-arrow-right ml-2"></i></a>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: -330, behavior: 'smooth'})" class="w-9 h-9 rounded-full bg-white text-brand-dark border border-green-200 flex items-center justify-center hover:bg-brand-secondary hover:text-white shadow-sm transition active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+                    <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-9 h-9 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary shadow-md transition active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
+                </div>
+            </div>
         </div>
         
         <div class="md:w-2/3 w-full relative z-10">
@@ -1172,7 +1058,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Unlock your complete genetic profile to identify silent mutations and understand your body at a cellular level.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center hover:bg-green-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1187,7 +1073,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Early detection saves lives. Learn if you carry genetic markers for hereditary cancers, cardiac issues, and more.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center hover:bg-blue-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center hover:bg-blue-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1202,7 +1088,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Stop guessing your diet. Discover exactly which foods your body processes best and which ones to avoid entirely.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center hover:bg-yellow-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center hover:bg-yellow-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1217,7 +1103,7 @@
                         <p class="text-xs text-gray-500 leading-relaxed">Map the millions of bacteria in your gut to resolve chronic digestion issues and boost your immune system organically.</p>
                     </div>
                     <div class="flex justify-end mt-4">
-                        <button class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-600 hover:text-white transition"><i class="fas fa-arrow-right text-xs"></i></button>
+                        <button type="button" onclick="document.getElementById('gene-slider').scrollBy({left: 330, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center hover:bg-purple-600 hover:text-white transition active:scale-95" title="Next Slide"><i class="fas fa-arrow-right text-xs"></i></button>
                     </div>
                 </div>
 
@@ -1273,8 +1159,8 @@
             <p class="text-xs text-gray-500 mt-1">Slide to explore packages for your loved ones</p>
         </div>
         <div class="flex space-x-2">
-            <button onclick="document.getElementById('family-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm"><i class="fas fa-chevron-left text-xs"></i></button>
-            <button onclick="document.getElementById('family-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-md"><i class="fas fa-chevron-right text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('family-slider').scrollBy({left: -340, behavior: 'smooth'})" class="w-8 h-8 rounded-full border border-gray-300 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-xs"></i></button>
+            <button type="button" onclick="document.getElementById('family-slider').scrollBy({left: 340, behavior: 'smooth'})" class="w-8 h-8 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-md active:scale-95" title="Next"><i class="fas fa-chevron-right text-xs"></i></button>
         </div>
     </div>
 
@@ -1647,6 +1533,12 @@
     </div>
 </div>
 
+
+    <!-- Patient Reviews & Testimonials Section -->
+    <?php echo $__env->make('partials.reviews-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+    <!-- Contact & Quick Medical Enquiry Section -->
+    <?php echo $__env->make('partials.enquiry-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <?php $__env->stopSection(); ?>
 

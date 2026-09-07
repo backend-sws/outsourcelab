@@ -3,10 +3,25 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\PatientProfileController;
+use App\Http\Controllers\PublicFeedbackController;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    $approvedReviews = \App\Models\Review::where('status', 'Approved')->latest()->take(15)->get();
+    $singleTests = \App\Models\Test::where('is_active', true)->with('category')->latest()->take(24)->get();
+    $packages = \App\Models\Package::where('is_active', true)
+        ->where(function($q) {
+            $q->where('type', 'general')->orWhereNull('type');
+        })->latest()->take(10)->get();
+        
+    $habitPackages = \App\Models\Package::where('is_active', true)->where('type', 'habit')->latest()->get();
+    $femcliffePackages = \App\Models\Package::where('is_active', true)->where('type', 'femcliffe')->latest()->get();
+    
+    return view('welcome', compact('approvedReviews', 'singleTests', 'packages', 'habitPackages', 'femcliffePackages'));
+})->name('home');
+
+// Public Review and Enquiry Routes
+Route::post('/reviews', [PublicFeedbackController::class, 'storeReview'])->name('reviews.store');
+Route::post('/enquiries', [PublicFeedbackController::class, 'storeEnquiry'])->name('enquiries.store');
 
 Route::get('/checkout', function () {
     $patientId = session('patient_id');
@@ -16,6 +31,9 @@ Route::get('/checkout', function () {
 })->name('checkout.index');
 
 Route::post('/patient/login', [PatientProfileController::class, 'login'])->name('patient.login');
+Route::post('/patient/register', [PatientProfileController::class, 'register'])->name('patient.register');
+Route::post('/patient/forgot-password', [PatientProfileController::class, 'forgotPassword'])->name('patient.forgot_password');
+Route::post('/patient/reset-password', [PatientProfileController::class, 'resetPassword'])->name('patient.reset_password');
 Route::get('/patient/dashboard', [PatientProfileController::class, 'dashboard'])->name('patient.dashboard');
 Route::get('/patient/profile/edit', [PatientProfileController::class, 'edit'])->name('patient.profile.edit');
 Route::post('/patient/profile/edit', [PatientProfileController::class, 'store'])->name('patient.profile.store');
@@ -36,3 +54,37 @@ Route::get('/patient/logout', function () {
     session()->forget('patient_id');
     return redirect('/');
 })->name('patient.logout');
+
+// Super Admin Routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    
+    // Auth Routes
+    Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
+
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+        
+        // Bookings
+        Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{id}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
+        Route::post('/bookings/{id}/status', [\App\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+        Route::get('/bookings/{id}/print', [\App\Http\Controllers\Admin\BookingController::class, 'print'])->name('bookings.print');
+        
+        // Tests
+        Route::resource('tests', \App\Http\Controllers\Admin\TestController::class);
+        
+        // Packages
+        Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);
+        
+        // Reviews
+        Route::get('/reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
+        Route::post('/reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{id}/reject', [\App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+        
+        // Enquiries
+        Route::get('/enquiries', [\App\Http\Controllers\Admin\EnquiryController::class, 'index'])->name('enquiries.index');
+        Route::get('/enquiries/{id}', [\App\Http\Controllers\Admin\EnquiryController::class, 'show'])->name('enquiries.show');
+    });
+});

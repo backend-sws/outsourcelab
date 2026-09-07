@@ -1,4 +1,4 @@
-﻿    <!-- Footer -->
+    <!-- Footer -->
     <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[8px] border-brand-secondary">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
@@ -18,14 +18,13 @@
                 <div>
                     <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm">Quick Links</h4>
                     <ul class="space-y-3 text-xs text-gray-300">
-                        <li><a href="#" class="hover:text-brand-secondary transition">Face Scan</a></li>
+                        <li><a href="/#reviews" class="hover:text-brand-secondary transition">Patient Reviews & Feedback</a></li>
+                        <li><a href="/#contact-enquiry" class="hover:text-brand-secondary transition">Have a Query / Enquiry</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Partner With Us</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Franchise Opportunity</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">FAQs</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">About Us</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Our Labs</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">ESG Practices</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Have a Query</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Career</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Statutory Compliance</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Membership Subscription</a></li>
