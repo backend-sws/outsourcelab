@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     protected $fillable = [
-        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp'
+        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp', 'last_login_at'
     ];
 
     protected $hidden = [
@@ -19,6 +19,7 @@ class Patient extends Model
     {
         return [
             'password' => 'hashed',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -40,5 +41,17 @@ class Patient extends Model
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function patientCoupons()
+    {
+        return $this->hasMany(PatientCoupon::class);
+    }
+
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupon::class, 'patient_coupons')
+                    ->withPivot('is_used', 'used_at', 'booking_id')
+                    ->withTimestamps();
     }
 }

@@ -209,6 +209,19 @@
                                 @endif
                             </a>
 
+                            <!-- Users / Logged-in Accounts -->
+                            <a href="{{ route('admin.users.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.users.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-users w-5 text-center text-base {{ request()->routeIs('admin.users.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <span>Users</span>
+                                </div>
+                                @if(request()->routeIs('admin.users.*'))
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
+                                @else
+                                    <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
+                                @endif
+                            </a>
+
                             <!-- Bookings -->
                             <a href="{{ route('admin.bookings.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.bookings.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
                                 <div class="flex items-center space-x-3">
@@ -260,6 +273,27 @@
                                     <span>Enquiries</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Section: Coupons & Offers (Below Manage & Feedback) -->
+                    <div>
+                        <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-400">
+                            Promotions & Coupons
+                        </div>
+                        <nav class="space-y-1.5">
+                            <!-- Coupons -->
+                            <a href="{{ route('admin.coupons.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.coupons.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-ticket-alt w-5 text-center text-base {{ request()->routeIs('admin.coupons.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <span>Coupons</span>
+                                </div>
+                                @if(request()->routeIs('admin.coupons.*'))
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
+                                @else
+                                    <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
+                                @endif
                             </a>
                         </nav>
                     </div>

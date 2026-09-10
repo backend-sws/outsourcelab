@@ -30,7 +30,9 @@ class PatientProfileController extends Controller
 
         if ($patient) {
             if (Hash::check($password, $patient->password)) {
+                $patient->update(['last_login_at' => now()]);
                 session(['patient_id' => $patient->id]);
+                $this->assignWelcomeCoupons($patient->id);
                 return response()->json(['success' => true, 'redirect' => route('patient.dashboard')]);
             } else {
                 return response()->json(['success' => false, 'message' => 'Invalid password.']);
@@ -55,10 +57,12 @@ class PatientProfileController extends Controller
         
         $patient = Patient::create([
             'email' => $email,
-            'password' => Hash::make($password)
+            'password' => Hash::make($password),
+            'last_login_at' => now(),
         ]);
         
         session(['patient_id' => $patient->id]);
+        $this->assignWelcomeCoupons($patient->id);
         return response()->json(['success' => true, 'redirect' => route('patient.profile.edit')]);
     }
 
@@ -99,6 +103,7 @@ class PatientProfileController extends Controller
 
         $patient->password = Hash::make($newPassword);
         $patient->otp = null;
+        $patient->last_login_at = now();
         $patient->save();
 
         session(['patient_id' => $patient->id]);
@@ -228,6 +233,114 @@ class PatientProfileController extends Controller
         return view('patient.bookings', compact('profile'));
     }
 
+    public function coupons()
+    {
+        $patientId = session('patient_id');
+        if (!$patientId) return redirect('/');
+
+        $profile = Patient::find($patientId);
+        if (!$profile) return redirect('/');
+
+        $this->assignWelcomeCoupons($patientId);
+
+        $myCoupons = \App\Models\PatientCoupon::with('coupon')
+            ->where('patient_id', $patientId)
+            ->latest()
+            ->get();
+
+        $publicCoupons = \App\Models\Coupon::where('is_active', true)
+            ->where('coupon_type', '!=', 'welcome')
+            ->latest()
+            ->get();
+
+        return view('patient.coupons', compact('profile', 'myCoupons', 'publicCoupons'));
+    }
+
+    public function assignWelcomeCoupons(int $patientId): void
+    {
+        $welcomeCoupons = \App\Models\Coupon::where('coupon_type', 'welcome')
+            ->where('is_active', true)
+            ->get();
+
+        foreach ($welcomeCoupons as $coupon) {
+            \App\Models\PatientCoupon::firstOrCreate([
+                'patient_id' => $patientId,
+                'coupon_id' => $coupon->id,
+            ]);
+        }
+    }
+
+    public function applyCoupon(Request $request)
+    {
+        $code = strtoupper(trim($request->input('code', '')));
+        $cartTotal = (float)$request->input('cart_total', 0);
+        $patientId = session('patient_id');
+
+        if (!$code) {
+            return response()->json(['success' => false, 'message' => 'Please enter a coupon code.']);
+        }
+
+        if ($cartTotal <= 0) {
+            return response()->json(['success' => false, 'message' => 'Please add tests or packages to your cart first.']);
+        }
+
+        $coupon = \App\Models\Coupon::where('code', $code)->first();
+
+        if (!$coupon || !$coupon->is_active) {
+            return response()->json(['success' => false, 'message' => 'Invalid or inactive coupon code.']);
+        }
+
+        // Validity dates check
+        if ($coupon->valid_from && now()->startOfDay()->lt($coupon->valid_from)) {
+            return response()->json(['success' => false, 'message' => 'This coupon offer has not started yet.']);
+        }
+        if ($coupon->valid_until && now()->endOfDay()->gt($coupon->valid_until->endOfDay())) {
+            return response()->json(['success' => false, 'message' => 'This coupon offer has expired.']);
+        }
+
+        // Welcome coupon check: user must be logged in and coupon must not have been already used
+        if ($coupon->coupon_type === 'welcome') {
+            if (!$patientId) {
+                return response()->json(['success' => false, 'message' => 'Please login to use your welcome coupon.']);
+            }
+            $userCoupon = \App\Models\PatientCoupon::where('patient_id', $patientId)
+                ->where('coupon_id', $coupon->id)
+                ->first();
+
+            if ($userCoupon && $userCoupon->is_used) {
+                return response()->json(['success' => false, 'message' => 'You have already redeemed your welcome coupon on a previous booking.']);
+            }
+        }
+
+        // Minimum order spend check (for banner/threshold coupons)
+        if ($coupon->min_order_amount > 0 && $cartTotal < $coupon->min_order_amount) {
+            $diff = $coupon->min_order_amount - $cartTotal;
+            return response()->json([
+                'success' => false,
+                'message' => "This coupon requires a minimum cart amount of ₹" . number_format($coupon->min_order_amount, 2) . ". Add ₹" . number_format($diff, 2) . " more worth of tests to apply."
+            ]);
+        }
+
+        // Calculate discount
+        $discount = $coupon->calculateDiscount($cartTotal);
+        $finalTotal = max(0, $cartTotal - $discount);
+
+        $discountText = $coupon->discount_type === 'percentage' 
+            ? "{$coupon->discount_value}% OFF (-₹" . number_format($discount, 2) . ")"
+            : "₹" . number_format($discount, 2) . " Flat OFF";
+
+        return response()->json([
+            'success' => true,
+            'coupon_code' => $coupon->code,
+            'coupon_title' => $coupon->title,
+            'discount_type' => $coupon->discount_type,
+            'discount_value' => $coupon->discount_value,
+            'discount_amount' => $discount,
+            'final_total' => $finalTotal,
+            'message' => "Success! Coupon '{$coupon->code}' applied: {$discountText} deducted."
+        ]);
+    }
+
     public function placeBooking(Request $request)
     {
         $patientId = session('patient_id');
@@ -239,13 +352,16 @@ class PatientProfileController extends Controller
         $bookingDate  = $request->input('booking_date', now()->toDateTimeString());
         $addressId    = $request->input('address_id', null);
         $familyMemberId = $request->input('family_member_id', null);
+        $couponCode   = $request->input('coupon_code', null);
+        $discountAmount = (float)$request->input('discount_amount', 0);
 
         if (empty($cartItems)) {
             return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
         }
 
         // Calculate total amount
-        $totalAmount = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0), $cartItems));
+        $subtotal = array_sum(array_map(fn($item) => (float)($item['price'] ?? 0), $cartItems));
+        $finalAmount = max(0, $subtotal - $discountAmount);
 
         // Generate unique booking reference
         $ref = 'BK-' . strtoupper(substr(uniqid(), -6));
@@ -257,12 +373,30 @@ class PatientProfileController extends Controller
             'address_id'        => $addressId,
             'test_details'      => $cartItems,
             'collection_type'   => $collectionType,
-            'amount'            => $totalAmount,
+            'amount'            => $finalAmount,
+            'coupon_code'       => $couponCode,
+            'discount_amount'   => $discountAmount,
             'payment_method'    => $paymentMethod,
             'payment_status'    => $paymentMethod === 'Cash' ? 'Pending' : 'Paid',
             'status'            => 'Booked',
             'booking_date'      => $bookingDate,
         ]);
+
+        // If a coupon was applied, mark it as used for this patient
+        if ($couponCode) {
+            $coupon = \App\Models\Coupon::where('code', $couponCode)->first();
+            if ($coupon) {
+                $userCoupon = \App\Models\PatientCoupon::firstOrCreate([
+                    'patient_id' => $patientId,
+                    'coupon_id' => $coupon->id,
+                ]);
+                $userCoupon->update([
+                    'is_used' => true,
+                    'used_at' => now(),
+                    'booking_id' => $booking->id,
+                ]);
+            }
+        }
 
         return response()->json([
             'success'   => true,

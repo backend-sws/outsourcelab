@@ -1,3 +1,110 @@
+    <!-- Promotional Banner for Banner Coupon with Left-to-Right Moving Ticket -->
+    <?php
+        $siteBannerCoupon = \App\Models\Coupon::where('is_active', true)->where('is_banner', true)->latest()->first();
+    ?>
+    <?php if($siteBannerCoupon): ?>
+        <?php
+            $bannerText = $siteBannerCoupon->banner_text ?: ($siteBannerCoupon->title . ': ' . ($siteBannerCoupon->discount_type === 'percentage' ? $siteBannerCoupon->discount_value . '% OFF' : 'Flat ₹' . number_format($siteBannerCoupon->discount_value) . ' OFF') . ($siteBannerCoupon->min_order_amount > 0 ? ' on bookings above ₹' . number_format($siteBannerCoupon->min_order_amount) : ''));
+        ?>
+        <div class="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-950 text-white py-2 shadow-inner z-50 coupon-marquee-wrapper border-b border-white/10 select-none cursor-default" title="Hover to pause">
+            <style>
+                @keyframes couponTickerLTR {
+                    0% {
+                        transform: translateX(-50%);
+                    }
+                    100% {
+                        transform: translateX(0%);
+                    }
+                }
+                .coupon-marquee-track {
+                    display: inline-flex;
+                    width: max-content;
+                    will-change: transform;
+                    animation: couponTickerLTR 35s linear infinite;
+                }
+                .coupon-marquee-wrapper:hover .coupon-marquee-track {
+                    animation-play-state: paused;
+                }
+                .coupon-ticket-badge {
+                    position: relative;
+                    background: linear-gradient(135deg, #fef08a 0%, #facc15 50%, #eab308 100%);
+                    color: #0f172a;
+                    padding: 3px 12px;
+                    border-radius: 6px;
+                    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 0 0 1.5px rgba(255, 255, 255, 0.6);
+                    border: 1.5px dashed #854d0e;
+                }
+                .coupon-ticket-badge::before,
+                .coupon-ticket-badge::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    width: 7px;
+                    height: 7px;
+                    background: #312e81;
+                    border-radius: 50%;
+                    transform: translateY(-50%);
+                }
+                .coupon-ticket-badge::before {
+                    left: -4px;
+                }
+                .coupon-ticket-badge::after {
+                    right: -4px;
+                }
+            </style>
+
+            <div class="coupon-marquee-track">
+                <!-- Group 1 -->
+                <div class="flex items-center gap-10 pr-10">
+                    <?php for($i = 0; $i < 3; $i++): ?>
+                        <div class="inline-flex items-center gap-3">
+                            <span class="flex items-center gap-2 text-xs md:text-sm font-semibold tracking-wide text-white drop-shadow-sm">
+                                <i class="fas fa-bullhorn text-amber-300"></i>
+                                <span><?php echo e($bannerText); ?></span>
+                            </span>
+                            
+                            <!-- Authentic Coupon Ticket (Code Show Only, No Copy Button) -->
+                            <div class="coupon-ticket-badge">
+                                <i class="fas fa-ticket-alt text-amber-950 text-xs -rotate-12"></i>
+                                <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-amber-900">TICKET:</span>
+                                <span class="bg-slate-950 text-yellow-300 px-1.5 py-0.5 rounded text-xs font-black tracking-widest"><?php echo e($siteBannerCoupon->code); ?></span>
+                            </div>
+
+                            <span class="text-amber-400/60 text-xs ml-3">✦</span>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+
+                <!-- Group 2 (Duplicate for 100% seamless infinite loop) -->
+                <div class="flex items-center gap-10 pr-10" aria-hidden="true">
+                    <?php for($i = 0; $i < 3; $i++): ?>
+                        <div class="inline-flex items-center gap-3">
+                            <span class="flex items-center gap-2 text-xs md:text-sm font-semibold tracking-wide text-white drop-shadow-sm">
+                                <i class="fas fa-bullhorn text-amber-300"></i>
+                                <span><?php echo e($bannerText); ?></span>
+                            </span>
+                            
+                            <!-- Authentic Coupon Ticket (Code Show Only, No Copy Button) -->
+                            <div class="coupon-ticket-badge">
+                                <i class="fas fa-ticket-alt text-amber-950 text-xs -rotate-12"></i>
+                                <span class="text-[9px] font-sans font-bold uppercase tracking-wider text-amber-900">TICKET:</span>
+                                <span class="bg-slate-950 text-yellow-300 px-1.5 py-0.5 rounded text-xs font-black tracking-widest"><?php echo e($siteBannerCoupon->code); ?></span>
+                            </div>
+
+                            <span class="text-amber-400/60 text-xs ml-3">✦</span>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
     <!-- Top Header -->
     <div class="bg-white py-4 px-4 border-b">
         <div class="container mx-auto flex justify-between items-center text-sm">

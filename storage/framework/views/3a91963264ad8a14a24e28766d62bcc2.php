@@ -320,10 +320,8 @@
         <?php endif; ?>
     </div>
 </div>
-
-
     <!-- Unhealthy Habits -->
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8" id="habits-section">
     <div class="bg-gray-50 rounded-2xl p-6">
         <div class="flex justify-between items-end mb-4">
             <div>
@@ -337,196 +335,73 @@
         </div>
 
         <!-- Tabs -->
-        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar">
-            <button class="bg-brand-dark text-white px-4 py-2 rounded-lg text-sm font-bold min-w-max">All</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-hamburger mr-2 text-orange-400"></i> Junk Food</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-couch mr-2 text-purple-400"></i> Sedentary Lifestyle</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-smoking mr-2 text-gray-400"></i> Smoking</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-glass-martini-alt mr-2 text-red-400"></i> Alcohol</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-brain mr-2 text-pink-400"></i> Stress</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-angry mr-2 text-red-600"></i> Anger</button>
-            <button class="bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
+        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar" id="habits-tabs">
+            <button onclick="filterPackages('habit', 'All', this)" class="habit-tab bg-brand-dark text-white px-4 py-2 rounded-lg text-sm font-bold min-w-max">All</button>
+            <button onclick="filterPackages('habit', 'Junk Food', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-hamburger mr-2 text-orange-400"></i> Junk Food</button>
+            <button onclick="filterPackages('habit', 'Sedentary Lifestyle', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-couch mr-2 text-purple-400"></i> Sedentary Lifestyle</button>
+            <button onclick="filterPackages('habit', 'Smoking', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-smoking mr-2 text-gray-400"></i> Smoking</button>
+            <button onclick="filterPackages('habit', 'Alcohol', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-glass-martini-alt mr-2 text-red-400"></i> Alcohol</button>
+            <button onclick="filterPackages('habit', 'Stress', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-brain mr-2 text-pink-400"></i> Stress</button>
+            <button onclick="filterPackages('habit', 'Anger', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-angry mr-2 text-red-600"></i> Anger</button>
+            <button onclick="filterPackages('habit', 'Sleepless', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
         </div>
 
         <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-6">
-            <!-- Habit Package 1 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
+            <?php $__empty_1 = true; $__currentLoopData = $habitPackages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <!-- Habit Package -->
+            <div class="habit-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group" data-category="<?php echo e($package->subcategory); ?>">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-brand-dark transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
                         <div class="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 mb-2">
-                            <i class="fas fa-battery-quarter text-sm"></i>
+                            <i class="fas fa-notes-medical text-sm"></i>
                         </div>
-                        <span class="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-1 rounded-md">LIFESTYLE</span>
+                        <span class="bg-teal-50 text-teal-700 text-[10px] font-bold px-2 py-1 rounded-md uppercase"><?php echo e($package->subcategory); ?></span>
                     </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Low Energy Screening Package</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
+                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors"><?php echo e($package->name); ?></h4>
+                    
                     <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
+                        <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
                             <p class="text-sm font-bold text-gray-800">12 hrs</p>
                         </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
+                        <div class="w-px h-8 bg-gray-200 mx-2"></div>
+                        <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">33</p>
+                            <p class="text-sm font-bold text-gray-800"><?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?></p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">This test helps diagnose the root cause of constant fatigue or other low-energy</p>
+                    <?php if($package->description): ?>
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2"><?php echo e($package->description); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-end justify-between mb-4">
                         <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹1700</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">53% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹799</div>
+                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></div>
                         </div>
                     </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
+                    <button onclick="addToCart(this)" 
+                        data-name="<?php echo e($package->name); ?>"
+                        data-price="<?php echo e($package->price); ?>" data-mrp="<?php echo e($package->price); ?>" data-params="Includes <?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?> Parameters"
+                        class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
                     <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
                 </div>
             </div>
-
-            <!-- Habit Package 2 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-blue-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 mb-2">
-                            <i class="fas fa-procedures text-sm"></i>
-                        </div>
-                        <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-md">LIFESTYLE</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Fatigue Syndrome Test</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">62</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">It helps diagnose the cause behind chronic fatigue & help a doctor guide treatment.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹3500</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">54% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹1599</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Habit Package 3 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-red-700 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-2">
-                            <i class="fas fa-angry text-sm"></i>
-                        </div>
-                        <span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-1 rounded-md">EMOTIONAL</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Anger Impact Package - Extended</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">56</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">CBC, HbA1C, Lipid Profile, LFT, Iron Studies, CRP, TSH, Vitamin D</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹3000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">63% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹1099</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Habit Package 4 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 mb-2">
-                            <i class="fas fa-hamburger text-sm"></i>
-                        </div>
-                        <span class="bg-orange-50 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-md">DIET</span>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-brand-secondary transition-colors">Junk Food Test</h4>
-                    <a href="#" class="text-[10px] text-brand-secondary font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-gray-100">
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">12 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-gray-200"></div>
-                        <div class="text-center">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">40</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Evaluates key health markers affected by high junk food and sugar consumption.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹2000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">50% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹999</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="text-gray-500 italic p-4">No habit packages available yet.</div>
+            <?php endif; ?>
         </div>
+    </div>
+</div>
     </div>
 </div>
 
 
     <!-- Femcliffe Health Packages -->
-<div class="bg-pink-50/50 py-8 mt-8 rounded-[2rem] mx-4 lg:mx-0">
+<div class="bg-pink-50/50 py-8 mt-8 rounded-[2rem] mx-4 lg:mx-0" id="femcliffe-section">
     <div class="container mx-auto px-4">
         <div class="flex justify-between items-end mb-6">
             <div>
@@ -540,19 +415,20 @@
         </div>
 
         <!-- Tabs -->
-        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar">
-            <button class="bg-pink-500 text-white px-5 py-2 rounded-xl text-sm font-bold min-w-max shadow-md">All</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Pregnancy</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Wellness</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">PCOS/PCOD</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Sexual Health</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Menstrual Health</button>
-            <button class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-all">Cancer</button>
+        <div class="flex space-x-2 overflow-x-auto pb-4 hide-scroll-bar" id="femcliffe-tabs">
+            <button onclick="filterPackages('femcliffe', 'All', this)" class="bg-brand-dark text-white px-5 py-2 rounded-xl text-sm font-bold min-w-max shadow-md transition-colors">All</button>
+            <button onclick="filterPackages('femcliffe', 'Pregnancy', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Pregnancy</button>
+            <button onclick="filterPackages('femcliffe', 'Wellness', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Wellness</button>
+            <button onclick="filterPackages('femcliffe', 'PCOS/PCOD', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">PCOS/PCOD</button>
+            <button onclick="filterPackages('femcliffe', 'Sexual Health', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Sexual Health</button>
+            <button onclick="filterPackages('femcliffe', 'Menstrual Health', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Menstrual Health</button>
+            <button onclick="filterPackages('femcliffe', 'Cancer', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Cancer</button>
         </div>
 
         <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
-            <!-- Femcliffe Package 1 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
+            <?php $__empty_1 = true; $__currentLoopData = $femcliffePackages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <!-- Femcliffe Package -->
+            <div class="femcliffe-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group" data-category="<?php echo e($package->subcategory); ?>">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-start mb-2">
@@ -560,9 +436,8 @@
                             <i class="fas fa-venus text-sm"></i>
                         </div>
                     </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Thyroid Profile Total</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
+                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors"><?php echo e($package->name); ?></h4>
+                    
                     <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
@@ -571,155 +446,33 @@
                         <div class="w-px h-8 bg-pink-200 mx-2"></div>
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">3</p>
+                            <p class="text-sm font-bold text-gray-800"><?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?></p>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">A comprehensive thyroid panel measuring total T3, total T4, and TSH.</p>
+                    <?php if($package->description): ?>
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2"><?php echo e($package->description); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-end justify-between mb-4">
                         <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹1000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">57% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹429</div>
+                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></div>
                         </div>
                     </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
+                    <button onclick="addToCart(this)" 
+                        data-name="<?php echo e($package->name); ?>"
+                        data-price="<?php echo e($package->price); ?>" data-mrp="<?php echo e($package->price); ?>" data-params="Includes <?php echo e(is_array($package->parameters) ? count($package->parameters) : 0); ?> Parameters"
+                        class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
                     <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
                 </div>
             </div>
-
-            <!-- Femcliffe Package 2 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Stay Fit Plus Full Body Checkup With Free RA Factor</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">89</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Complete health checkup designed specifically for women's wellness.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹6800</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">62% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹2599</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Femcliffe Package 3 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">Master Full Body Checkup Package - Women</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">10 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">107</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Assesses parameters like TSH, LH-FSH, CBC, lipid profile, vit D & B12.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹9000</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">48% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹4699</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
-
-            <!-- Femcliffe Package 4 -->
-            <div class="w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 to-purple-500 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-500 mb-2">
-                            <i class="fas fa-venus text-sm"></i>
-                        </div>
-                    </div>
-                    <h4 class="font-bold text-gray-800 text-base leading-snug mb-1 group-hover:text-pink-500 transition-colors">TSH Test</h4>
-                    <a href="#" class="text-[10px] text-pink-500 font-semibold hover:underline">View Details ></a>
-
-                    <div class="bg-pink-50/50 rounded-xl p-3 flex items-center justify-between mt-4 mb-4 border border-pink-100">
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                            <p class="text-sm font-bold text-gray-800">12 hrs</p>
-                        </div>
-                        <div class="w-px h-8 bg-pink-200 mx-2"></div>
-                        <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-sm font-bold text-gray-800">1</p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2">Measures Thyroid Stimulating Hormone levels to check thyroid function.</p>
-                </div>
-                <div class="border-t border-gray-100 pt-4 mt-auto">
-                    <div class="flex items-end justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-xs text-gray-400 line-through">₹400</span>
-                                <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">25% OFF</span>
-                            </div>
-                            <div class="text-2xl font-black text-gray-900 tracking-tight">₹299</div>
-                        </div>
-                    </div>
-                    <button class="w-full bg-white border-2 border-pink-500 text-pink-500 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-500 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
-                        <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
-                    </button>
-                    <p class="text-[9px] text-gray-400 text-center mt-3">For Extra 10% OFF With RC VIP</p>
-                </div>
-            </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            <div class="text-gray-500 italic p-4">No femcliffe packages available yet.</div>
+            <?php endif; ?>
         </div>
-        </div>
+    </div>
 </div>
 
 

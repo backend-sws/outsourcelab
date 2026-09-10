@@ -30,8 +30,23 @@
 
     <!-- My Benefits -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
-        <h5 class="font-extrabold text-brand-dark text-lg p-4 pb-2">My Benefits</h5>
+        <h5 class="font-extrabold text-brand-dark text-lg p-4 pb-2 flex items-center justify-between">
+            <span>My Benefits</span>
+            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">OFFERS</span>
+        </h5>
         <ul class="text-sm font-semibold text-gray-700 divide-y divide-gray-100">
+            <li>
+                <a href="{{ route('patient.coupons') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.coupons') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}">
+                    <span class="flex items-center">
+                        <i class="fas fa-ticket-alt w-6 {{ request()->routeIs('patient.coupons') ? 'text-brand-secondary' : 'text-indigo-500' }}"></i> 
+                        <span>My Coupons</span>
+                    </span> 
+                    <span class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                    </span>
+                </a>
+            </li>
             <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-gift w-6 text-gray-400"></i> My Gift Card</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-heartbeat w-6 text-gray-400"></i> One Health</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-crown w-6 text-gray-400"></i> Become a VIP</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>

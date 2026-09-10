@@ -18,6 +18,8 @@
     @include('patient.modals.change-address')
     @include('patient.modals.add-address')
     
+    @include('partials.floating-welcome-ticket')
+
     @include('partials.scripts')
 </body>
 </html>

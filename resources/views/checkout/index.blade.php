@@ -266,9 +266,116 @@
             <div class="lg:w-1/3">
                 <div class="sticky top-24">
                     
+                    <!-- Apply Coupon / Promo Code Block -->
+                    <div id="checkoutCouponSection" class="bg-white border border-gray-200 rounded-xl p-4 mb-4 shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-black text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                                <i class="fas fa-ticket-alt text-brand-secondary"></i>
+                                <span>Apply Coupon / Promo Code</span>
+                            </span>
+                        </div>
+
+                        <!-- Coupon Input Field -->
+                        <div id="couponInputContainer" class="flex gap-2">
+                            <input type="text" id="checkoutCouponInput" placeholder="Enter coupon code" 
+                                class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs uppercase font-mono font-black focus:ring-2 focus:ring-brand-secondary outline-none text-gray-800 placeholder-gray-400">
+                            <button type="button" onclick="applyCouponManual()" id="applyCouponBtn" 
+                                class="bg-brand-dark hover:bg-brand-secondary text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <span>Apply</span>
+                            </button>
+                        </div>
+
+                        <!-- Coupon Message Alert -->
+                        <div id="couponStatusMessage" class="hidden text-[11px] font-bold mt-2 p-2 rounded-lg"></div>
+
+                        <!-- Active Applied Coupon Pill -->
+                        <div id="appliedCouponDisplay" class="hidden mt-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <span class="font-mono font-black text-xs text-emerald-800" id="appliedCouponCodeText"></span>
+                                    <span class="text-[10px] text-emerald-600 block font-semibold" id="appliedCouponSavingsText"></span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="removeAppliedCoupon()" class="text-xs font-bold text-rose-500 hover:text-rose-700">Remove</button>
+                        </div>
+
+                        <!-- Available Coupons for Quick Apply -->
+                        @if((isset($myCoupons) && $myCoupons->count() > 0) || (isset($bannerCoupons) && $bannerCoupons->count() > 0))
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Available Offers</span>
+                                    <span class="text-[10px] font-bold text-brand-secondary">Click to Apply</span>
+                                </div>
+                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                    {{-- User Welcome Coupon --}}
+                                    @if(isset($myCoupons))
+                                        @foreach($myCoupons as $pc)
+                                            @if($pc->coupon && $pc->coupon->is_active)
+                                                <div onclick="applyQuickCoupon('{{ $pc->coupon->code }}')" class="p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/50 hover:bg-indigo-50 cursor-pointer transition flex items-center justify-between group">
+                                                    <div>
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="font-mono font-black text-xs text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200">{{ $pc->coupon->code }}</span>
+                                                            @if($pc->coupon->coupon_type === 'welcome')
+                                                                <span class="text-[9px] font-black uppercase text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded">🎁 1st Order</span>
+                                                            @endif
+                                                        </div>
+                                                        <p class="text-[10px] text-gray-600 font-medium mt-1">
+                                                            {{ $pc->coupon->discount_type === 'percentage' ? $pc->coupon->discount_value . '% OFF' : '₹' . number_format($pc->coupon->discount_value) . ' Flat OFF' }}
+                                                            @if($pc->coupon->min_order_amount > 0)
+                                                                (Min order: ₹{{ number_format($pc->coupon->min_order_amount) }})
+                                                            @endif
+                                                        </p>
+                                                    </div>
+                                                    <span class="text-[11px] font-bold text-indigo-600 group-hover:underline">Apply</span>
+                                                </div>
+                                            @endif
+                                        @endforeach
+                                    @endif
+
+                                    {{-- Banner / Spend-Based Coupons --}}
+                                    @if(isset($bannerCoupons))
+                                        @foreach($bannerCoupons as $bc)
+                                            <div onclick="applyQuickCoupon('{{ $bc->code }}')" class="p-2.5 rounded-xl border border-amber-100 bg-amber-50/50 hover:bg-amber-50 cursor-pointer transition flex items-center justify-between group">
+                                                <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-mono font-black text-xs text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200">{{ $bc->code }}</span>
+                                                        <span class="text-[9px] font-black uppercase text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">📢 Offer</span>
+                                                    </div>
+                                                    <p class="text-[10px] text-gray-600 font-medium mt-1">
+                                                        {{ $bc->discount_type === 'percentage' ? $bc->discount_value . '% OFF' : '₹' . number_format($bc->discount_value) . ' Flat OFF' }}
+                                                        @if($bc->min_order_amount > 0)
+                                                            on orders > ₹{{ number_format($bc->min_order_amount) }}
+                                                        @endif
+                                                    </p>
+                                                </div>
+                                                <span class="text-[11px] font-bold text-amber-700 group-hover:underline">Apply</span>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+
                     <!-- Dynamic Summary Block (Changes based on step) -->
-                    <div id="summaryBlockStep1" class="bg-brand-light/10 rounded-xl p-4 mb-4 text-center text-brand-dark text-sm font-bold border border-brand-light">
-                        Amount would be calculated in the next step
+                    <div id="summaryBlockStep1" class="border border-gray-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
+                        <div class="p-4 border-b border-gray-100 space-y-2">
+                            <div class="flex justify-between text-sm font-semibold text-gray-600">
+                                <span>Tests Subtotal</span>
+                                <span><span data-bill-mrp class="line-through text-gray-400 text-xs mr-1">₹0</span> <span data-bill-subtotal>₹0</span></span>
+                            </div>
+                            <div class="coupon-discount-row hidden flex justify-between text-sm font-semibold text-emerald-600">
+                                <span class="flex items-center gap-1"><i class="fas fa-tag text-xs"></i> <span>Coupon (<span class="coupon-code-badge font-mono"></span>)</span></span>
+                                <span>-<span data-bill-discount>₹0</span></span>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-gray-50 flex justify-between items-center">
+                            <span class="font-extrabold text-gray-800">Total Payable</span>
+                            <span data-bill-amount class="font-black text-xl text-brand-dark">₹0</span>
+                        </div>
                     </div>
 
                     <div id="summaryBlockStep2" class="hidden">
@@ -285,8 +392,12 @@
                         <div class="border border-gray-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
                             <div class="p-4 border-b border-gray-100 space-y-3">
                                 <div class="flex justify-between text-sm font-semibold text-gray-600">
-                                    <span>Total Amount</span>
-                                    <span><span data-bill-mrp class="line-through text-gray-400 text-xs mr-1">₹0</span> <span data-bill-amount>₹0</span></span>
+                                    <span>Tests Subtotal</span>
+                                    <span><span data-bill-mrp class="line-through text-gray-400 text-xs mr-1">₹0</span> <span data-bill-subtotal>₹0</span></span>
+                                </div>
+                                <div class="coupon-discount-row hidden flex justify-between text-sm font-semibold text-emerald-600">
+                                    <span class="flex items-center gap-1"><i class="fas fa-tag text-xs"></i> <span>Coupon (<span class="coupon-code-badge font-mono"></span>)</span></span>
+                                    <span>-<span data-bill-discount>₹0</span></span>
                                 </div>
                                 <div class="flex justify-between text-sm font-semibold text-gray-600">
                                     <span>Expert Consultation</span>
@@ -299,16 +410,20 @@
                             </div>
                         </div>
                         <div class="bg-green-100/50 border border-green-200 text-green-700 text-xs font-bold p-2 rounded-lg text-center mb-6 shadow-sm">
-                            🎉 You saved ₹6979 on this booking
+                            🎉 Maximum savings applied on this booking
                         </div>
                     </div>
 
                     <!-- Shared Bill Summary for Step 2 & 3 -->
                     <div id="sharedBillBlock" class="hidden border border-gray-200 rounded-xl overflow-hidden mb-4 bg-white shadow-sm">
-                        <div class="p-4 border-b border-gray-100">
+                        <div class="p-4 border-b border-gray-100 space-y-2">
                             <div class="flex justify-between text-sm font-semibold text-gray-600">
-                                <span>Total Amount</span>
-                                <span><span data-bill-mrp class="line-through text-gray-400 text-xs mr-1">₹0</span> <span data-bill-amount>₹0</span></span>
+                                <span>Tests Subtotal</span>
+                                <span><span data-bill-mrp class="line-through text-gray-400 text-xs mr-1">₹0</span> <span data-bill-subtotal>₹0</span></span>
+                            </div>
+                            <div class="coupon-discount-row hidden flex justify-between text-sm font-semibold text-emerald-600">
+                                <span class="flex items-center gap-1"><i class="fas fa-tag text-xs"></i> <span>Coupon (<span class="coupon-code-badge font-mono"></span>)</span></span>
+                                <span>-<span data-bill-discount>₹0</span></span>
                             </div>
                         </div>
                         <div class="p-4 bg-gray-50 flex justify-between items-center">
@@ -333,9 +448,10 @@
 </div>
 
 <script>
-    // --- Cart Data (keyed by patient ID) ---
+    // --- Cart & Coupon Data (keyed by patient ID) ---
     const checkoutPatientId = "{{ session('patient_id', 'guest') }}";
     const checkoutCartKey = 'cart_' + checkoutPatientId;
+    let currentAppliedCoupon = null;
 
     function getCheckoutCart() {
         try { return JSON.parse(localStorage.getItem(checkoutCartKey)) || []; } catch(e) { return []; }
@@ -353,6 +469,88 @@
         let cart = getCheckoutCart();
         let countEl = document.getElementById('cartCount');
         if (countEl) { countEl.innerText = cart.length; countEl.style.display = cart.length > 0 ? '' : 'none'; }
+    }
+
+    function showCouponMessage(msg, type) {
+        let el = document.getElementById('couponStatusMessage');
+        if (!el) return;
+        el.className = 'text-[11px] font-bold mt-2 p-2.5 rounded-lg ' + 
+            (type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
+            (type === 'error' ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-gray-100 text-gray-700'));
+        el.innerText = msg;
+        el.classList.remove('hidden');
+    }
+
+    function applyCouponManual() {
+        let code = document.getElementById('checkoutCouponInput').value.trim();
+        if (!code) {
+            showCouponMessage('Please enter a coupon code.', 'error');
+            return;
+        }
+        applyCoupon(code);
+    }
+
+    function applyQuickCoupon(code) {
+        document.getElementById('checkoutCouponInput').value = code;
+        applyCoupon(code);
+    }
+
+    function applyCoupon(code) {
+        let cart = getCheckoutCart();
+        let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) || 0), 0);
+        if (subtotal <= 0) {
+            showCouponMessage('Please add tests or packages to your cart before applying a coupon.', 'error');
+            return;
+        }
+
+        let btn = document.getElementById('applyCouponBtn');
+        if (btn) btn.innerText = 'Checking...';
+
+        fetch("{{ route('patient.apply_coupon') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                code: code,
+                cart_total: subtotal
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (btn) btn.innerText = 'Apply';
+            if (data.success) {
+                currentAppliedCoupon = {
+                    code: data.coupon_code,
+                    title: data.coupon_title,
+                    discount: parseFloat(data.discount_amount),
+                    type: data.discount_type,
+                    value: parseFloat(data.discount_value)
+                };
+                showCouponMessage(data.message, 'success');
+                document.getElementById('couponInputContainer').classList.add('hidden');
+                document.getElementById('appliedCouponDisplay').classList.remove('hidden');
+                document.getElementById('appliedCouponCodeText').innerText = data.coupon_code;
+                document.getElementById('appliedCouponSavingsText').innerText = 'You save ₹' + Number(data.discount_amount).toFixed(2);
+                renderCheckoutCart();
+            } else {
+                showCouponMessage(data.message, 'error');
+            }
+        })
+        .catch(() => {
+            if (btn) btn.innerText = 'Apply';
+            showCouponMessage('Could not verify coupon. Please try again.', 'error');
+        });
+    }
+
+    function removeAppliedCoupon() {
+        currentAppliedCoupon = null;
+        document.getElementById('couponInputContainer').classList.remove('hidden');
+        document.getElementById('appliedCouponDisplay').classList.add('hidden');
+        document.getElementById('checkoutCouponInput').value = '';
+        showCouponMessage('Coupon removed.', 'info');
+        renderCheckoutCart();
     }
 
     function renderCheckoutCart() {
@@ -389,9 +587,37 @@
                 </div>`;
         }).join('');
 
+        let subtotal = totalAmount;
+        let discount = 0;
+        if (currentAppliedCoupon) {
+            if (currentAppliedCoupon.type === 'percentage') {
+                discount = (subtotal * currentAppliedCoupon.value) / 100;
+            } else {
+                discount = Math.min(subtotal, currentAppliedCoupon.value);
+            }
+            discount = Math.round(discount * 100) / 100;
+            currentAppliedCoupon.discount = discount;
+        }
+
+        let payable = Math.max(0, subtotal - discount);
+
         // Update bill summary blocks
-        document.querySelectorAll('[data-bill-amount]').forEach(el => el.innerText = '₹' + totalAmount);
+        document.querySelectorAll('[data-bill-subtotal]').forEach(el => el.innerText = '₹' + subtotal);
         document.querySelectorAll('[data-bill-mrp]').forEach(el => el.innerText = '₹' + totalMrp);
+        document.querySelectorAll('[data-bill-amount]').forEach(el => el.innerText = '₹' + payable);
+
+        // Update discount rows
+        document.querySelectorAll('.coupon-discount-row').forEach(row => {
+            if (discount > 0 && currentAppliedCoupon) {
+                row.classList.remove('hidden');
+                let discVal = row.querySelector('[data-bill-discount]');
+                if (discVal) discVal.innerText = '₹' + discount.toFixed(2);
+                let badge = row.querySelector('.coupon-code-badge');
+                if (badge) badge.innerText = currentAppliedCoupon.code;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -434,6 +660,8 @@
                 payment_method: 'Cash',
                 collection_type: 'Home Collection',
                 booking_date: bookingDate,
+                coupon_code: currentAppliedCoupon ? currentAppliedCoupon.code : null,
+                discount_amount: currentAppliedCoupon ? currentAppliedCoupon.discount : 0,
             })
         })
         .then(r => r.json())

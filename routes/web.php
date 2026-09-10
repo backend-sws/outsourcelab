@@ -27,7 +27,21 @@ Route::get('/checkout', function () {
     $patientId = session('patient_id');
     if (!$patientId) return redirect('/');
     $patient = \App\Models\Patient::find($patientId);
-    return view('checkout.index', compact('patient'));
+    if (!$patient) return redirect('/');
+
+    app(\App\Http\Controllers\PatientProfileController::class)->assignWelcomeCoupons($patientId);
+
+    $myCoupons = \App\Models\PatientCoupon::with('coupon')
+        ->where('patient_id', $patientId)
+        ->where('is_used', false)
+        ->get()
+        ->filter(fn($pc) => $pc->coupon && $pc->coupon->is_active);
+
+    $bannerCoupons = \App\Models\Coupon::where('is_active', true)
+        ->where('coupon_type', 'banner')
+        ->get();
+
+    return view('checkout.index', compact('patient', 'myCoupons', 'bannerCoupons'));
 })->name('checkout.index');
 
 Route::post('/patient/login', [PatientProfileController::class, 'login'])->name('patient.login');
@@ -47,6 +61,8 @@ Route::post('/patient/prescriptions', [PatientProfileController::class, 'uploadP
 Route::get('/patient/address-book', [PatientProfileController::class, 'addressBook'])->name('patient.address_book');
 Route::post('/patient/address-book', [PatientProfileController::class, 'addAddress'])->name('patient.add_address');
 Route::get('/patient/reports', [PatientProfileController::class, 'reports'])->name('patient.reports');
+Route::get('/patient/coupons', [PatientProfileController::class, 'coupons'])->name('patient.coupons');
+Route::post('/patient/apply-coupon', [PatientProfileController::class, 'applyCoupon'])->name('patient.apply_coupon');
 Route::get('/patient/bookings', [PatientProfileController::class, 'bookings'])->name('patient.bookings');
 Route::post('/patient/bookings', [PatientProfileController::class, 'placeBooking'])->name('patient.place_booking');
 
@@ -54,6 +70,10 @@ Route::get('/patient/logout', function () {
     session()->forget('patient_id');
     return redirect('/');
 })->name('patient.logout');
+
+Route::get('/login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
 
 // Super Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -66,6 +86,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         
+        // Users (Registered & Logged-in Customers)
+        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+        Route::get('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
+        Route::delete('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+
         // Bookings
         Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/{id}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
@@ -86,5 +111,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Enquiries
         Route::get('/enquiries', [\App\Http\Controllers\Admin\EnquiryController::class, 'index'])->name('enquiries.index');
         Route::get('/enquiries/{id}', [\App\Http\Controllers\Admin\EnquiryController::class, 'show'])->name('enquiries.show');
+
+        // Coupons
+        Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class);
+        Route::post('coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])->name('coupons.toggle');
     });
 });

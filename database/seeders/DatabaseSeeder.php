@@ -170,5 +170,113 @@ class DatabaseSeeder extends Seeder
                 'report_delivery_time' => 'Same Day'
             ]);
         }
+
+        // Seed Sample Patients / Users if empty
+        if (\App\Models\Patient::count() === 0) {
+            $p1 = \App\Models\Patient::create([
+                'name' => 'Rajesh Sharma',
+                'email' => 'rajesh.sharma@example.com',
+                'mobile' => '9876543210',
+                'gender' => 'Male',
+                'age' => '34',
+                'password' => bcrypt('password123'),
+                'last_login_at' => now()->subHours(2),
+            ]);
+            $p1->addresses()->create([
+                'title' => 'Home',
+                'full_address' => 'Flat 402, Sunshine Apartments, MG Road, Mumbai',
+                'pincode' => '400001'
+            ]);
+            $p1->familyMembers()->create([
+                'name' => 'Kavita Sharma',
+                'relation' => 'Spouse',
+                'gender' => 'Female',
+                'age' => 31
+            ]);
+            $p1->bookings()->create([
+                'booking_reference' => 'BK-' . strtoupper(substr(uniqid(), -6)),
+                'test_details' => [['name' => 'Complete Blood Count (CBC)', 'price' => 350.00]],
+                'collection_type' => 'Home Collection',
+                'amount' => 350.00,
+                'payment_method' => 'Cash',
+                'payment_status' => 'Pending',
+                'status' => 'Booked',
+                'booking_date' => now()->addDay()
+            ]);
+
+            $p2 = \App\Models\Patient::create([
+                'name' => 'Pooja Verma',
+                'email' => 'pooja.verma@example.com',
+                'mobile' => '9812345678',
+                'gender' => 'Female',
+                'age' => '28',
+                'password' => bcrypt('password123'),
+                'last_login_at' => now()->subDays(1),
+            ]);
+            $p2->addresses()->create([
+                'title' => 'Office',
+                'full_address' => 'Sector 62, Electronic City, Noida',
+                'pincode' => '201309'
+            ]);
+            $p2->bookings()->create([
+                'booking_reference' => 'BK-' . strtoupper(substr(uniqid(), -6)),
+                'test_details' => [['name' => 'Thyroid Profile Total (T3, T4, TSH)', 'price' => 550.00]],
+                'collection_type' => 'Home Collection',
+                'amount' => 550.00,
+                'payment_method' => 'Online',
+                'payment_status' => 'Paid',
+                'status' => 'Report Ready',
+                'booking_date' => now()->subDays(2)
+            ]);
+
+            $p3 = \App\Models\Patient::create([
+                'name' => 'Amitabh Sen',
+                'email' => 'amitabh.sen@example.com',
+                'mobile' => '9745612389',
+                'gender' => 'Male',
+                'age' => '45',
+                'password' => bcrypt('password123'),
+                'last_login_at' => now()->subDays(4),
+            ]);
+        }
+
+        // Seed Sample Coupons if empty
+        if (\App\Models\Coupon::count() === 0) {
+            $welcomeCoupon = \App\Models\Coupon::create([
+                'code' => 'WELCOME15',
+                'title' => 'First-Time Login Welcome Discount',
+                'description' => 'Exclusive 15% discount for your very first lab test or health checkup booking at Wellcare.',
+                'coupon_type' => 'welcome',
+                'discount_type' => 'percentage',
+                'discount_value' => 15.00,
+                'min_order_amount' => 0.00,
+                'max_discount_amount' => 500.00,
+                'is_banner' => false,
+                'is_active' => true,
+            ]);
+
+            $bannerCoupon = \App\Models\Coupon::create([
+                'code' => 'WELLCARE20',
+                'title' => 'Super Saver Minimum Spend Offer',
+                'description' => 'Get 20% discount on all diagnostic lab tests on orders above ₹999.',
+                'coupon_type' => 'banner',
+                'discount_type' => 'percentage',
+                'discount_value' => 20.00,
+                'min_order_amount' => 999.00,
+                'max_discount_amount' => 1000.00,
+                'is_banner' => true,
+                'banner_text' => 'Special Health Deal: Flat 20% OFF on all lab tests for bookings above ₹999! Use Code: WELLCARE20',
+                'is_active' => true,
+            ]);
+
+            // Assign Welcome Coupon to all existing patients
+            $allPatients = \App\Models\Patient::all();
+            foreach ($allPatients as $p) {
+                \App\Models\PatientCoupon::firstOrCreate([
+                    'patient_id' => $p->id,
+                    'coupon_id' => $welcomeCoupon->id,
+                ]);
+            }
+        }
     }
 }
