@@ -1,3 +1,17 @@
+    <?php
+        $currentPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
+        $currentPatientCart = $currentPatient ? ($currentPatient->cart ?? []) : [];
+    ?>
+    <!-- Patient Cart Configuration Data -->
+    <script id="patient-cart-data" type="application/json">
+        <?php echo json_encode([
+            'isLoggedIn' => (bool)$currentPatient,
+            'patientId'  => $currentPatient ? (string)$currentPatient->id : '',
+            'cart'       => $currentPatientCart,
+        ]); ?>
+
+    </script>
+
     <!-- Swiper JS & Init -->    
     <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
     <script>
@@ -16,18 +30,31 @@
             }
         });
 
-        // Cart Logic - keyed by patient ID to prevent stale data
-        const cartPatientId = "<?php echo e(session('patient_id', 'guest')); ?>";
-        const cartKey = 'cart_' + cartPatientId;
+        // Patient Authentication & Cart State
+        const patientDataEl = document.getElementById('patient-cart-data');
+        const patientData = patientDataEl ? JSON.parse(patientDataEl.textContent) : { isLoggedIn: false, patientId: '', cart: [] };
+        const isLoggedInPatient = Boolean(patientData.isLoggedIn);
+        const cartPatientId = patientData.patientId || '';
+        const cartKey = isLoggedInPatient ? ('cart_' + cartPatientId) : null;
+        const initialServerCart = Array.isArray(patientData.cart) ? patientData.cart : [];
 
-        // Clean up old-style cart key if present
+        // Always remove old unauthenticated guest cart key
+        localStorage.removeItem('cart_guest');
         localStorage.removeItem('cartCount');
+
+        // If user is logged in, sync localStorage with database cart
+        if (isLoggedInPatient && cartKey) {
+            localStorage.setItem(cartKey, JSON.stringify(initialServerCart));
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
             refreshCartUI();
         });
 
         function getCart() {
+            if (!isLoggedInPatient || !cartKey) {
+                return [];
+            }
             try {
                 return JSON.parse(localStorage.getItem(cartKey)) || [];
             } catch(e) {
@@ -36,6 +63,7 @@
         }
 
         function saveCart(items) {
+            if (!isLoggedInPatient || !cartKey) return;
             localStorage.setItem(cartKey, JSON.stringify(items));
         }
 
@@ -44,7 +72,11 @@
             let countEl = document.getElementById('cartCount');
             if (countEl) {
                 countEl.innerText = cart.length;
-                countEl.style.display = cart.length > 0 ? '' : 'none';
+                if (cart.length > 0) {
+                    countEl.classList.remove('hidden');
+                } else {
+                    countEl.classList.add('hidden');
+                }
             }
         }
 
@@ -54,6 +86,14 @@
             let price  = btn.getAttribute('data-price')  || '0';
             let mrp    = btn.getAttribute('data-mrp')    || price;
             let params = btn.getAttribute('data-params') || '';
+
+            if (!isLoggedInPatient) {
+                sessionStorage.setItem('pending_cart_item', JSON.stringify({ name, price, mrp, params }));
+                if (window.openLoginModal) {
+                    window.openLoginModal(false, 'Please login to add "' + name + '" to your cart.');
+                }
+                return;
+            }
 
             // Avoid adding duplicate
             let cart = getCart();
@@ -68,6 +108,16 @@
             saveCart(cart);
             refreshCartUI();
 
+            // Sync with database
+            fetch('<?php echo e(route("patient.cart.sync")); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                },
+                body: JSON.stringify({ cart: cart })
+            });
+
             let originalHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check mr-2"></i>Added!';
             btn.classList.add('bg-green-500', 'text-white', 'border-green-500');
@@ -81,23 +131,20 @@
         }
 
         function proceedToCheckout() {
-            let countEl = document.getElementById('cartCount');
-            let count = countEl ? parseInt(countEl.innerText) : 0;
-            
-            if (count === 0) {
+            if (!isLoggedInPatient) {
+                if (window.openLoginModal) {
+                    window.openLoginModal(false, 'Please login to proceed to checkout.');
+                }
+                return;
+            }
+
+            let cart = getCart();
+            if (cart.length === 0) {
                 alert('Your cart is empty. Please add a package first!');
                 return;
             }
 
-            const isLoggedIn = "<?php echo e(session()->has('patient_id') ? 'true' : 'false'); ?>" === "true";
-            
-            if (isLoggedIn) {
-                window.location.href = "<?php echo e(route('checkout.index')); ?>";
-            } else {
-                if(window.openLoginModal) {
-                    window.openLoginModal();
-                }
-            }
+            window.location.href = "<?php echo e(route('checkout.index')); ?>";
         }
     </script>
 <?php /**PATH D:\lab\lab\resources\views/partials/scripts.blade.php ENDPATH**/ ?>

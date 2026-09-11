@@ -65,6 +65,7 @@ Route::get('/patient/coupons', [PatientProfileController::class, 'coupons'])->na
 Route::post('/patient/apply-coupon', [PatientProfileController::class, 'applyCoupon'])->name('patient.apply_coupon');
 Route::get('/patient/bookings', [PatientProfileController::class, 'bookings'])->name('patient.bookings');
 Route::post('/patient/bookings', [PatientProfileController::class, 'placeBooking'])->name('patient.place_booking');
+Route::post('/patient/cart/sync', [PatientProfileController::class, 'syncCart'])->name('patient.cart.sync');
 
 Route::get('/patient/logout', function () {
     session()->forget('patient_id');
@@ -74,6 +75,19 @@ Route::get('/patient/logout', function () {
 Route::get('/login', function () {
     return redirect()->route('admin.login');
 })->name('login');
+
+// Agent Portal Routes
+Route::prefix('agent')->name('agent.')->group(function () {
+    Route::post('/register', [\App\Http\Controllers\Agent\AgentPortalController::class, 'register'])->name('register');
+    Route::post('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'login'])->name('login');
+    Route::get('/logout', [\App\Http\Controllers\Agent\AgentPortalController::class, 'logout'])->name('logout');
+    
+    Route::get('/dashboard', [\App\Http\Controllers\Agent\AgentPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/progress', [\App\Http\Controllers\Agent\AgentPortalController::class, 'progress'])->name('progress');
+    Route::post('/bookings/{id}/sample-status', [\App\Http\Controllers\Agent\AgentPortalController::class, 'updateSampleStatus'])->name('update_sample_status');
+    Route::get('/collections', [\App\Http\Controllers\Agent\AgentPortalController::class, 'collections'])->name('collections');
+    Route::post('/bookings/{id}/collect-money', [\App\Http\Controllers\Agent\AgentPortalController::class, 'collectMoney'])->name('collect_money');
+});
 
 // Super Admin Routes
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -86,6 +100,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
         
+        // Agents / Phlebotomists
+        Route::get('/agents', [\App\Http\Controllers\Admin\AgentController::class, 'index'])->name('agents.index');
+        Route::post('/agents', [\App\Http\Controllers\Admin\AgentController::class, 'store'])->name('agents.store');
+        Route::post('/agents/{id}/toggle-status', [\App\Http\Controllers\Admin\AgentController::class, 'toggleStatus'])->name('agents.toggle_status');
+        Route::delete('/agents/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'destroy'])->name('agents.destroy');
+
         // Users (Registered & Logged-in Customers)
         Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
         Route::get('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
@@ -95,6 +115,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/{id}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
         Route::post('/bookings/{id}/status', [\App\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+        Route::post('/bookings/{id}/assign-agent', [\App\Http\Controllers\Admin\BookingController::class, 'assignAgent'])->name('bookings.assign_agent');
         Route::get('/bookings/{id}/print', [\App\Http\Controllers\Admin\BookingController::class, 'print'])->name('bookings.print');
         
         // Tests

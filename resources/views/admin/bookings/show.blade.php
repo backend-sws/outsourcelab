@@ -98,6 +98,111 @@
                 </a>
             </div>
         </div>
+
+        <!-- Field Agent Assignment & Collection Status -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-motorcycle text-teal-600"></i> Field Agent / Sample
+                </h3>
+                @if($booking->agent)
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                        {{ $booking->sample_status == 'Delivered to Lab' ? 'bg-purple-100 text-purple-800' :
+                          ($booking->sample_status == 'Sample Collected' ? 'bg-emerald-100 text-emerald-800' :
+                          ($booking->sample_status == 'Out for Collection' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800')) }}">
+                        <i class="fas fa-circle text-[8px] mr-1.5 animate-pulse"></i>
+                        {{ $booking->sample_status }}
+                    </span>
+                @else
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                        Unassigned
+                    </span>
+                @endif
+            </div>
+
+            @if($booking->agent)
+                <div class="p-3.5 bg-teal-50/70 rounded-xl border border-teal-100 mb-4 space-y-2">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="font-bold text-teal-950 text-sm flex items-center gap-1.5">
+                                <i class="fas fa-user-circle text-teal-600"></i> {{ $booking->agent->name }}
+                            </p>
+                            <p class="text-xs text-teal-700 mt-0.5">
+                                <i class="fas fa-phone-alt text-[10px] mr-1"></i>
+                                <a href="tel:{{ $booking->agent->phone }}" class="underline font-semibold">{{ $booking->agent->phone }}</a>
+                            </p>
+                        </div>
+                        @if($booking->agent->vehicle_number)
+                            <span class="text-[11px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-teal-200 text-teal-800">
+                                {{ $booking->agent->vehicle_number }}
+                            </span>
+                        @endif
+                    </div>
+
+                    @if($booking->sample_notes)
+                        <div class="pt-2 border-t border-teal-200/60 text-xs text-teal-900">
+                            <span class="font-bold">Agent Notes:</span> {{ $booking->sample_notes }}
+                        </div>
+                    @endif
+
+                    @if($booking->sample_collected_at)
+                        <div class="text-[11px] text-teal-700 flex items-center gap-1">
+                            <i class="fas fa-vial text-teal-500"></i> Sample collected: {{ $booking->sample_collected_at->format('M d, Y • h:i A') }}
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Doorstep Money Collection Status in Admin -->
+                <div class="p-3 rounded-xl border mb-4 text-xs {{ $booking->payment_status == 'Paid' ? 'bg-emerald-50/60 border-emerald-100 text-emerald-900' : 'bg-amber-50/60 border-amber-100 text-amber-900' }}">
+                    <div class="flex items-center justify-between font-bold">
+                        <span>Doorstep Collection:</span>
+                        @if($booking->payment_status == 'Paid')
+                            @if($booking->money_collected_by)
+                                <span class="text-emerald-700 font-black">₹{{ $booking->amount }} Collected (Cash)</span>
+                            @else
+                                <span class="text-emerald-700 font-black">Paid Online</span>
+                            @endif
+                        @else
+                            <span class="text-amber-700 font-black">₹{{ $booking->amount }} Cash Due</span>
+                        @endif
+                    </div>
+                    @if($booking->money_collected_at)
+                        <p class="text-[11px] text-emerald-700 mt-1">
+                            Collected by {{ $booking->agent->name }} on {{ $booking->money_collected_at->format('M d, h:i A') }}
+                        </p>
+                    @endif
+                </div>
+            @else
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4 text-xs text-amber-800 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold">No Agent Assigned</p>
+                        <p class="text-amber-700 mt-0.5">Assign a phlebotomist below so they can view this client's address, pick up samples, and collect cash.</p>
+                    </div>
+                </div>
+            @endif
+
+            <form action="{{ route('admin.bookings.assign_agent', $booking->id) }}" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                        {{ $booking->agent ? 'Reassign / Change Agent' : 'Select Field Agent' }}
+                    </label>
+                    <select name="agent_id" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm px-3 py-2 text-sm border bg-gray-50">
+                        <option value="">-- Unassigned (None) --</option>
+                        @foreach($agents as $agent)
+                            <option value="{{ $agent->id }}" {{ $booking->agent_id == $agent->id ? 'selected' : '' }}>
+                                {{ $agent->name }} ({{ $agent->phone }}) {{ $agent->area ? '• ' . $agent->area : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-user-check"></i>
+                    {{ $booking->agent ? 'Update Assigned Agent' : 'Assign Agent Now' }}
+                </button>
+            </form>
+        </div>
         
         <!-- Payment Details -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

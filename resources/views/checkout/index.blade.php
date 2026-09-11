@@ -447,20 +447,48 @@
     </div>
 </div>
 
+    <script id="checkout-patient-data" type="application/json">
+        {!! json_encode([
+            'patientId' => (string)($patient->id ?? session('patient_id', '')),
+            'serverCart' => $patient->cart ?? []
+        ]) !!}
+    </script>
 <script>
     // --- Cart & Coupon Data (keyed by patient ID) ---
-    const checkoutPatientId = "{{ session('patient_id', 'guest') }}";
+    const checkoutPatientMeta = JSON.parse(document.getElementById('checkout-patient-data').textContent);
+    const checkoutPatientId = checkoutPatientMeta.patientId;
     const checkoutCartKey = 'cart_' + checkoutPatientId;
+    const serverCheckoutCart = Array.isArray(checkoutPatientMeta.serverCart) ? checkoutPatientMeta.serverCart : [];
     let currentAppliedCoupon = null;
 
     function getCheckoutCart() {
-        try { return JSON.parse(localStorage.getItem(checkoutCartKey)) || []; } catch(e) { return []; }
+        try {
+            let stored = JSON.parse(localStorage.getItem(checkoutCartKey));
+            if (Array.isArray(stored) && stored.length > 0) {
+                return stored;
+            }
+            if (serverCheckoutCart.length > 0) {
+                localStorage.setItem(checkoutCartKey, JSON.stringify(serverCheckoutCart));
+                return serverCheckoutCart;
+            }
+            return Array.isArray(stored) ? stored : [];
+        } catch(e) {
+            return serverCheckoutCart || [];
+        }
     }
 
     function removeFromCart(index) {
         let cart = getCheckoutCart();
         cart.splice(index, 1);
         localStorage.setItem(checkoutCartKey, JSON.stringify(cart));
+        fetch('{{ route("patient.cart.sync") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ cart: cart })
+        });
         renderCheckoutCart();
         updateCartBadge();
     }
@@ -468,7 +496,14 @@
     function updateCartBadge() {
         let cart = getCheckoutCart();
         let countEl = document.getElementById('cartCount');
-        if (countEl) { countEl.innerText = cart.length; countEl.style.display = cart.length > 0 ? '' : 'none'; }
+        if (countEl) {
+            countEl.innerText = cart.length;
+            if (cart.length > 0) {
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
     }
 
     function showCouponMessage(msg, type) {
@@ -669,6 +704,7 @@
             if (data.success) {
                 // Clear cart from localStorage
                 localStorage.removeItem(checkoutCartKey);
+                localStorage.removeItem('cart_guest');
                 // Redirect to bookings
                 window.location.href = "{{ route('patient.bookings') }}";
             } else {

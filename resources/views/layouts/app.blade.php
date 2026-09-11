@@ -6,7 +6,7 @@
     <title>Av Wellcare Diagnostics</title>
     @include('partials.style')
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 m-0 p-0">
     @include('partials.header')
 
     @yield('content')

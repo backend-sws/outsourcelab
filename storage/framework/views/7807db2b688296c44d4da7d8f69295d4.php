@@ -6,7 +6,7 @@
     <title>Av Wellcare Diagnostics</title>
     <?php echo $__env->make('partials.style', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 m-0 p-0">
     <?php echo $__env->make('partials.header', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <?php echo $__env->yieldContent('content'); ?>

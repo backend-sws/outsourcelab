@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Patient extends Model
 {
     protected $fillable = [
-        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp', 'last_login_at'
+        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp', 'last_login_at', 'cart'
     ];
 
     protected $hidden = [
@@ -20,6 +20,7 @@ class Patient extends Model
         return [
             'password' => 'hashed',
             'last_login_at' => 'datetime',
+            'cart' => 'array',
         ];
     }
 

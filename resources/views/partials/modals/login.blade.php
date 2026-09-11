@@ -13,6 +13,10 @@
 
     <!-- Body: Login State -->
     <div id="loginStateEmail" class="flex-grow p-6 flex flex-col bg-gray-50/50">
+        <div id="loginCustomNotice" class="hidden bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold p-3 rounded-xl mb-4 flex items-center gap-2 shadow-sm">
+            <i class="fas fa-shopping-cart text-amber-600"></i>
+            <span id="loginCustomNoticeText"></span>
+        </div>
         <!-- Tabs -->
         <div class="flex bg-gray-200 rounded-lg p-1 mb-6">
             <button class="flex-1 py-2 text-sm font-bold bg-white text-brand-dark rounded-md shadow-sm" type="button">Login</button>
@@ -59,47 +63,85 @@
     <!-- Body: Register State -->
     <div id="loginStateRegister" class="flex-grow p-6 flex flex-col bg-gray-50/50 hidden">
         <!-- Tabs -->
-        <div class="flex bg-gray-200 rounded-lg p-1 mb-6">
+        <div class="flex bg-gray-200 rounded-lg p-1 mb-4">
             <button class="flex-1 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition" type="button" id="switchToLoginTabBtn">Login</button>
             <button class="flex-1 py-2 text-sm font-bold bg-white text-brand-dark rounded-md shadow-sm" type="button">Register</button>
         </div>
-        
-        <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-brand-light/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-brand-light">
-                <i class="fas fa-user-plus text-2xl text-brand-secondary"></i>
-            </div>
-            <h4 class="text-lg font-bold text-gray-800 mb-2">Create an Account</h4>
-            <p class="text-sm text-gray-500">Join us to manage your health easily</p>
+
+        <!-- Account Type Switcher: Patient vs Field Agent -->
+        <div class="bg-gray-200/80 p-1 rounded-xl flex mb-4 border border-gray-200">
+            <button type="button" id="regTypePatientBtn" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all bg-white text-brand-dark shadow-sm flex items-center justify-center gap-1.5">
+                <i class="fas fa-user text-brand-secondary"></i> Patient
+            </button>
+            <button type="button" id="regTypeAgentBtn" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-800 flex items-center justify-center gap-1.5">
+                <i class="fas fa-id-badge text-teal-600"></i> Register as Agent
+            </button>
         </div>
         
-        <form id="registerForm" class="space-y-4 flex-grow flex flex-col">
+        <div class="text-center mb-4">
+            <div id="regHeaderIcon" class="w-12 h-12 bg-brand-light/20 rounded-full flex items-center justify-center mx-auto mb-2 border border-brand-light">
+                <i class="fas fa-user-plus text-xl text-brand-secondary"></i>
+            </div>
+            <h4 id="regHeaderTitle" class="text-base font-bold text-gray-800 mb-0.5">Create an Account</h4>
+            <p id="regHeaderSubtitle" class="text-xs text-gray-500">Join us to manage your health easily</p>
+        </div>
+        
+        <form id="registerForm" class="space-y-3.5 flex-grow flex flex-col">
+            <!-- Agent Specific Fields -->
+            <div id="agentExtraFields" class="space-y-3.5 hidden">
+                <div>
+                    <label for="regNameInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Full Name</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-user-tag"></i></span>
+                        <input type="text" id="regNameInput" class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-semibold text-gray-800 text-sm placeholder-gray-300" placeholder="e.g. Ramesh Kumar">
+                    </div>
+                </div>
+                <div>
+                    <label for="regPhoneInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Mobile Number</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-phone-alt"></i></span>
+                        <input type="tel" id="regPhoneInput" class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-semibold text-gray-800 text-sm placeholder-gray-300" placeholder="e.g. 9876543210">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label for="regCityInput" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">City / Region</label>
+                        <input type="text" id="regCityInput" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-300" placeholder="e.g. Patna">
+                    </div>
+                    <div>
+                        <label for="regVehicleInput" class="block text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-1">Vehicle No.</label>
+                        <input type="text" id="regVehicleInput" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 placeholder-gray-300" placeholder="BR-01-AB-1234">
+                    </div>
+                </div>
+            </div>
+
             <div>
-                <label for="regEmailInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email Address</label>
+                <label for="regEmailInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Email Address</label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-envelope"></i></span>
-                    <input type="email" id="regEmailInput" class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-bold text-gray-800 text-lg placeholder-gray-300" placeholder="you@example.com" required>
+                    <input type="email" id="regEmailInput" class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-semibold text-gray-800 text-sm placeholder-gray-300" placeholder="you@example.com" required>
                 </div>
             </div>
             <div>
-                <label for="regPasswordInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Password</label>
+                <label for="regPasswordInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-lock"></i></span>
-                    <input type="password" id="regPasswordInput" class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-bold text-gray-800 text-lg placeholder-gray-300" placeholder="Create a password" required>
+                    <input type="password" id="regPasswordInput" class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-semibold text-gray-800 text-sm placeholder-gray-300" placeholder="Create a password" required>
                 </div>
             </div>
             <div>
-                <label for="regPasswordConfirmInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Confirm Password</label>
+                <label for="regPasswordConfirmInput" class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Confirm Password</label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i class="fas fa-check"></i></span>
-                    <input type="password" id="regPasswordConfirmInput" class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-bold text-gray-800 text-lg placeholder-gray-300" placeholder="Confirm password" required>
+                    <input type="password" id="regPasswordConfirmInput" class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-secondary focus:border-brand-secondary transition shadow-sm font-semibold text-gray-800 text-sm placeholder-gray-300" placeholder="Confirm password" required>
                 </div>
             </div>
             
-            <div class="mt-auto pt-6">
-                <div id="registerError" class="text-red-500 text-sm hidden font-bold text-center mb-4"></div>
-                <button type="submit" class="w-full bg-brand-secondary text-white font-bold py-3.5 px-4 rounded-xl hover:bg-opacity-90 transition shadow-lg flex items-center justify-center">
-                    <span>Create Account</span>
-                    <i class="fas fa-user-check ml-2 text-sm"></i>
+            <div class="mt-auto pt-4">
+                <div id="registerError" class="text-red-500 text-xs hidden font-bold text-center mb-3"></div>
+                <button type="submit" id="regSubmitBtn" class="w-full bg-brand-secondary text-white font-bold py-3 px-4 rounded-xl hover:bg-opacity-90 transition shadow-lg flex items-center justify-center">
+                    <span id="regSubmitBtnText">Create Account</span>
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
                 </button>
             </div>
         </form>
@@ -221,8 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Global function to open modal (to be called from header)
-    window.openLoginModal = function(isRegister = false) {
+    // Global function to open modal (to be called from header or add-to-cart)
+    window.openLoginModal = function(isRegister = false, customNotice = null) {
         overlay.classList.remove('hidden');
         // Trigger reflow
         void overlay.offsetWidth;
@@ -239,6 +281,18 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             stateEmail.classList.remove('hidden');
             stateRegister.classList.add('hidden');
+        }
+
+        // Custom notice
+        const noticeEl = document.getElementById('loginCustomNotice');
+        const noticeTextEl = document.getElementById('loginCustomNoticeText');
+        if (noticeEl && noticeTextEl) {
+            if (customNotice) {
+                noticeTextEl.innerText = customNotice;
+                noticeEl.classList.remove('hidden');
+            } else {
+                noticeEl.classList.add('hidden');
+            }
         }
         
         // Clear all inputs
@@ -257,6 +311,49 @@ document.addEventListener('DOMContentLoaded', function() {
         forgotError.classList.add('hidden');
         resetError.classList.add('hidden');
         devOtpMessage.classList.add('hidden');
+    }
+
+    function handlePostAuthSuccess(data) {
+        let pendingItemStr = sessionStorage.getItem('pending_cart_item');
+        if (pendingItemStr) {
+            try {
+                let pendingItem = JSON.parse(pendingItemStr);
+                let userCart = Array.isArray(data.cart) ? data.cart : [];
+                if (!userCart.some(it => it.name === pendingItem.name)) {
+                    userCart.push(pendingItem);
+                }
+                sessionStorage.removeItem('pending_cart_item');
+                // Sync to database before reload/redirect
+                fetch('{{ route("patient.cart.sync") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ cart: userCart })
+                }).finally(() => {
+                    closeLoginModal();
+                    if (window.location.pathname === '/' || window.location.pathname === '') {
+                        window.location.reload();
+                    } else {
+                        window.location.href = data.redirect || '/';
+                    }
+                });
+                return;
+            } catch(e) {}
+        }
+
+        closeLoginModal();
+        if (data.redirect && (data.role === 'agent' || data.redirect.includes('/admin') || data.redirect.includes('/agent'))) {
+            window.location.href = data.redirect;
+            return;
+        }
+
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+            window.location.reload();
+        } else {
+            window.location.href = data.redirect || '/';
+        }
     }
 
     function closeLoginModal() {
@@ -319,9 +416,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            if(data.success && data.redirect) {
-                closeLoginModal();
-                window.location.href = data.redirect;
+            if(data.success) {
+                handlePostAuthSuccess(data);
             } else {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -337,6 +433,47 @@ document.addEventListener('DOMContentLoaded', function() {
             loginError.classList.remove('hidden');
         });
     });
+
+    // Account Type switcher
+    let currentRegRole = 'patient';
+    const regTypePatientBtn = document.getElementById('regTypePatientBtn');
+    const regTypeAgentBtn = document.getElementById('regTypeAgentBtn');
+    const agentExtraFields = document.getElementById('agentExtraFields');
+    const regNameInput = document.getElementById('regNameInput');
+    const regPhoneInput = document.getElementById('regPhoneInput');
+    const regCityInput = document.getElementById('regCityInput');
+    const regVehicleInput = document.getElementById('regVehicleInput');
+    const regHeaderTitle = document.getElementById('regHeaderTitle');
+    const regHeaderSubtitle = document.getElementById('regHeaderSubtitle');
+    const regSubmitBtnText = document.getElementById('regSubmitBtnText');
+
+    function setRegRole(role) {
+        currentRegRole = role;
+        if (role === 'agent') {
+            regTypeAgentBtn.classList.add('bg-white', 'text-brand-dark', 'shadow-sm');
+            regTypeAgentBtn.classList.remove('text-gray-500');
+            regTypePatientBtn.classList.remove('bg-white', 'text-brand-dark', 'shadow-sm');
+            regTypePatientBtn.classList.add('text-gray-500');
+            agentExtraFields.classList.remove('hidden');
+            regHeaderTitle.innerText = 'Register as Field Agent';
+            regHeaderSubtitle.innerText = 'Join our sample collection & phlebotomy network';
+            regSubmitBtnText.innerText = 'Register as Field Agent';
+        } else {
+            regTypePatientBtn.classList.add('bg-white', 'text-brand-dark', 'shadow-sm');
+            regTypePatientBtn.classList.remove('text-gray-500');
+            regTypeAgentBtn.classList.remove('bg-white', 'text-brand-dark', 'shadow-sm');
+            regTypeAgentBtn.classList.add('text-gray-500');
+            agentExtraFields.classList.add('hidden');
+            regHeaderTitle.innerText = 'Create an Account';
+            regHeaderSubtitle.innerText = 'Join us to manage your health easily';
+            regSubmitBtnText.innerText = 'Create Account';
+        }
+    }
+
+    if (regTypePatientBtn && regTypeAgentBtn) {
+        regTypePatientBtn.addEventListener('click', () => setRegRole('patient'));
+        regTypeAgentBtn.addEventListener('click', () => setRegRole('agent'));
+    }
 
     // Handle Register Submit
     registerForm.addEventListener('submit', function(e) {
@@ -354,6 +491,52 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         registerError.classList.add('hidden');
 
+        if (currentRegRole === 'agent') {
+            if (!regNameInput.value.trim() || !regPhoneInput.value.trim()) {
+                registerError.innerText = "Please enter your Full Name and Mobile Number.";
+                registerError.classList.remove('hidden');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+
+            fetch('{{ route("agent.register") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ 
+                    name: regNameInput.value.trim(),
+                    phone: regPhoneInput.value.trim(),
+                    city: regCityInput.value.trim(),
+                    vehicle_number: regVehicleInput.value.trim(),
+                    email: regEmailInput.value.trim(),
+                    password: regPasswordInput.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    closeLoginModal();
+                    window.location.href = data.redirect || '{{ route("agent.dashboard") }}';
+                } else {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    registerError.innerText = data.message || 'Agent registration failed.';
+                    registerError.classList.remove('hidden');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                registerError.innerText = 'An error occurred. Please try again.';
+                registerError.classList.remove('hidden');
+            });
+            return;
+        }
+
         fetch('{{ route("patient.register") }}', {
             method: 'POST',
             headers: {
@@ -367,9 +550,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            if(data.success && data.redirect) {
-                closeLoginModal();
-                window.location.href = data.redirect;
+            if(data.success) {
+                handlePostAuthSuccess(data);
             } else {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -465,9 +647,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            if(data.success && data.redirect) {
-                closeLoginModal();
-                window.location.href = data.redirect;
+            if(data.success) {
+                handlePostAuthSuccess(data);
             } else {
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;

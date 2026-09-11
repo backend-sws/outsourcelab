@@ -1,12 +1,11 @@
-    <!-- Promotional Banner for Banner Coupon with Left-to-Right Moving Ticket -->
+@php
+    $siteBannerCoupon = \App\Models\Coupon::where('is_active', true)->where('is_banner', true)->latest()->first();
+@endphp
+@if($siteBannerCoupon)
     @php
-        $siteBannerCoupon = \App\Models\Coupon::where('is_active', true)->where('is_banner', true)->latest()->first();
+        $bannerText = $siteBannerCoupon->banner_text ?: ($siteBannerCoupon->title . ': ' . ($siteBannerCoupon->discount_type === 'percentage' ? $siteBannerCoupon->discount_value . '% OFF' : 'Flat ₹' . number_format($siteBannerCoupon->discount_value) . ' OFF') . ($siteBannerCoupon->min_order_amount > 0 ? ' on bookings above ₹' . number_format($siteBannerCoupon->min_order_amount) : ''));
     @endphp
-    @if($siteBannerCoupon)
-        @php
-            $bannerText = $siteBannerCoupon->banner_text ?: ($siteBannerCoupon->title . ': ' . ($siteBannerCoupon->discount_type === 'percentage' ? $siteBannerCoupon->discount_value . '% OFF' : 'Flat ₹' . number_format($siteBannerCoupon->discount_value) . ' OFF') . ($siteBannerCoupon->min_order_amount > 0 ? ' on bookings above ₹' . number_format($siteBannerCoupon->min_order_amount) : ''));
-        @endphp
-        <div class="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-950 text-white py-2 shadow-inner z-50 coupon-marquee-wrapper border-b border-white/10 select-none cursor-default" title="Hover to pause">
+    <div class="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-950 text-white py-2 shadow-inner z-50 coupon-marquee-wrapper border-b border-white/10 select-none cursor-default" title="Hover to pause">
             <style>
                 @keyframes couponTickerLTR {
                     0% {
@@ -115,11 +114,12 @@
                     <span class="text-brand-secondary font-extrabold text-2xl tracking-tight ml-1">Diagnostics</span>
                 </div>
             </div>
+            @php
+                $loggedInPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
+                $initialCartCount = $loggedInPatient ? count($loggedInPatient->cart ?? []) : 0;
+            @endphp
             <div class="flex items-center space-x-6">
-                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="fas fa-shopping-cart text-gray-500 mr-2"></i> Cart <span id="cartCount" class="bg-gray-200 text-xs rounded-full px-2 py-0.5 ml-1 font-bold">0</span></button>
-                @php
-                    $loggedInPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
-                @endphp
+                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border rounded-full px-5 py-2 shadow-sm hover:bg-gray-50 transition"><i class="fas fa-shopping-cart text-gray-500 mr-2"></i> Cart <span id="cartCount" class="bg-brand-secondary text-white text-xs rounded-full px-2 py-0.5 ml-1 font-bold {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span></button>
                 @if($loggedInPatient)
                     <a href="{{ route('patient.dashboard') }}" class="flex items-center font-semibold border border-brand-secondary rounded-full px-5 py-2 shadow-sm bg-brand-light/10 hover:bg-brand-light/20 transition text-brand-dark"><i class="far fa-user text-brand-secondary mr-2"></i> {{ explode(' ', $loggedInPatient->name ?? 'Guest')[0] }}</a>
                 @else

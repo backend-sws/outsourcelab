@@ -25,6 +25,21 @@ class PatientProfileController extends Controller
             return response()->json(['success' => true, 'redirect' => route('admin.dashboard')]);
         }
 
+        // Check if Agent / Sample Collector
+        $agent = \App\Models\Agent::where('email', $email)->first();
+        if ($agent && Hash::check($password, $agent->password)) {
+            if ($agent->status !== 'active') {
+                return response()->json(['success' => false, 'message' => 'Your agent account is inactive. Please contact admin.']);
+            }
+            $agent->update(['last_login_at' => now()]);
+            session(['agent_id' => $agent->id]);
+            return response()->json([
+                'success'  => true,
+                'redirect' => route('agent.dashboard'),
+                'role'     => 'agent',
+            ]);
+        }
+
         // Check if Patient
         $patient = Patient::where('email', $email)->first();
 
@@ -33,7 +48,12 @@ class PatientProfileController extends Controller
                 $patient->update(['last_login_at' => now()]);
                 session(['patient_id' => $patient->id]);
                 $this->assignWelcomeCoupons($patient->id);
-                return response()->json(['success' => true, 'redirect' => route('patient.dashboard')]);
+                $redirectTo = $request->input('redirect_to');
+                return response()->json([
+                    'success' => true, 
+                    'redirect' => $redirectTo ?: route('patient.dashboard'),
+                    'cart' => $patient->cart ?? []
+                ]);
             } else {
                 return response()->json(['success' => false, 'message' => 'Invalid password.']);
             }
@@ -59,11 +79,17 @@ class PatientProfileController extends Controller
             'email' => $email,
             'password' => Hash::make($password),
             'last_login_at' => now(),
+            'cart' => [],
         ]);
         
         session(['patient_id' => $patient->id]);
         $this->assignWelcomeCoupons($patient->id);
-        return response()->json(['success' => true, 'redirect' => route('patient.profile.edit')]);
+        $redirectTo = $request->input('redirect_to');
+        return response()->json([
+            'success' => true, 
+            'redirect' => $redirectTo ?: route('patient.profile.edit'),
+            'cart' => []
+        ]);
     }
 
     public function forgotPassword(Request $request)
@@ -107,7 +133,12 @@ class PatientProfileController extends Controller
         $patient->save();
 
         session(['patient_id' => $patient->id]);
-        return response()->json(['success' => true, 'redirect' => route('patient.dashboard')]);
+        $redirectTo = $request->input('redirect_to');
+        return response()->json([
+            'success' => true, 
+            'redirect' => $redirectTo ?: route('patient.dashboard'),
+            'cart' => $patient->cart ?? []
+        ]);
     }
 
     public function dashboard()
@@ -398,10 +429,33 @@ class PatientProfileController extends Controller
             }
         }
 
+        // Clear patient cart on successful booking
+        $patient = Patient::find($patientId);
+        if ($patient) {
+            $patient->update(['cart' => []]);
+        }
+
         return response()->json([
             'success'   => true,
             'booking_id' => $booking->id,
             'booking_reference' => $booking->booking_reference,
         ]);
+    }
+
+    public function syncCart(Request $request)
+    {
+        $patientId = session('patient_id');
+        if (!$patientId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $cart = $request->input('cart', []);
+        $patient = Patient::find($patientId);
+        if ($patient) {
+            $patient->update(['cart' => is_array($cart) ? $cart : []]);
+            return response()->json(['success' => true, 'cart' => $patient->cart]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Patient not found'], 404);
     }
 }

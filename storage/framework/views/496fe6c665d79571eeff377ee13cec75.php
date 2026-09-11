@@ -98,6 +98,120 @@
                 </a>
             </div>
         </div>
+
+        <!-- Field Agent Assignment & Collection Status -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-motorcycle text-teal-600"></i> Field Agent / Sample
+                </h3>
+                <?php if($booking->agent): ?>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                        <?php echo e($booking->sample_status == 'Delivered to Lab' ? 'bg-purple-100 text-purple-800' :
+                          ($booking->sample_status == 'Sample Collected' ? 'bg-emerald-100 text-emerald-800' :
+                          ($booking->sample_status == 'Out for Collection' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'))); ?>">
+                        <i class="fas fa-circle text-[8px] mr-1.5 animate-pulse"></i>
+                        <?php echo e($booking->sample_status); ?>
+
+                    </span>
+                <?php else: ?>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                        Unassigned
+                    </span>
+                <?php endif; ?>
+            </div>
+
+            <?php if($booking->agent): ?>
+                <div class="p-3.5 bg-teal-50/70 rounded-xl border border-teal-100 mb-4 space-y-2">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="font-bold text-teal-950 text-sm flex items-center gap-1.5">
+                                <i class="fas fa-user-circle text-teal-600"></i> <?php echo e($booking->agent->name); ?>
+
+                            </p>
+                            <p class="text-xs text-teal-700 mt-0.5">
+                                <i class="fas fa-phone-alt text-[10px] mr-1"></i>
+                                <a href="tel:<?php echo e($booking->agent->phone); ?>" class="underline font-semibold"><?php echo e($booking->agent->phone); ?></a>
+                            </p>
+                        </div>
+                        <?php if($booking->agent->vehicle_number): ?>
+                            <span class="text-[11px] font-mono font-bold bg-white px-2 py-0.5 rounded border border-teal-200 text-teal-800">
+                                <?php echo e($booking->agent->vehicle_number); ?>
+
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if($booking->sample_notes): ?>
+                        <div class="pt-2 border-t border-teal-200/60 text-xs text-teal-900">
+                            <span class="font-bold">Agent Notes:</span> <?php echo e($booking->sample_notes); ?>
+
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if($booking->sample_collected_at): ?>
+                        <div class="text-[11px] text-teal-700 flex items-center gap-1">
+                            <i class="fas fa-vial text-teal-500"></i> Sample collected: <?php echo e($booking->sample_collected_at->format('M d, Y • h:i A')); ?>
+
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Doorstep Money Collection Status in Admin -->
+                <div class="p-3 rounded-xl border mb-4 text-xs <?php echo e($booking->payment_status == 'Paid' ? 'bg-emerald-50/60 border-emerald-100 text-emerald-900' : 'bg-amber-50/60 border-amber-100 text-amber-900'); ?>">
+                    <div class="flex items-center justify-between font-bold">
+                        <span>Doorstep Collection:</span>
+                        <?php if($booking->payment_status == 'Paid'): ?>
+                            <?php if($booking->money_collected_by): ?>
+                                <span class="text-emerald-700 font-black">₹<?php echo e($booking->amount); ?> Collected (Cash)</span>
+                            <?php else: ?>
+                                <span class="text-emerald-700 font-black">Paid Online</span>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <span class="text-amber-700 font-black">₹<?php echo e($booking->amount); ?> Cash Due</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php if($booking->money_collected_at): ?>
+                        <p class="text-[11px] text-emerald-700 mt-1">
+                            Collected by <?php echo e($booking->agent->name); ?> on <?php echo e($booking->money_collected_at->format('M d, h:i A')); ?>
+
+                        </p>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl mb-4 text-xs text-amber-800 flex items-start gap-2">
+                    <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold">No Agent Assigned</p>
+                        <p class="text-amber-700 mt-0.5">Assign a phlebotomist below so they can view this client's address, pick up samples, and collect cash.</p>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <form action="<?php echo e(route('admin.bookings.assign_agent', $booking->id)); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                        <?php echo e($booking->agent ? 'Reassign / Change Agent' : 'Select Field Agent'); ?>
+
+                    </label>
+                    <select name="agent_id" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm px-3 py-2 text-sm border bg-gray-50">
+                        <option value="">-- Unassigned (None) --</option>
+                        <?php $__currentLoopData = $agents; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $agent): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($agent->id); ?>" <?php echo e($booking->agent_id == $agent->id ? 'selected' : ''); ?>>
+                                <?php echo e($agent->name); ?> (<?php echo e($agent->phone); ?>) <?php echo e($agent->area ? '• ' . $agent->area : ''); ?>
+
+                            </option>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-user-check"></i>
+                    <?php echo e($booking->agent ? 'Update Assigned Agent' : 'Assign Agent Now'); ?>
+
+                </button>
+            </form>
+        </div>
         
         <!-- Payment Details -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
