@@ -6,13 +6,20 @@
     <title>Av Wellcare Diagnostics</title>
     @include('partials.style')
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 m-0 p-0">
     @include('partials.header')
 
     @yield('content')
 
     @include('partials.footer')
     
+    @include('partials.modals.login')
+    @include('patient.modals.add-member')
+    @include('patient.modals.change-address')
+    @include('patient.modals.add-address')
+    
+    @include('partials.floating-welcome-ticket')
+
     @include('partials.scripts')
 </body>
 </html>
