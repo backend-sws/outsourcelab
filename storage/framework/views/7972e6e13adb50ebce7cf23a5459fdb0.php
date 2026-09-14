@@ -20,6 +20,7 @@
                     <ul class="space-y-3 text-xs text-gray-300">
                         <li><a href="/#reviews" class="hover:text-brand-secondary transition">Patient Reviews & Feedback</a></li>
                         <li><a href="/#contact-enquiry" class="hover:text-brand-secondary transition">Have a Query / Enquiry</a></li>
+                        <li><a href="<?php echo e(route('agent.login')); ?>" class="text-teal-300 hover:text-white font-semibold transition flex items-center gap-1.5"><i class="fas fa-motorcycle text-[10px]"></i> Phlebotomist / Agent Portal</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Partner With Us</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">Franchise Opportunity</a></li>
                         <li><a href="#" class="hover:text-brand-secondary transition">FAQs</a></li>

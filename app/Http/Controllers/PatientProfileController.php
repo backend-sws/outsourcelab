@@ -260,7 +260,7 @@ class PatientProfileController extends Controller
     {
         $patientId = session('patient_id');
         if (!$patientId) return redirect('/');
-        $profile = Patient::with('bookings')->find($patientId);
+        $profile = Patient::with(['bookings.agent', 'bookings.familyMember', 'bookings.address'])->find($patientId);
         return view('patient.bookings', compact('profile'));
     }
 

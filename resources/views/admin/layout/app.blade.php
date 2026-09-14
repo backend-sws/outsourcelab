@@ -323,6 +323,13 @@
                                     <span>Live Website</span>
                                 </div>
                             </a>
+                            <a href="{{ route('agent.login') }}" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-motorcycle w-5 text-center text-base text-teal-500 dark:text-teal-400"></i>
+                                    <span>Agent Portal</span>
+                                </div>
+                                <span class="text-[10px] bg-teal-500/20 text-teal-500 dark:text-teal-400 font-bold px-1.5 py-0.5 rounded border border-teal-500/30">Collector</span>
+                            </a>
                         </nav>
                     </div>
                 </div>
@@ -416,17 +423,72 @@
                         </button>
                     </div>
 
-                    <!-- User Profile Avatar Pill -->
-                    <div class="flex items-center space-x-3 pl-2">
-                        <div class="relative">
-                            <img class="h-9 w-9 rounded-full object-cover ring-2 ring-indigo-500/40 shadow-sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar">
-                            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0a0b1c]"></span>
-                        </div>
-                        <div class="hidden xl:block text-left">
-                            <div class="text-xs font-bold text-slate-800 dark:text-white leading-tight">Super Admin</div>
-                            <div class="text-[10px] text-slate-400">@adminWellcare</div>
+                    <!-- User Profile Avatar Pill with Dropdown -->
+                    <div class="relative pl-2">
+                        <button id="profileDropdownBtn" type="button" class="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-all focus:outline-none">
+                            <div class="relative">
+                                <img class="h-9 w-9 rounded-full object-cover ring-2 ring-indigo-500/40 shadow-sm" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Admin Avatar">
+                                <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0a0b1c]"></span>
+                            </div>
+                            <div class="hidden xl:block text-left">
+                                <div class="text-xs font-bold text-slate-800 dark:text-white leading-tight flex items-center gap-1.5">
+                                    <span>{{ auth()->user()->name ?? 'Super Admin' }}</span>
+                                    <i id="profileChevron" class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+                                </div>
+                                <div class="text-[10px] text-slate-400">{{ auth()->user()->email ?? '@adminWellcare' }}</div>
+                            </div>
+                            <i class="xl:hidden fas fa-chevron-down text-[10px] text-slate-400"></i>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#12142d] border border-slate-200 dark:border-white/[0.08] shadow-2xl py-2 z-50 transform origin-top-right transition-all">
+                            <div class="px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                <div class="text-xs font-bold text-slate-900 dark:text-white">{{ auth()->user()->name ?? 'Super Admin' }}</div>
+                                <div class="text-[11px] text-slate-400 truncate">{{ auth()->user()->email ?? 'admin@wellcare.com' }}</div>
+                                <span class="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20">
+                                    Super Administrator
+                                </span>
+                            </div>
+
+                            <div class="py-1">
+                                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                    <i class="fas fa-chart-line w-4 text-slate-400"></i>
+                                    <span>Dashboard Overview</span>
+                                </a>
+                                <a href="{{ route('admin.users.index') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                    <i class="fas fa-users w-4 text-slate-400"></i>
+                                    <span>Manage Users</span>
+                                </a>
+                                <a href="{{ route('admin.bookings.index') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                    <i class="fas fa-calendar-check w-4 text-slate-400"></i>
+                                    <span>All Bookings</span>
+                                </a>
+                                <a href="{{ url('/') }}" target="_blank" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                    <i class="fas fa-external-link-alt w-4 text-slate-400"></i>
+                                    <span>View Live Website</span>
+                                </a>
+                            </div>
+
+                            <div class="border-t border-slate-100 dark:border-white/[0.06] pt-1 mt-1 px-1">
+                                <form method="POST" action="{{ route('admin.logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors">
+                                        <i class="fas fa-arrow-right-from-bracket w-4 text-rose-500"></i>
+                                        <span>Sign Out / Logout</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- Direct Quick Logout Header Button -->
+                    <form method="POST" action="{{ route('admin.logout') }}" class="inline-flex">
+                        @csrf
+                        <button type="submit" title="Sign Out / Logout" class="h-9 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/20 hover:border-rose-500 flex items-center space-x-1.5 text-xs font-semibold transition-all shadow-sm group">
+                            <i class="fas fa-power-off text-xs group-hover:scale-110 transition-transform"></i>
+                            <span class="hidden sm:inline">Logout</span>
+                        </button>
+                    </form>
                 </div>
             </header>
 
@@ -522,6 +584,32 @@
             if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', openSidebar);
             if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
             if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Profile Dropdown Toggle Logic
+            const profileDropdownBtn = document.getElementById('profileDropdownBtn');
+            const profileDropdownMenu = document.getElementById('profileDropdownMenu');
+            const profileChevron = document.getElementById('profileChevron');
+
+            if (profileDropdownBtn && profileDropdownMenu) {
+                profileDropdownBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isHidden = profileDropdownMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        profileDropdownMenu.classList.remove('hidden');
+                        if (profileChevron) profileChevron.classList.add('rotate-180');
+                    } else {
+                        profileDropdownMenu.classList.add('hidden');
+                        if (profileChevron) profileChevron.classList.remove('rotate-180');
+                    }
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!profileDropdownMenu.contains(e.target) && !profileDropdownBtn.contains(e.target)) {
+                        profileDropdownMenu.classList.add('hidden');
+                        if (profileChevron) profileChevron.classList.remove('rotate-180');
+                    }
+                });
+            }
         });
     </script>
 </body>

@@ -40,6 +40,9 @@
             <p><strong>Date:</strong> {{ $booking->booking_date->format('d M, Y h:i A') }}</p>
             <p><strong>Status:</strong> {{ $booking->status }}</p>
             <p><strong>Collection Type:</strong> {{ $booking->collection_type }}</p>
+            @if($booking->agent)
+            <p><strong>Field Agent:</strong> {{ $booking->agent->name }} ({{ $booking->agent->phone }})</p>
+            @endif
         </div>
         <div class="box">
             <h3 class="box-title">Patient Information</h3>

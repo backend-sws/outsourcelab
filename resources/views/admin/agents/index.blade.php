@@ -72,10 +72,11 @@
 
                         <!-- Tasks Count -->
                         <td class="px-6 py-4 text-xs">
-                            <span class="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">
+                            <a href="{{ route('admin.bookings.index', ['agent_id' => $agent->id]) }}" class="inline-flex items-center gap-1 font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition" title="View assigned bookings for this agent">
                                 <i class="fas fa-clipboard-check text-indigo-500"></i>
                                 <span>{{ $agent->active_bookings_count ?? 0 }} Active</span>
-                            </span>
+                                <i class="fas fa-arrow-right text-[9px] ml-0.5"></i>
+                            </a>
                         </td>
 
                         <!-- Status -->
@@ -87,7 +88,13 @@
                         </td>
 
                         <!-- Actions -->
-                        <td class="px-6 py-4 text-right space-x-2">
+                        <td class="px-6 py-4 text-right space-x-1.5">
+                            <!-- View Assigned Tasks Link -->
+                            <a href="{{ route('admin.bookings.index', ['agent_id' => $agent->id]) }}" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition inline-flex items-center gap-1" title="View Assigned Patients">
+                                <i class="fas fa-list-check"></i>
+                                <span class="hidden sm:inline">Tasks</span>
+                            </a>
+
                             <!-- Toggle Status Form -->
                             <form action="{{ route('admin.agents.toggle_status', $agent->id) }}" method="POST" class="inline">
                                 @csrf

@@ -17,6 +17,15 @@ class AgentPortalController extends Controller
         return Agent::find($agentId);
     }
 
+    public function showLoginForm()
+    {
+        if (session()->has('agent_id') && Agent::find(session('agent_id'))) {
+            return redirect()->route('agent.dashboard');
+        }
+        $agents = Agent::where('status', 'active')->orderBy('name')->get();
+        return view('agent.login', compact('agents'));
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -41,11 +50,15 @@ class AgentPortalController extends Controller
 
         session(['agent_id' => $agent->id]);
 
-        return response()->json([
-            'success'  => true,
-            'redirect' => route('agent.dashboard'),
-            'message'  => 'Agent registered successfully!',
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'  => true,
+                'redirect' => route('agent.dashboard'),
+                'message'  => 'Agent registered successfully!',
+            ]);
+        }
+
+        return redirect()->route('agent.dashboard')->with('success', 'Agent registered successfully!');
     }
 
     public function login(Request $request)
@@ -59,32 +72,43 @@ class AgentPortalController extends Controller
 
         if ($agent && Hash::check($request->password, $agent->password)) {
             if ($agent->status !== 'active') {
-                return response()->json(['success' => false, 'message' => 'Your agent account is inactive. Please contact admin.']);
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Your agent account is inactive. Please contact admin.']);
+                }
+                return back()->with('error', 'Your agent account is inactive. Please contact admin.')->withInput();
             }
 
             $agent->update(['last_login_at' => now()]);
             session(['agent_id' => $agent->id]);
 
-            return response()->json([
-                'success'  => true,
-                'redirect' => route('agent.dashboard'),
-            ]);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'  => true,
+                    'redirect' => route('agent.dashboard'),
+                ]);
+            }
+
+            return redirect()->route('agent.dashboard')->with('success', "Welcome back, {$agent->name}!");
         }
 
-        return response()->json(['success' => false, 'message' => 'Invalid email or password for agent.']);
+        if ($request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => 'Invalid email or password for agent.']);
+        }
+
+        return back()->with('error', 'Invalid email or password.')->withInput();
     }
 
     public function logout()
     {
         session()->forget('agent_id');
-        return redirect('/')->with('success', 'Logged out successfully.');
+        return redirect()->route('home')->with('success', 'Logged out successfully.');
     }
 
     public function dashboard()
     {
         $agent = $this->getLoggedInAgent();
         if (!$agent) {
-            return redirect('/')->with('error', 'Please login to access the Agent Portal.');
+            return redirect()->route('agent.login')->with('error', 'Please login to access the Agent Portal.');
         }
 
         $bookings = Booking::with(['patient', 'address', 'familyMember'])
@@ -109,7 +133,7 @@ class AgentPortalController extends Controller
     {
         $agent = $this->getLoggedInAgent();
         if (!$agent) {
-            return redirect('/')->with('error', 'Please login to access the Agent Portal.');
+            return redirect()->route('agent.login')->with('error', 'Please login to access the Agent Portal.');
         }
 
         $filter = $request->query('status', 'all');

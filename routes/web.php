@@ -78,8 +78,9 @@ Route::get('/login', function () {
 
 // Agent Portal Routes
 Route::prefix('agent')->name('agent.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'login'])->name('login.submit');
     Route::post('/register', [\App\Http\Controllers\Agent\AgentPortalController::class, 'register'])->name('register');
-    Route::post('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'login'])->name('login');
     Route::get('/logout', [\App\Http\Controllers\Agent\AgentPortalController::class, 'logout'])->name('logout');
     
     Route::get('/dashboard', [\App\Http\Controllers\Agent\AgentPortalController::class, 'dashboard'])->name('dashboard');
@@ -95,7 +96,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Auth Routes
     Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.submit');
-    Route::post('/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
+    Route::match(['get', 'post'], '/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
 
     Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');

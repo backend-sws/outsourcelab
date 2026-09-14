@@ -33,6 +33,24 @@
                     <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Collection Type</p>
                     <p class="font-medium text-gray-800">{{ $booking->collection_type }}</p>
                 </div>
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Assigned Field Agent</p>
+                    @if($booking->agent)
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-xs">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-teal-700 dark:text-teal-400 text-sm">{{ $booking->agent->name }}</p>
+                                <p class="text-[11px] text-gray-500">{{ $booking->agent->phone }}</p>
+                            </div>
+                        </div>
+                    @else
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20">
+                            <i class="fas fa-user-slash text-[10px]"></i> No Agent Assigned Yet
+                        </span>
+                    @endif
+                </div>
                 @if($booking->collection_type == 'Home Collection' && $booking->address)
                 <div class="md:col-span-2">
                     <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Collection Address</p>
@@ -111,7 +129,7 @@
                           ($booking->sample_status == 'Sample Collected' ? 'bg-emerald-100 text-emerald-800' :
                           ($booking->sample_status == 'Out for Collection' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800')) }}">
                         <i class="fas fa-circle text-[8px] mr-1.5 animate-pulse"></i>
-                        {{ $booking->sample_status }}
+                        {{ $booking->sample_status ?: 'Assigned' }}
                     </span>
                 @else
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
@@ -191,8 +209,8 @@
                     <select name="agent_id" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm px-3 py-2 text-sm border bg-gray-50">
                         <option value="">-- Unassigned (None) --</option>
                         @foreach($agents as $agent)
-                            <option value="{{ $agent->id }}" {{ $booking->agent_id == $agent->id ? 'selected' : '' }}>
-                                {{ $agent->name }} ({{ $agent->phone }}) {{ $agent->area ? '• ' . $agent->area : '' }}
+                            <option value="{{ $agent->id }}" {{ (int)$booking->agent_id === (int)$agent->id ? 'selected' : '' }}>
+                                {{ $agent->name }} ({{ $agent->phone }}) {{ $agent->city ? '• ' . $agent->city : '' }}
                             </option>
                         @endforeach
                     </select>

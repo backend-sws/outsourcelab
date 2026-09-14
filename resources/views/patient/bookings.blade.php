@@ -22,13 +22,21 @@
                 @foreach($profile->bookings->sortByDesc('created_at') as $booking)
                     @php
                         $statusMap = [
-                            'Booked'            => ['label' => 'In Progress',  'badge' => 'bg-green-100 text-green-700',    'activeStep' => 1],
-                            'Sample Collected'  => ['label' => 'In Progress',  'badge' => 'bg-blue-100 text-blue-700',      'activeStep' => 2],
-                            'Processing'        => ['label' => 'Processing',   'badge' => 'bg-yellow-100 text-yellow-700',  'activeStep' => 3],
-                            'Report Ready'      => ['label' => 'Completed',    'badge' => 'bg-gray-200 text-gray-600',      'activeStep' => 4],
+                            'Booked'                      => ['label' => 'Booked',           'badge' => 'bg-indigo-100 text-indigo-700',   'activeStep' => 1],
+                            'Pending'                     => ['label' => 'Pending',          'badge' => 'bg-amber-100 text-amber-700',     'activeStep' => 1],
+                            'Confirmed'                   => ['label' => 'Confirmed',        'badge' => 'bg-blue-100 text-blue-700',       'activeStep' => 1],
+                            'Assigned'                    => ['label' => 'Agent Assigned',   'badge' => 'bg-teal-100 text-teal-700',       'activeStep' => 2],
+                            'Sample Collection Scheduled' => ['label' => 'Scheduled',        'badge' => 'bg-teal-100 text-teal-700',       'activeStep' => 2],
+                            'Out for Collection'          => ['label' => 'Agent On The Way', 'badge' => 'bg-amber-100 text-amber-700',    'activeStep' => 2],
+                            'Sample Collected'            => ['label' => 'Sample Collected', 'badge' => 'bg-emerald-100 text-emerald-700', 'activeStep' => 2],
+                            'In Process'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-100 text-yellow-700',   'activeStep' => 3],
+                            'Processing'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-100 text-yellow-700',   'activeStep' => 3],
+                            'Report Ready'                => ['label' => 'Report Ready',     'badge' => 'bg-emerald-100 text-emerald-700', 'activeStep' => 4],
+                            'Completed'                   => ['label' => 'Completed',        'badge' => 'bg-emerald-100 text-emerald-700', 'activeStep' => 4],
                         ];
-                        $info = $statusMap[$booking->status] ?? ['label' => $booking->status, 'badge' => 'bg-gray-200 text-gray-600', 'activeStep' => 1];
-                        $isCompleted = $booking->status === 'Report Ready';
+                        $lookupKey = !empty($booking->sample_status) && $booking->sample_status !== 'Pending' ? $booking->sample_status : $booking->status;
+                        $info = $statusMap[$lookupKey] ?? ['label' => $booking->status, 'badge' => 'bg-gray-200 text-gray-600', 'activeStep' => ($booking->agent ? 2 : 1)];
+                        $isCompleted = in_array($booking->status, ['Report Ready', 'Completed']) || $booking->sample_status === 'Delivered to Lab';
                         $steps = ['Booked', 'Sample Collection', 'Processing', 'Report Ready'];
                         $forName = $booking->familyMember ? $booking->familyMember->name : ($profile->name ?? 'Patient');
                         $tests = is_array($booking->test_details) ? $booking->test_details : [];
@@ -47,7 +55,7 @@
                         </div>
                         
                         <div class="p-6">
-                            <div class="flex justify-between items-start mb-6">
+                            <div class="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 class="font-extrabold text-gray-900 text-lg">{{ $testName }}</h3>
                                     <p class="text-sm text-gray-500 font-semibold mt-1">For: {{ $forName }} • {{ $booking->collection_type }}</p>
@@ -64,13 +72,39 @@
                                 </div>
                             </div>
 
+                            @if($booking->agent)
+                                <div class="mb-5 p-4 rounded-xl bg-teal-50/80 border border-teal-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                                            <i class="fas fa-motorcycle"></i>
+                                        </div>
+                                        <div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[11px] uppercase tracking-wider font-black text-teal-800">Assigned Phlebotomist</span>
+                                                <span class="text-[10px] bg-teal-200 text-teal-900 font-bold px-2 py-0.5 rounded-full">{{ $booking->sample_status ?: 'Assigned' }}</span>
+                                            </div>
+                                            <h4 class="font-black text-teal-950 text-sm">{{ $booking->agent->name }}</h4>
+                                            @if($booking->agent->vehicle_number)
+                                                <p class="text-[11px] text-teal-700 font-medium">Vehicle: {{ $booking->agent->vehicle_number }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @if($booking->agent->phone)
+                                        <a href="tel:{{ $booking->agent->phone }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition">
+                                            <i class="fas fa-phone-alt text-[10px]"></i>
+                                            <span>Call: {{ $booking->agent->phone }}</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
+
                             {{-- Progress Tracker --}}
                             <div class="relative pt-8 pb-4">
                                 {{-- Background line --}}
                                 <div class="absolute top-12 left-8 right-8 h-1 bg-gray-200 rounded-full z-0"></div>
                                 {{-- Progress fill --}}
                                 @php $fillWidth = ($info['activeStep'] - 1) / 3 * 100; @endphp
-                                <div class="absolute top-12 left-8 h-1 bg-brand-secondary rounded-full z-0" style="width: {{ $fillWidth }}%;"></div>
+                                <div class="absolute top-12 left-8 h-1 bg-brand-secondary rounded-full z-0" style="width: {{ (int)$fillWidth }}%;"></div>
 
                                 <div class="flex justify-between relative z-10">
                                     @foreach($steps as $i => $stepName)
