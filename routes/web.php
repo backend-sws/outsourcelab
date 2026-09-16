@@ -23,6 +23,15 @@ Route::get('/', function () {
 Route::post('/reviews', [PublicFeedbackController::class, 'storeReview'])->name('reviews.store');
 Route::post('/enquiries', [PublicFeedbackController::class, 'storeEnquiry'])->name('enquiries.store');
 
+Route::get('/download-report', function () {
+    return view('download-report');
+})->name('download.report');
+
+Route::get('/lis-login', function () {
+    return view('lis-login');
+})->name('lis.login');
+
+
 Route::get('/checkout', function () {
     $patientId = session('patient_id');
     if (!$patientId) return redirect('/');
