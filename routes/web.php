@@ -16,7 +16,9 @@ Route::get('/', function () {
     $habitPackages = \App\Models\Package::where('is_active', true)->where('type', 'habit')->latest()->get();
     $femcliffePackages = \App\Models\Package::where('is_active', true)->where('type', 'femcliffe')->latest()->get();
     
-    return view('welcome', compact('approvedReviews', 'singleTests', 'packages', 'habitPackages', 'femcliffePackages'));
+    $categories = \App\Models\Category::where('is_active', true)->get();
+    
+    return view('welcome', compact('approvedReviews', 'singleTests', 'packages', 'habitPackages', 'femcliffePackages', 'categories'));
 })->name('home');
 
 // Public Review and Enquiry Routes
@@ -138,6 +140,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
         Route::post('/reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve'])->name('reviews.approve');
         Route::post('/reviews/{id}/reject', [\App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+
+        // Categories
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+
+        // Departments (Test Categories)
+        Route::resource('departments', \App\Http\Controllers\Admin\TestCategoryController::class)->parameters([
+            'departments' => 'department'
+        ]);
         
         // Enquiries
         Route::get('/enquiries', [\App\Http\Controllers\Admin\EnquiryController::class, 'index'])->name('enquiries.index');

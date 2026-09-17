@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Admin - @yield('title', 'Dashboard')</title>
+    <title>Super Admin - <?php echo $__env->yieldContent('title', 'Dashboard'); ?></title>
     
     <!-- Inline script to prevent theme flash -->
     <script>
@@ -172,7 +172,7 @@
             <!-- Top Brand & Header -->
             <div>
                 <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100 dark:border-white/[0.06]">
-                    <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 group">
+                    <a href="<?php echo e(route('admin.dashboard')); ?>" class="flex items-center space-x-3 group">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
                             <i class="fas fa-cubes text-lg"></i>
                         </div>
@@ -199,82 +199,82 @@
                         </div>
                         <nav class="space-y-1.5">
                             <!-- Dashboard / Overview -->
-                            <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.dashboard') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.dashboard')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.dashboard') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-home-alt w-5 text-center text-base {{ request()->routeIs('admin.dashboard') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-home-alt w-5 text-center text-base <?php echo e(request()->routeIs('admin.dashboard') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Overview</span>
                                 </div>
-                                @if(request()->routeIs('admin.dashboard'))
+                                <?php if(request()->routeIs('admin.dashboard')): ?>
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
-                                @endif
+                                <?php endif; ?>
                             </a>
 
                             <!-- Users / Logged-in Accounts -->
-                            <a href="{{ route('admin.users.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.users.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.users.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.users.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-users w-5 text-center text-base {{ request()->routeIs('admin.users.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-users w-5 text-center text-base <?php echo e(request()->routeIs('admin.users.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Users</span>
                                 </div>
-                                @if(request()->routeIs('admin.users.*'))
+                                <?php if(request()->routeIs('admin.users.*')): ?>
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
-                                @else
+                                <?php else: ?>
                                     <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
-                                @endif
+                                <?php endif; ?>
                             </a>
 
                             <!-- Bookings -->
-                            <a href="{{ route('admin.bookings.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.bookings.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.bookings.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.bookings.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-calendar-check w-5 text-center text-base {{ request()->routeIs('admin.bookings.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-calendar-check w-5 text-center text-base <?php echo e(request()->routeIs('admin.bookings.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Bookings</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
                             </a>
 
                             <!-- Field Agents & Collectors -->
-                            <a href="{{ route('admin.agents.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.agents.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.agents.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.agents.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-id-badge w-5 text-center text-base {{ request()->routeIs('admin.agents.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-id-badge w-5 text-center text-base <?php echo e(request()->routeIs('admin.agents.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Field Agents</span>
                                 </div>
-                                @if(request()->routeIs('admin.agents.*'))
+                                <?php if(request()->routeIs('admin.agents.*')): ?>
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
-                                @else
+                                <?php else: ?>
                                     <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
-                                @endif
+                                <?php endif; ?>
                             </a>
 
                             <!-- Categories -->
-                            <a href="{{ route('admin.categories.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.categories.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.categories.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.categories.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-tags w-5 text-center text-base {{ request()->routeIs('admin.categories.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-tags w-5 text-center text-base <?php echo e(request()->routeIs('admin.categories.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Categories</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
                             </a>
 
                             <!-- Departments -->
-                            <a href="{{ route('admin.departments.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.departments.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.departments.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.departments.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-sitemap w-5 text-center text-base {{ request()->routeIs('admin.departments.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-sitemap w-5 text-center text-base <?php echo e(request()->routeIs('admin.departments.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Test Parameters</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
                             </a>
 
                             <!-- Tests Catalog -->
-                            <a href="{{ route('admin.tests.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.tests.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.tests.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.tests.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-flask-vial w-5 text-center text-base {{ request()->routeIs('admin.tests.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-flask-vial w-5 text-center text-base <?php echo e(request()->routeIs('admin.tests.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Lab Tests</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
                             </a>
 
                             <!-- Packages -->
-                            <a href="{{ route('admin.packages.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.packages.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.packages.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.packages.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-layer-group w-5 text-center text-base {{ request()->routeIs('admin.packages.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-layer-group w-5 text-center text-base <?php echo e(request()->routeIs('admin.packages.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Health Packages</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
@@ -289,18 +289,18 @@
                         </div>
                         <nav class="space-y-1.5">
                             <!-- Reviews -->
-                            <a href="{{ route('admin.reviews.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.reviews.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.reviews.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.reviews.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-star-half-stroke w-5 text-center text-base {{ request()->routeIs('admin.reviews.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-star-half-stroke w-5 text-center text-base <?php echo e(request()->routeIs('admin.reviews.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Patient Reviews</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
                             </a>
 
                             <!-- Enquiries -->
-                            <a href="{{ route('admin.enquiries.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.enquiries.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.enquiries.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.enquiries.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-comment-dots w-5 text-center text-base {{ request()->routeIs('admin.enquiries.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-comment-dots w-5 text-center text-base <?php echo e(request()->routeIs('admin.enquiries.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Enquiries</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
@@ -315,16 +315,16 @@
                         </div>
                         <nav class="space-y-1.5">
                             <!-- Coupons -->
-                            <a href="{{ route('admin.coupons.index') }}" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.coupons.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]' }}">
+                            <a href="<?php echo e(route('admin.coupons.index')); ?>" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all <?php echo e(request()->routeIs('admin.coupons.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04]'); ?>">
                                 <div class="flex items-center space-x-3">
-                                    <i class="fas fa-ticket-alt w-5 text-center text-base {{ request()->routeIs('admin.coupons.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400' }}"></i>
+                                    <i class="fas fa-ticket-alt w-5 text-center text-base <?php echo e(request()->routeIs('admin.coupons.*') ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400'); ?>"></i>
                                     <span>Coupons</span>
                                 </div>
-                                @if(request()->routeIs('admin.coupons.*'))
+                                <?php if(request()->routeIs('admin.coupons.*')): ?>
                                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]"></span>
-                                @else
+                                <?php else: ?>
                                     <i class="fas fa-chevron-right text-xs text-slate-400 dark:text-slate-400"></i>
-                                @endif
+                                <?php endif; ?>
                             </a>
                         </nav>
                     </div>
@@ -335,13 +335,13 @@
                             Others
                         </div>
                         <nav class="space-y-1.5">
-                            <a href="{{ url('/') }}" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all">
+                            <a href="<?php echo e(url('/')); ?>" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all">
                                 <div class="flex items-center space-x-3">
                                     <i class="fas fa-external-link-alt w-5 text-center text-base text-slate-400"></i>
                                     <span>Live Website</span>
                                 </div>
                             </a>
-                            <a href="{{ route('agent.login') }}" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all">
+                            <a href="<?php echo e(route('agent.login')); ?>" target="_blank" class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-all">
                                 <div class="flex items-center space-x-3">
                                     <i class="fas fa-motorcycle w-5 text-center text-base text-teal-500 dark:text-teal-400"></i>
                                     <span>Agent Portal</span>
@@ -372,14 +372,14 @@
                             <span>HIPAA Compliant</span>
                         </div>
                     </div>
-                    <a href="{{ route('admin.bookings.index') }}" class="block w-full text-center py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all">
+                    <a href="<?php echo e(route('admin.bookings.index')); ?>" class="block w-full text-center py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all">
                         Check Live Bookings
                     </a>
                 </div>
 
                 <!-- Logout Button -->
-                <form method="POST" action="{{ route('admin.logout') }}">
-                    @csrf
+                <form method="POST" action="<?php echo e(route('admin.logout')); ?>">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" class="w-full flex items-center justify-center space-x-2 px-3.5 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                         <i class="fas fa-arrow-right-from-bracket"></i>
                         <span>Sign Out</span>
@@ -406,7 +406,7 @@
                         <div class="flex items-center space-x-2 font-medium text-slate-400 dark:text-slate-400 text-xs sm:text-sm">
                             <span>Lab</span>
                             <span class="text-slate-300 dark:text-slate-400">/</span>
-                            <span class="text-slate-900 dark:text-white font-semibold">@yield('header', 'Overview')</span>
+                            <span class="text-slate-900 dark:text-white font-semibold"><?php echo $__env->yieldContent('header', 'Overview'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -450,10 +450,10 @@
                             </div>
                             <div class="hidden xl:block text-left">
                                 <div class="text-xs font-bold text-slate-800 dark:text-white leading-tight flex items-center gap-1.5">
-                                    <span>{{ auth()->user()->name ?? 'Super Admin' }}</span>
+                                    <span><?php echo e(auth()->user()->name ?? 'Super Admin'); ?></span>
                                     <i id="profileChevron" class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
                                 </div>
-                                <div class="text-[10px] text-slate-400">{{ auth()->user()->email ?? '@adminWellcare' }}</div>
+                                <div class="text-[10px] text-slate-400"><?php echo e(auth()->user()->email ?? '@adminWellcare'); ?></div>
                             </div>
                             <i class="xl:hidden fas fa-chevron-down text-[10px] text-slate-400"></i>
                         </button>
@@ -461,35 +461,35 @@
                         <!-- Dropdown Menu -->
                         <div id="profileDropdownMenu" class="hidden absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-[#12142d] border border-slate-200 dark:border-white/[0.08] shadow-2xl py-2 z-50 transform origin-top-right transition-all">
                             <div class="px-4 py-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                <div class="text-xs font-bold text-slate-900 dark:text-white">{{ auth()->user()->name ?? 'Super Admin' }}</div>
-                                <div class="text-[11px] text-slate-400 truncate">{{ auth()->user()->email ?? 'admin@wellcare.com' }}</div>
+                                <div class="text-xs font-bold text-slate-900 dark:text-white"><?php echo e(auth()->user()->name ?? 'Super Admin'); ?></div>
+                                <div class="text-[11px] text-slate-400 truncate"><?php echo e(auth()->user()->email ?? 'admin@wellcare.com'); ?></div>
                                 <span class="inline-block mt-1.5 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 border border-indigo-500/20">
                                     Super Administrator
                                 </span>
                             </div>
 
                             <div class="py-1">
-                                <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                <a href="<?php echo e(route('admin.dashboard')); ?>" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
                                     <i class="fas fa-chart-line w-4 text-slate-400"></i>
                                     <span>Dashboard Overview</span>
                                 </a>
-                                <a href="{{ route('admin.users.index') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                <a href="<?php echo e(route('admin.users.index')); ?>" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
                                     <i class="fas fa-users w-4 text-slate-400"></i>
                                     <span>Manage Users</span>
                                 </a>
-                                <a href="{{ route('admin.bookings.index') }}" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                <a href="<?php echo e(route('admin.bookings.index')); ?>" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
                                     <i class="fas fa-calendar-check w-4 text-slate-400"></i>
                                     <span>All Bookings</span>
                                 </a>
-                                <a href="{{ url('/') }}" target="_blank" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
+                                <a href="<?php echo e(url('/')); ?>" target="_blank" class="flex items-center space-x-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
                                     <i class="fas fa-external-link-alt w-4 text-slate-400"></i>
                                     <span>View Live Website</span>
                                 </a>
                             </div>
 
                             <div class="border-t border-slate-100 dark:border-white/[0.06] pt-1 mt-1 px-1">
-                                <form method="POST" action="{{ route('admin.logout') }}">
-                                    @csrf
+                                <form method="POST" action="<?php echo e(route('admin.logout')); ?>">
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="w-full flex items-center space-x-2 px-3 py-2 text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors">
                                         <i class="fas fa-arrow-right-from-bracket w-4 text-rose-500"></i>
                                         <span>Sign Out / Logout</span>
@@ -500,8 +500,8 @@
                     </div>
 
                     <!-- Direct Quick Logout Header Button -->
-                    <form method="POST" action="{{ route('admin.logout') }}" class="inline-flex">
-                        @csrf
+                    <form method="POST" action="<?php echo e(route('admin.logout')); ?>" class="inline-flex">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" title="Sign Out / Logout" class="h-9 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-600 dark:text-rose-400 hover:text-white border border-rose-500/20 hover:border-rose-500 flex items-center space-x-1.5 text-xs font-semibold transition-all shadow-sm group">
                             <i class="fas fa-power-off text-xs group-hover:scale-110 transition-transform"></i>
                             <span class="hidden sm:inline">Logout</span>
@@ -513,32 +513,32 @@
             <!-- Main Scrollable Body Area -->
             <main class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 sm:py-8 space-y-6">
                 <!-- Alerts / Flash Messages -->
-                @if(session('success'))
+                <?php if(session('success')): ?>
                     <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-between shadow-lg shadow-emerald-500/5 animate-fade-in">
                         <div class="flex items-center space-x-3">
                             <i class="fas fa-circle-check text-emerald-400 text-lg"></i>
-                            <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300">{{ session('success') }}</span>
+                            <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300"><?php echo e(session('success')); ?></span>
                         </div>
                         <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-300 text-sm">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                @endif
+                <?php endif; ?>
                 
-                @if(session('error'))
+                <?php if(session('error')): ?>
                     <div class="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-between shadow-lg shadow-rose-500/5 animate-fade-in">
                         <div class="flex items-center space-x-3">
                             <i class="fas fa-circle-exclamation text-rose-400 text-lg"></i>
-                            <span class="text-sm font-medium text-rose-700 dark:text-rose-300">{{ session('error') }}</span>
+                            <span class="text-sm font-medium text-rose-700 dark:text-rose-300"><?php echo e(session('error')); ?></span>
                         </div>
                         <button onclick="this.parentElement.remove()" class="text-rose-400 hover:text-rose-300 text-sm">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                @endif
+                <?php endif; ?>
 
                 <!-- Yield Content -->
-                @yield('content')
+                <?php echo $__env->yieldContent('content'); ?>
             </main>
         </div>
     </div>
@@ -632,3 +632,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH D:\laravel\outsourcelab\resources\views/admin/layout/app.blade.php ENDPATH**/ ?>

@@ -6,5 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class TestCategory extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'parameters'];
+
+    protected $casts = [
+        'parameters' => 'array',
+    ];
 }

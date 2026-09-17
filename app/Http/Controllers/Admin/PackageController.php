@@ -18,7 +18,8 @@ class PackageController extends Controller
 
     public function create()
     {
-        return view('admin.packages.form');
+        $testParameters = \App\Models\TestCategory::orderBy('name')->get();
+        return view('admin.packages.form', compact('testParameters'));
     }
 
     public function store(Request $request)
@@ -53,7 +54,8 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        return view('admin.packages.form', compact('package'));
+        $testParameters = \App\Models\TestCategory::orderBy('name')->get();
+        return view('admin.packages.form', compact('package', 'testParameters'));
     }
 
     public function update(Request $request, Package $package)

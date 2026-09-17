@@ -11,224 +11,65 @@
     @include('home.hero')
     @include('home.stats')
 
-    <!-- Routine Health Checkups -->
+<!-- Routine Health Checkups -->
 <div class="container mx-auto px-4 py-8 flex flex-col gap-6">
-    <!-- Men -->
+    @foreach($categories as $category)
+    @php
+        // Only show if there are sub categories
+        $hasSubs = is_array($category->sub_category) && count($category->sub_category) > 0;
+    @endphp
+    @if($hasSubs)
     <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for men</h3>
+            <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for {{ strtolower($category->name) }}</h3>
             <div class="flex items-center space-x-3">
                 <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
-                <div class="flex space-x-1.5">
-                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
-                    <button type="button" onclick="document.getElementById('men-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
-                </div>
             </div>
         </div>
 
-        <div id="men-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
-            <!-- Under 30 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Under 30</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
+        <!-- Relative wrapper for slider and buttons -->
+        <div class="relative group/slider">
+            <!-- Left Scroll Button -->
+            <button type="button" onclick="document.getElementById('cat-slider-{{ $category->id }}').scrollBy({left: -400, behavior: 'smooth'})" 
+                    class="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-brand-secondary hover:scale-110 transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 disabled:opacity-0 hidden md:flex">
+                <i class="fas fa-chevron-left text-lg"></i>
+            </button>
+
+            <div id="cat-slider-{{ $category->id }}" class="flex space-x-6 overflow-x-auto pb-6 hide-scroll-bar scroll-smooth px-1 {{ count($category->sub_category) == 1 ? 'justify-center' : '' }} {{ count($category->sub_category) == 2 ? 'md:justify-center' : '' }} {{ count($category->sub_category) == 3 ? 'lg:justify-center' : '' }}">
+                @foreach($category->sub_category as $sub)
+                    @php
+                        $isObj = is_array($sub);
+                        $name = $isObj ? ($sub['name'] ?? '') : $sub;
+                        $image = $isObj ? ($sub['image'] ?? null) : null;
+                    @endphp
+                    @if($name)
+                    <div class="w-[300px] sm:w-[360px] flex-shrink-0 bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all cursor-pointer text-center group">
+                        @if($image)
+                        <div class="w-full aspect-square rounded-xl mb-5 overflow-hidden shadow-md bg-gray-50">
+                            <img src="{{ Storage::url($image) }}" alt="{{ $name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        </div>
+                        @else
+                        <div class="w-full aspect-square bg-gray-50 rounded-xl mb-5 shadow-md flex items-center justify-center text-gray-300 group-hover:scale-105 transition-transform duration-500">
+                            <i class="fas fa-heartbeat text-7xl"></i>
+                        </div>
+                        @endif
+                        <span class="font-bold text-gray-800 text-xl group-hover:text-brand-secondary transition-colors">{{ $name }}</span>
+                    </div>
+                    @endif
+                @endforeach
             </div>
-            <!-- 30-45 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" alt="30-45" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">30 - 45</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-            <!-- 45-60 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop" alt="45-60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">45 - 60</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-            <!-- Above 60 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&h=400&fit=crop" alt="Above 60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-blue-600 transition-colors">Above 60</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
+
+            <!-- Right Scroll Button -->
+            <button type="button" onclick="document.getElementById('cat-slider-{{ $category->id }}').scrollBy({left: 400, behavior: 'smooth'})" 
+                    class="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-gray-600 hover:text-brand-secondary hover:scale-110 transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 disabled:opacity-0 hidden md:flex">
+                <i class="fas fa-chevron-right text-lg"></i>
+            </button>
         </div>
     </div>
-
-    <!-- Women -->
-    <div class="bg-white rounded-2xl border border-gray-200 p-6 w-full relative">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-brand-dark">Routine health checkups for women</h3>
-            <div class="flex items-center space-x-3">
-                <a href="#" class="text-xs font-bold text-gray-500 hover:text-brand-secondary">View All <i class="fas fa-chevron-right ml-1"></i></a>
-                <div class="flex space-x-1.5">
-                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: -220, behavior: 'smooth'})" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-pink-600 hover:border-pink-500 transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
-                    <button type="button" onclick="document.getElementById('women-checkup-slider').scrollBy({left: 220, behavior: 'smooth'})" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-pink-600 transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <div id="women-checkup-slider" class="flex space-x-4 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth">
-            <!-- Under 30 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop" alt="Under 30" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-pink-600 transition-colors">Under 30</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-            <!-- 30-45 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop" alt="30-45" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-pink-600 transition-colors">30 - 45</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-            <!-- 45-60 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&h=400&fit=crop" alt="45-60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-pink-600 transition-colors">45 - 60</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-            <!-- Above 60 -->
-            <div class="min-w-[130px] bg-white border border-gray-100 rounded-xl p-3 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer text-center group">
-                <img src="https://images.unsplash.com/photo-1584432810601-6c7f27d2362b?auto=format&fit=crop&w=400&h=400&q=80" alt="Above 60" class="w-full aspect-square object-cover rounded-lg mb-3 shadow-sm group-hover:scale-105 transition-transform duration-300">
-                <span class="font-bold text-gray-800 text-sm group-hover:text-pink-600 transition-colors">Above 60</span>
-                <span class="text-xs text-gray-400 block mt-1">Years</span>
-            </div>
-        </div>
-    </div>
+    @endif
+    @endforeach
 </div>
 
-
-    <!-- Doctors Curated Health Checkup Packages -->
-<div class="container mx-auto px-4 py-10">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="section-title mb-0">Doctors Curated Health Checkup Packages</h2>
-        <div class="flex items-center space-x-3">
-            <a href="#" class="text-brand-dark font-bold text-sm hover:underline">See All</a>
-            <div class="flex space-x-1.5">
-                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slidePrev();}else{document.querySelector('.categorySwiper')?.scrollBy({left:-220,behavior:'smooth'});}" class="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-brand-dark hover:border-brand-dark transition shadow-sm active:scale-95" title="Previous"><i class="fas fa-chevron-left text-[10px]"></i></button>
-                <button type="button" onclick="if(window.swiperCategory){window.swiperCategory.slideNext();}else{document.querySelector('.categorySwiper')?.scrollBy({left:220,behavior:'smooth'});}" class="w-7 h-7 rounded-full bg-brand-dark text-white flex items-center justify-center hover:bg-brand-secondary transition shadow-sm active:scale-95" title="Next"><i class="fas fa-chevron-right text-[10px]"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div class="swiper categorySwiper">
-        <div class="swiper-wrapper py-4">
-            <!-- Slides -->
-            <!-- Slides with Real Images -->
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_thyroid.jpg') }}" alt="Thyroid" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Thyroid</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_hormones.jpg') }}" alt="Hormones" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Hormones</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_lifestyle.jpg') }}" alt="Lifestyle" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Lifestyle</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_cancer.jpg') }}" alt="Cancer" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Cancer</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_combo.jpg') }}" alt="Combo" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Combo</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_pregnancy.jpg') }}" alt="Pregnancy" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Pregnancy</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_allergy.jpg') }}" alt="Allergy" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Allergy</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_arthritis.jpg') }}" alt="Arthritis" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Arthritis</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_std.jpg') }}" alt="STD" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">STD</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_anemia.jpg') }}" alt="Anemia" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Anemia</span>
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-slide">
-                <div class="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors duration-300 hover:border-brand-secondary group h-full shadow-sm">
-                    <div class="flex flex-col items-center justify-center space-y-3 group-hover:-translate-y-2 transition-transform duration-300">
-                        <div class="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 shadow-sm border-4 border-gray-50 group-hover:scale-110 transition-transform duration-300">
-                            <img src="{{ asset('icons/icon_antenatal.jpg') }}" alt="Antenatal" class="w-full h-full object-cover">
-                        </div>
-                        <span class="font-bold text-gray-800 text-sm group-hover:text-brand-secondary transition-colors text-center w-full">Antenatal</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="swiper-button-next shadow-lg"></div>
-        <div class="swiper-button-prev shadow-lg"></div>
-    </div>
-</div>
 
 
 <style>
@@ -259,7 +100,7 @@
         </div>
     </div>
 
-    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth">
+    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth {{ count($packages) == 1 ? 'justify-center' : '' }} {{ count($packages) == 2 ? 'md:justify-center' : '' }} {{ count($packages) == 3 ? 'lg:justify-center' : '' }}">
         @forelse($packages as $package)
         <!-- Package Card -->
         <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('{{ $package->image ? Storage::url($package->image) : 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80' }}');">
@@ -347,7 +188,7 @@
             <button onclick="filterPackages('habit', 'Sleepless', this)" class="habit-tab bg-white border text-gray-600 px-4 py-2 rounded-lg text-sm font-semibold min-w-max hover:bg-gray-50"><i class="fas fa-bed mr-2 text-blue-400"></i> Sleepless</button>
         </div>
 
-        <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-6">
+        <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-6 {{ count($habitPackages) == 1 ? 'justify-center' : '' }} {{ count($habitPackages) == 2 ? 'md:justify-center' : '' }} {{ count($habitPackages) == 3 ? 'lg:justify-center' : '' }}">
             @forelse($habitPackages as $package)
             <!-- Habit Package -->
             <div class="habit-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-tr-[3rem] rounded-bl-[3rem] rounded-tl-xl rounded-br-xl p-6 border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group" data-category="{{ $package->subcategory }}">
@@ -426,7 +267,7 @@
             <button onclick="filterPackages('femcliffe', 'Cancer', this)" class="bg-white border border-gray-200 text-gray-600 px-5 py-2 rounded-xl text-sm font-semibold min-w-max hover:bg-pink-50 hover:border-pink-200 hover:text-pink-600 transition-colors">Cancer</button>
         </div>
 
-        <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
+        <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4 {{ count($femcliffePackages) == 1 ? 'justify-center' : '' }} {{ count($femcliffePackages) == 2 ? 'md:justify-center' : '' }} {{ count($femcliffePackages) == 3 ? 'lg:justify-center' : '' }}">
             @forelse($femcliffePackages as $package)
             <!-- Femcliffe Package -->
             <div class="femcliffe-card w-[285px] sm:w-[300px] md:w-[320px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 border border-pink-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(236,72,153,0.15)] transition-all duration-300 relative overflow-hidden group" data-category="{{ $package->subcategory }}">
