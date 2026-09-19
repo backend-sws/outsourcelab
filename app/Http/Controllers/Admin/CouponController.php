@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Coupon;
-use App\Models\PatientCoupon;
 use App\Models\Patient;
+use App\Models\PatientCoupon;
+use Illuminate\Http\Request;
 
 class CouponController extends Controller
 {
@@ -20,7 +20,7 @@ class CouponController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%{$search}%")
-                  ->orWhere('title', 'like', "%{$search}%");
+                    ->orWhere('title', 'like', "%{$search}%");
             });
         }
 
@@ -44,7 +44,7 @@ class CouponController extends Controller
         $bannerCoupons = Coupon::where('is_banner', true)->where('is_active', true)->count();
         $totalUsedCoupons = PatientCoupon::where('is_used', true)->count();
 
-        return view('admin.coupons.index', compact(
+        return view('admin.pages.coupons.index', compact(
             'coupons',
             'totalCoupons',
             'welcomeCoupons',
@@ -55,7 +55,7 @@ class CouponController extends Controller
 
     public function create()
     {
-        return view('admin.coupons.form');
+        return view('admin.pages.coupons.form');
     }
 
     public function store(Request $request)
@@ -86,7 +86,7 @@ class CouponController extends Controller
 
         // If it's a welcome coupon, auto-assign to existing patients who don't have it
         if ($coupon->coupon_type === 'welcome' && $coupon->is_active) {
-            $patients = Patient::whereDoesntHave('patientCoupons', function($q) use ($coupon) {
+            $patients = Patient::whereDoesntHave('patientCoupons', function ($q) use ($coupon) {
                 $q->where('coupon_id', $coupon->id);
             })->get();
             foreach ($patients as $patient) {
@@ -102,7 +102,7 @@ class CouponController extends Controller
 
     public function edit(Coupon $coupon)
     {
-        return view('admin.coupons.form', compact('coupon'));
+        return view('admin.pages.coupons.form', compact('coupon'));
     }
 
     public function update(Request $request, Coupon $coupon)
@@ -112,7 +112,7 @@ class CouponController extends Controller
         ]);
 
         $validated = $request->validate([
-            'code' => 'required|string|max:30|unique:coupons,code,' . $coupon->id,
+            'code' => 'required|string|max:30|unique:coupons,code,'.$coupon->id,
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'coupon_type' => 'required|string|in:welcome,banner,general',
@@ -144,10 +144,11 @@ class CouponController extends Controller
 
     public function toggle(Coupon $coupon)
     {
-        $coupon->is_active = !$coupon->is_active;
+        $coupon->is_active = ! $coupon->is_active;
         $coupon->save();
 
         $status = $coupon->is_active ? 'activated' : 'deactivated';
+
         return back()->with('success', "Coupon '{$coupon->code}' {$status} successfully.");
     }
 }

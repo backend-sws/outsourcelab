@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Patient;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -15,11 +15,11 @@ class UserController extends Controller
         // Search
         if ($request->filled('search')) {
             $search = trim($request->search);
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('mobile', 'like', "%{$search}%")
-                  ->orWhere('alt_mobile', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('alt_mobile', 'like', "%{$search}%");
             });
         }
 
@@ -54,46 +54,46 @@ class UserController extends Controller
 
         // Top Stats
         $totalUsers = Patient::count();
-        $recentLogins = Patient::where(function($q) {
+        $recentLogins = Patient::where(function ($q) {
             $q->where('last_login_at', '>=', now()->subDays(7))
-              ->orWhere(function($sub) {
-                  $sub->whereNull('last_login_at')
-                      ->where('updated_at', '>=', now()->subDays(7));
-              });
+                ->orWhere(function ($sub) {
+                    $sub->whereNull('last_login_at')
+                        ->where('updated_at', '>=', now()->subDays(7));
+                });
         })->count();
         $usersWithBookings = Patient::has('bookings')->count();
         $newThisMonth = Patient::where('created_at', '>=', now()->startOfMonth())->count();
 
-        return view('admin.users.index', compact('users', 'totalUsers', 'recentLogins', 'usersWithBookings', 'newThisMonth'));
+        return view('admin.pages.users.index', compact('users', 'totalUsers', 'recentLogins', 'usersWithBookings', 'newThisMonth'));
     }
 
     public function show(Request $request, $id)
     {
         $user = Patient::with([
-            'bookings' => function($q) {
+            'bookings' => function ($q) {
                 $q->latest();
             },
             'familyMembers',
             'addresses',
-            'prescriptions' => function($q) {
+            'prescriptions' => function ($q) {
                 $q->latest();
-            }
+            },
         ])->withCount(['bookings', 'familyMembers', 'addresses', 'prescriptions'])->findOrFail($id);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'user' => $user
+                'user' => $user,
             ]);
         }
 
-        return view('admin.users.show', compact('user'));
+        return view('admin.pages.users.show', compact('user'));
     }
 
     public function destroy($id)
     {
         $user = Patient::findOrFail($id);
-        $name = $user->name ?: $user->email ?: 'User #' . $user->id;
+        $name = $user->name ?: $user->email ?: 'User #'.$user->id;
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('success', "User '{$name}' deleted successfully.");

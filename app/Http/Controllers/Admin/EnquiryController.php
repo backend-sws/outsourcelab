@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\ContactEnquiry;
 
 class EnquiryController extends Controller
@@ -12,7 +10,8 @@ class EnquiryController extends Controller
     public function index()
     {
         $enquiries = ContactEnquiry::latest()->paginate(15);
-        return view('admin.enquiries.index', compact('enquiries'));
+
+        return view('admin.pages.enquiries.index', compact('enquiries'));
     }
 
     public function show(int $id)
@@ -22,6 +21,7 @@ class EnquiryController extends Controller
             $enquiry->status = 'Read';
             $enquiry->save();
         }
-        return view('admin.enquiries.show', compact('enquiry'));
+
+        return view('admin.pages.enquiries.show', compact('enquiry'));
     }
 }

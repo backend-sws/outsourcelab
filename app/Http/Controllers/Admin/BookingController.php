@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
-use App\Models\Booking;
 use App\Models\Agent;
+use App\Models\Booking;
+use Illuminate\Http\Request;
 
 class BookingController extends Controller
 {
@@ -28,14 +27,16 @@ class BookingController extends Controller
 
         $bookings = $query->paginate(15)->withQueryString();
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
-        return view('admin.bookings.index', compact('bookings', 'agents'));
+
+        return view('admin.pages.bookings.index', compact('bookings', 'agents'));
     }
 
     public function show(int $id)
     {
         $booking = Booking::with(['patient', 'familyMember', 'address', 'agent'])->findOrFail($id);
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
-        return view('admin.bookings.show', compact('booking', 'agents'));
+
+        return view('admin.pages.bookings.show', compact('booking', 'agents'));
     }
 
     public function assignAgent(Request $request, int $id)
@@ -45,7 +46,7 @@ class BookingController extends Controller
         ]);
 
         $booking = Booking::findOrFail($id);
-        $agentId = $request->filled('agent_id') ? (int)$request->agent_id : null;
+        $agentId = $request->filled('agent_id') ? (int) $request->agent_id : null;
         $booking->agent_id = $agentId;
 
         if ($agentId) {
@@ -66,15 +67,16 @@ class BookingController extends Controller
         $booking->load('agent');
 
         $agentName = $booking->agent ? $booking->agent->name : 'Unassigned';
-        return back()->with('success', $agentId 
-            ? "Field Agent '{$agentName}' successfully assigned to booking #{$booking->booking_reference}." 
+
+        return back()->with('success', $agentId
+            ? "Field Agent '{$agentName}' successfully assigned to booking #{$booking->booking_reference}."
             : "Booking #{$booking->booking_reference} is now unassigned.");
     }
 
     public function updateStatus(Request $request, int $id)
     {
         $request->validate([
-            'status' => 'required|string'
+            'status' => 'required|string',
         ]);
 
         $booking = Booking::findOrFail($id);
@@ -87,6 +89,7 @@ class BookingController extends Controller
     public function print(int $id)
     {
         $booking = Booking::with(['patient', 'familyMember', 'address', 'agent'])->findOrFail($id);
-        return view('admin.bookings.print', compact('booking'));
+
+        return view('admin.pages.bookings.print', compact('booking'));
     }
 }

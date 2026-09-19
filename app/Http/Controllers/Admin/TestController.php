@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\Test;
 use App\Models\TestCategory;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class TestController extends Controller
@@ -14,13 +13,15 @@ class TestController extends Controller
     public function index()
     {
         $tests = Test::with('category')->latest()->paginate(15);
-        return view('admin.tests.index', compact('tests'));
+
+        return view('admin.pages.tests.index', compact('tests'));
     }
 
     public function create()
     {
         $categories = TestCategory::all();
-        return view('admin.tests.form', compact('categories'));
+
+        return view('admin.pages.tests.form', compact('categories'));
     }
 
     public function store(Request $request)
@@ -28,11 +29,19 @@ class TestController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'test_category_id' => 'nullable|exists:test_categories,id',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:test_categories,id',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|max:2048',
             'preparation_instructions' => 'nullable|string',
             'report_delivery_time' => 'nullable|string',
         ]);
+
+        $categoryIds = $request->input('category_ids', []);
+        if (! empty($validated['test_category_id']) && ! in_array($validated['test_category_id'], $categoryIds)) {
+            $categoryIds[] = (int) $validated['test_category_id'];
+        }
+        $validated['category_ids'] = $categoryIds;
 
         $test = new Test($validated);
         $test->is_featured = $request->has('is_featured');
@@ -51,7 +60,8 @@ class TestController extends Controller
     public function edit(Test $test)
     {
         $categories = TestCategory::all();
-        return view('admin.tests.form', compact('test', 'categories'));
+
+        return view('admin.pages.tests.form', compact('test', 'categories'));
     }
 
     public function update(Request $request, Test $test)
@@ -59,11 +69,19 @@ class TestController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'test_category_id' => 'nullable|exists:test_categories,id',
+            'category_ids' => 'nullable|array',
+            'category_ids.*' => 'integer|exists:test_categories,id',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|max:2048',
             'preparation_instructions' => 'nullable|string',
             'report_delivery_time' => 'nullable|string',
         ]);
+
+        $categoryIds = $request->input('category_ids', []);
+        if (! empty($validated['test_category_id']) && ! in_array($validated['test_category_id'], $categoryIds)) {
+            $categoryIds[] = (int) $validated['test_category_id'];
+        }
+        $validated['category_ids'] = $categoryIds;
 
         $test->fill($validated);
         $test->is_featured = $request->has('is_featured');

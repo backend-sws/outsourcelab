@@ -11,12 +11,13 @@ class TestCategoryController extends Controller
     public function index()
     {
         $categories = TestCategory::latest()->get();
-        return view('admin.test_categories.index', compact('categories'));
+
+        return view('admin.pages.test_categories.index', compact('categories'));
     }
 
     public function create()
     {
-        return view('admin.test_categories.create');
+        return view('admin.pages.test_categories.create');
     }
 
     public function store(Request $request)
@@ -40,13 +41,13 @@ class TestCategoryController extends Controller
 
     public function edit(TestCategory $department)
     {
-        return view('admin.test_categories.edit', compact('department'));
+        return view('admin.pages.test_categories.edit', compact('department'));
     }
 
     public function update(Request $request, TestCategory $department)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:test_categories,name,' . $department->id,
+            'name' => 'required|string|max:255|unique:test_categories,name,'.$department->id,
             'parameters' => 'nullable|array',
             'parameters.*' => 'nullable|string|max:255',
         ]);
@@ -65,6 +66,7 @@ class TestCategoryController extends Controller
     public function destroy(TestCategory $department)
     {
         $department->delete();
+
         return redirect()->route('admin.departments.index')->with('success', 'Department deleted successfully.');
     }
 }

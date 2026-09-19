@@ -1,160 +1,208 @@
 <?php
 
+use App\Http\Controllers\Admin\AgentController as AdminAgentController;
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EnquiryController as AdminEnquiryController;
+use App\Http\Controllers\Admin\MembershipController as AdminMembershipController;
+use App\Http\Controllers\Admin\PackageController as AdminPackageController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\RewardController as AdminRewardController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\TestCategoryController as AdminTestCategoryController;
+use App\Http\Controllers\Admin\TestController as AdminTestController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Agent\AgentPortalController;
+use App\Http\Controllers\Frontend\CheckoutController;
+use App\Http\Controllers\Frontend\ExploreController;
+use App\Http\Controllers\Frontend\FeedbackController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\PageController;
+use App\Http\Controllers\Patient\PatientAddressController;
+use App\Http\Controllers\Patient\PatientAuthController;
+use App\Http\Controllers\Patient\PatientBookingController;
+use App\Http\Controllers\Patient\PatientCouponController;
+use App\Http\Controllers\Patient\PatientFamilyController;
+use App\Http\Controllers\Patient\PatientMembershipController;
+use App\Http\Controllers\Patient\PatientPrescriptionController;
+use App\Http\Controllers\Patient\PatientProfileController;
+use App\Http\Controllers\Patient\PatientRewardController;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\PatientProfileController;
-use App\Http\Controllers\PublicFeedbackController;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+| Scalable, enterprise-grade route architecture divided into clear domain groups:
+| 1. Frontend: Public landing, checkout, report downloads, feedback, reviews
+| 2. Patient: Authentication, medical records, family, prescriptions, bookings
+| 3. Agent: Phlebotomist portal, sample collection, payment collection
+| 4. Super Admin: Full administrative control panel and CMS settings
+|--------------------------------------------------------------------------
+*/
 
-Route::get('/', function () {
-    $approvedReviews = \App\Models\Review::where('status', 'Approved')->latest()->take(15)->get();
-    $singleTests = \App\Models\Test::where('is_active', true)->with('category')->latest()->take(24)->get();
-    $packages = \App\Models\Package::where('is_active', true)
-        ->where(function($q) {
-            $q->where('type', 'general')->orWhereNull('type');
-        })->latest()->take(10)->get();
-        
-    $habitPackages = \App\Models\Package::where('is_active', true)->where('type', 'habit')->latest()->get();
-    $femcliffePackages = \App\Models\Package::where('is_active', true)->where('type', 'femcliffe')->latest()->get();
-    
-    $categories = \App\Models\Category::where('is_active', true)->get();
-    
-    return view('welcome', compact('approvedReviews', 'singleTests', 'packages', 'habitPackages', 'femcliffePackages', 'categories'));
-})->name('home');
+// =========================================================================
+// 1. FRONTEND PUBLIC ROUTES (Zero Closures, Modular Controller Architecture)
+// =========================================================================
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::get('/download-report', [PageController::class, 'downloadReport'])->name('download.report');
+Route::get('/lis-login', [PageController::class, 'lisLogin'])->name('lis.login');
+Route::get('/login', [PageController::class, 'loginRedirect'])->name('login');
 
-// Public Review and Enquiry Routes
-Route::post('/reviews', [PublicFeedbackController::class, 'storeReview'])->name('reviews.store');
-Route::post('/enquiries', [PublicFeedbackController::class, 'storeEnquiry'])->name('enquiries.store');
+// Product & Category Exploration Pages
+Route::get('/checkups/{id}', [ExploreController::class, 'category'])->name('category.show');
+Route::get('/package/{id}', [ExploreController::class, 'package'])->name('package.show');
+Route::get('/test/{id}', [ExploreController::class, 'test'])->name('test.show');
 
-Route::get('/download-report', function () {
-    return view('download-report');
-})->name('download.report');
+// Live Autocomplete API & Quick Prescription Booking
+Route::get('/api/search-catalogue', [ExploreController::class, 'search'])->name('api.search');
+Route::post('/prescription-upload', [ExploreController::class, 'uploadPrescription'])->name('prescription.quick_upload');
 
-Route::get('/lis-login', function () {
-    return view('lis-login');
-})->name('lis.login');
+Route::post('/reviews', [FeedbackController::class, 'storeReview'])->name('reviews.store');
+Route::post('/enquiries', [FeedbackController::class, 'storeEnquiry'])->name('enquiries.store');
 
+// =========================================================================
+// 2. PATIENT PORTAL ROUTES
+// =========================================================================
+Route::prefix('patient')->name('patient.')->group(function () {
 
-Route::get('/checkout', function () {
-    $patientId = session('patient_id');
-    if (!$patientId) return redirect('/');
-    $patient = \App\Models\Patient::find($patientId);
-    if (!$patient) return redirect('/');
+    // Authentication & Password Recovery
+    Route::post('/login', [PatientAuthController::class, 'login'])->name('login');
+    Route::post('/register', [PatientAuthController::class, 'register'])->name('register');
+    Route::post('/forgot-password', [PatientAuthController::class, 'forgotPassword'])->name('forgot_password');
+    Route::post('/reset-password', [PatientAuthController::class, 'resetPassword'])->name('reset_password');
+    Route::get('/logout', [PatientAuthController::class, 'logout'])->name('logout');
 
-    app(\App\Http\Controllers\PatientProfileController::class)->assignWelcomeCoupons($patientId);
+    // Profile & Medical Records
+    Route::get('/dashboard', [PatientProfileController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile/edit', [PatientProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile/edit', [PatientProfileController::class, 'store'])->name('profile.store');
+    Route::get('/reports', [PatientProfileController::class, 'reports'])->name('reports');
 
-    $myCoupons = \App\Models\PatientCoupon::with('coupon')
-        ->where('patient_id', $patientId)
-        ->where('is_used', false)
-        ->get()
-        ->filter(fn($pc) => $pc->coupon && $pc->coupon->is_active);
+    // Family Members
+    Route::get('/family-members', [PatientFamilyController::class, 'index'])->name('family_members');
+    Route::post('/family-members', [PatientFamilyController::class, 'store'])->name('add_family_member');
+    Route::delete('/family-members/{id}', [PatientFamilyController::class, 'destroy'])->name('delete_family_member');
 
-    $bannerCoupons = \App\Models\Coupon::where('is_active', true)
-        ->where('coupon_type', 'banner')
-        ->get();
+    // Prescriptions
+    Route::get('/prescriptions', [PatientPrescriptionController::class, 'index'])->name('prescriptions');
+    Route::post('/prescriptions', [PatientPrescriptionController::class, 'store'])->name('upload_prescription');
+    Route::post('/prescriptions/upload', [PatientPrescriptionController::class, 'store'])->name('prescription.upload');
 
-    return view('checkout.index', compact('patient', 'myCoupons', 'bannerCoupons'));
-})->name('checkout.index');
+    // Saved Addresses
+    Route::get('/address-book', [PatientAddressController::class, 'index'])->name('address_book');
+    Route::post('/address-book', [PatientAddressController::class, 'store'])->name('add_address');
+    Route::put('/address-book/{id}', [PatientAddressController::class, 'update'])->name('update_address');
+    Route::delete('/address-book/{id}', [PatientAddressController::class, 'destroy'])->name('delete_address');
 
-Route::post('/patient/login', [PatientProfileController::class, 'login'])->name('patient.login');
-Route::post('/patient/register', [PatientProfileController::class, 'register'])->name('patient.register');
-Route::post('/patient/forgot-password', [PatientProfileController::class, 'forgotPassword'])->name('patient.forgot_password');
-Route::post('/patient/reset-password', [PatientProfileController::class, 'resetPassword'])->name('patient.reset_password');
-Route::get('/patient/dashboard', [PatientProfileController::class, 'dashboard'])->name('patient.dashboard');
-Route::get('/patient/profile/edit', [PatientProfileController::class, 'edit'])->name('patient.profile.edit');
-Route::post('/patient/profile/edit', [PatientProfileController::class, 'store'])->name('patient.profile.store');
+    // Coupons
+    Route::get('/coupons', [PatientCouponController::class, 'index'])->name('coupons');
+    Route::post('/apply-coupon', [PatientCouponController::class, 'applyCoupon'])->name('apply_coupon');
 
-Route::get('/patient/family-members', [PatientProfileController::class, 'familyMembers'])->name('patient.family_members');
-Route::post('/patient/family-members', [PatientProfileController::class, 'addFamilyMember'])->name('patient.add_family_member');
+    // VIP Health Memberships
+    Route::get('/membership', [PatientMembershipController::class, 'index'])->name('membership');
+    Route::post('/membership/purchase', [PatientMembershipController::class, 'purchase'])->name('membership.purchase');
 
-Route::get('/patient/prescriptions', [PatientProfileController::class, 'prescriptions'])->name('patient.prescriptions');
-Route::post('/patient/prescriptions', [PatientProfileController::class, 'uploadPrescription'])->name('patient.upload_prescription');
+    // Health Coins & Loyalty Rewards
+    Route::get('/rewards', [PatientRewardController::class, 'index'])->name('rewards');
 
-Route::get('/patient/address-book', [PatientProfileController::class, 'addressBook'])->name('patient.address_book');
-Route::post('/patient/address-book', [PatientProfileController::class, 'addAddress'])->name('patient.add_address');
-Route::get('/patient/reports', [PatientProfileController::class, 'reports'])->name('patient.reports');
-Route::get('/patient/coupons', [PatientProfileController::class, 'coupons'])->name('patient.coupons');
-Route::post('/patient/apply-coupon', [PatientProfileController::class, 'applyCoupon'])->name('patient.apply_coupon');
-Route::get('/patient/bookings', [PatientProfileController::class, 'bookings'])->name('patient.bookings');
-Route::post('/patient/bookings', [PatientProfileController::class, 'placeBooking'])->name('patient.place_booking');
-Route::post('/patient/cart/sync', [PatientProfileController::class, 'syncCart'])->name('patient.cart.sync');
-
-Route::get('/patient/logout', function () {
-    session()->forget('patient_id');
-    return redirect('/');
-})->name('patient.logout');
-
-Route::get('/login', function () {
-    return redirect()->route('admin.login');
-})->name('login');
-
-// Agent Portal Routes
-Route::prefix('agent')->name('agent.')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Agent\AgentPortalController::class, 'login'])->name('login.submit');
-    Route::post('/register', [\App\Http\Controllers\Agent\AgentPortalController::class, 'register'])->name('register');
-    Route::get('/logout', [\App\Http\Controllers\Agent\AgentPortalController::class, 'logout'])->name('logout');
-    
-    Route::get('/dashboard', [\App\Http\Controllers\Agent\AgentPortalController::class, 'dashboard'])->name('dashboard');
-    Route::get('/progress', [\App\Http\Controllers\Agent\AgentPortalController::class, 'progress'])->name('progress');
-    Route::post('/bookings/{id}/sample-status', [\App\Http\Controllers\Agent\AgentPortalController::class, 'updateSampleStatus'])->name('update_sample_status');
-    Route::get('/collections', [\App\Http\Controllers\Agent\AgentPortalController::class, 'collections'])->name('collections');
-    Route::post('/bookings/{id}/collect-money', [\App\Http\Controllers\Agent\AgentPortalController::class, 'collectMoney'])->name('collect_money');
+    // Bookings & Cart Synchronization
+    Route::get('/bookings', [PatientBookingController::class, 'index'])->name('bookings');
+    Route::post('/bookings', [PatientBookingController::class, 'placeBooking'])->name('place_booking');
+    Route::post('/cart/sync', [PatientBookingController::class, 'syncCart'])->name('cart.sync');
 });
 
-// Super Admin Routes
+// =========================================================================
+// 3. AGENT / PHLEBOTOMIST PORTAL ROUTES
+// =========================================================================
+Route::prefix('agent')->name('agent.')->group(function () {
+    Route::get('/login', [AgentPortalController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AgentPortalController::class, 'login'])->name('login.submit');
+    Route::post('/register', [AgentPortalController::class, 'register'])->name('register');
+    Route::get('/logout', [AgentPortalController::class, 'logout'])->name('logout');
+
+    Route::get('/dashboard', [AgentPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/progress', [AgentPortalController::class, 'progress'])->name('progress');
+    Route::post('/bookings/{id}/sample-status', [AgentPortalController::class, 'updateSampleStatus'])->name('update_sample_status');
+    Route::get('/collections', [AgentPortalController::class, 'collections'])->name('collections');
+    Route::post('/bookings/{id}/collect-money', [AgentPortalController::class, 'collectMoney'])->name('collect_money');
+});
+
+// =========================================================================
+// 4. SUPER ADMIN CONTROL PANEL ROUTES
+// =========================================================================
 Route::prefix('admin')->name('admin.')->group(function () {
-    
+
     // Auth Routes
-    Route::get('/login', [\App\Http\Controllers\Admin\AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('login.submit');
-    Route::match(['get', 'post'], '/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->name('logout');
+    Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    Route::match(['get', 'post'], '/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
+    // Protected Admin Panel
     Route::middleware('auth')->group(function () {
-        Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-        
-        // Agents / Phlebotomists
-        Route::get('/agents', [\App\Http\Controllers\Admin\AgentController::class, 'index'])->name('agents.index');
-        Route::post('/agents', [\App\Http\Controllers\Admin\AgentController::class, 'store'])->name('agents.store');
-        Route::post('/agents/{id}/toggle-status', [\App\Http\Controllers\Admin\AgentController::class, 'toggleStatus'])->name('agents.toggle_status');
-        Route::delete('/agents/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'destroy'])->name('agents.destroy');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-        // Users (Registered & Logged-in Customers)
-        Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
-        Route::get('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
-        Route::delete('/users/{id}', [\App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('users.destroy');
+        // Agents / Phlebotomists
+        Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents.index');
+        Route::post('/agents', [AdminAgentController::class, 'store'])->name('agents.store');
+        Route::post('/agents/{id}/toggle-status', [AdminAgentController::class, 'toggleStatus'])->name('agents.toggle_status');
+        Route::delete('/agents/{id}', [AdminAgentController::class, 'destroy'])->name('agents.destroy');
+
+        // Registered Customers / Patients
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/{id}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         // Bookings
-        Route::get('/bookings', [\App\Http\Controllers\Admin\BookingController::class, 'index'])->name('bookings.index');
-        Route::get('/bookings/{id}', [\App\Http\Controllers\Admin\BookingController::class, 'show'])->name('bookings.show');
-        Route::post('/bookings/{id}/status', [\App\Http\Controllers\Admin\BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
-        Route::post('/bookings/{id}/assign-agent', [\App\Http\Controllers\Admin\BookingController::class, 'assignAgent'])->name('bookings.assign_agent');
-        Route::get('/bookings/{id}/print', [\App\Http\Controllers\Admin\BookingController::class, 'print'])->name('bookings.print');
-        
-        // Tests
-        Route::resource('tests', \App\Http\Controllers\Admin\TestController::class);
-        
-        // Packages
-        Route::resource('packages', \App\Http\Controllers\Admin\PackageController::class);
-        
-        // Reviews
-        Route::get('/reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
-        Route::post('/reviews/{id}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve'])->name('reviews.approve');
-        Route::post('/reviews/{id}/reject', [\App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+        Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{id}', [AdminBookingController::class, 'show'])->name('bookings.show');
+        Route::post('/bookings/{id}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+        Route::post('/bookings/{id}/assign-agent', [AdminBookingController::class, 'assignAgent'])->name('bookings.assign_agent');
+        Route::get('/bookings/{id}/print', [AdminBookingController::class, 'print'])->name('bookings.print');
 
-        // Categories
-        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+        // Test Catalog
+        Route::resource('tests', AdminTestController::class);
+
+        // Package Catalog
+        Route::resource('packages', AdminPackageController::class);
+
+        // Customer Reviews Moderation
+        Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+        Route::post('/reviews/{id}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{id}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
+
+        // Health Checkup Categories
+        Route::resource('categories', AdminCategoryController::class);
 
         // Departments (Test Categories)
-        Route::resource('departments', \App\Http\Controllers\Admin\TestCategoryController::class)->parameters([
-            'departments' => 'department'
+        Route::resource('departments', AdminTestCategoryController::class)->parameters([
+            'departments' => 'department',
         ]);
-        
-        // Enquiries
-        Route::get('/enquiries', [\App\Http\Controllers\Admin\EnquiryController::class, 'index'])->name('enquiries.index');
-        Route::get('/enquiries/{id}', [\App\Http\Controllers\Admin\EnquiryController::class, 'show'])->name('enquiries.show');
 
-        // Coupons
-        Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class);
-        Route::post('coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])->name('coupons.toggle');
+        // Contact Enquiries
+        Route::get('/enquiries', [AdminEnquiryController::class, 'index'])->name('enquiries.index');
+        Route::get('/enquiries/{id}', [AdminEnquiryController::class, 'show'])->name('enquiries.show');
+
+        // Promo Coupons
+        Route::resource('coupons', AdminCouponController::class);
+        Route::post('coupons/{coupon}/toggle', [AdminCouponController::class, 'toggle'])->name('coupons.toggle');
+
+        // VIP Memberships / Loyalty Plans
+        Route::get('memberships/subscribers', [AdminMembershipController::class, 'subscribers'])->name('memberships.subscribers');
+        Route::post('memberships/{membership}/toggle', [AdminMembershipController::class, 'toggle'])->name('memberships.toggle');
+        Route::resource('memberships', AdminMembershipController::class);
+
+        // Health Coins & Rewards System
+        Route::get('/rewards', [AdminRewardController::class, 'index'])->name('rewards.index');
+        Route::post('/rewards/settings', [AdminRewardController::class, 'updateSettings'])->name('rewards.update');
+        Route::post('/rewards/adjust', [AdminRewardController::class, 'manualAdjustment'])->name('rewards.adjust');
+
+        // Site Settings / CMS
+        Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
     });
 });

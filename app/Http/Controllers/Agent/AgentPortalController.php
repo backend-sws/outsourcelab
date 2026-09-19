@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Agent;
 use App\Models\Booking;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AgentPortalController extends Controller
 {
     private function getLoggedInAgent()
     {
         $agentId = session('agent_id');
-        if (!$agentId) return null;
+        if (! $agentId) {
+            return null;
+        }
+
         return Agent::find($agentId);
     }
 
@@ -23,48 +26,47 @@ class AgentPortalController extends Controller
             return redirect()->route('agent.dashboard');
         }
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
-        return view('agent.login', compact('agents'));
+
+        return view('agent.pages.login', compact('agents'));
     }
 
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:100',
-            'email'    => 'required|email|unique:agents,email',
-            'phone'    => 'required|string|max:20',
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|unique:agents,email',
+            'phone' => 'required|string|max:20',
             'password' => 'required|string|min:4',
-            'city'     => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
             'vehicle_number' => 'nullable|string|max:50',
         ]);
 
         $agent = Agent::create([
-            'name'           => $request->name,
-            'email'          => $request->email,
-            'phone'          => $request->phone,
-            'password'       => Hash::make($request->password),
-            'city'           => $request->city,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'password' => Hash::make($request->password),
+            'city' => $request->city,
             'vehicle_number' => $request->vehicle_number,
-            'status'         => 'active',
-            'last_login_at'  => now(),
+            'status' => 'pending_approval',
+            'last_login_at' => null,
         ]);
-
-        session(['agent_id' => $agent->id]);
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'  => true,
-                'redirect' => route('agent.dashboard'),
-                'message'  => 'Agent registered successfully!',
+                'success' => true,
+                'redirect' => route('agent.login'),
+                'message' => 'Registration submitted successfully! Your account is pending admin approval before you can log in.',
             ]);
         }
 
-        return redirect()->route('agent.dashboard')->with('success', 'Agent registered successfully!');
+        return redirect()->route('agent.login')->with('success', 'Registration submitted successfully! Your account is pending admin approval.');
     }
 
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
@@ -75,6 +77,7 @@ class AgentPortalController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'Your agent account is inactive. Please contact admin.']);
                 }
+
                 return back()->with('error', 'Your agent account is inactive. Please contact admin.')->withInput();
             }
 
@@ -83,7 +86,7 @@ class AgentPortalController extends Controller
 
             if ($request->wantsJson()) {
                 return response()->json([
-                    'success'  => true,
+                    'success' => true,
                     'redirect' => route('agent.dashboard'),
                 ]);
             }
@@ -101,13 +104,14 @@ class AgentPortalController extends Controller
     public function logout()
     {
         session()->forget('agent_id');
+
         return redirect()->route('home')->with('success', 'Logged out successfully.');
     }
 
     public function dashboard()
     {
         $agent = $this->getLoggedInAgent();
-        if (!$agent) {
+        if (! $agent) {
             return redirect()->route('agent.login')->with('error', 'Please login to access the Agent Portal.');
         }
 
@@ -120,11 +124,11 @@ class AgentPortalController extends Controller
         $totalAssigned = $bookings->count();
         $pendingCollection = $bookings->whereNotIn('sample_status', ['Sample Collected', 'Delivered to Lab'])->count();
         $samplesCollected = $bookings->whereIn('sample_status', ['Sample Collected', 'Delivered to Lab'])->count();
-        
+
         $cashToCollect = $bookings->where('payment_status', '!=', 'Paid')->sum('amount');
         $cashCollected = $bookings->where('money_collected_by', $agent->id)->where('payment_status', 'Paid')->sum('amount');
 
-        return view('agent.dashboard', compact(
+        return view('agent.pages.dashboard', compact(
             'agent', 'bookings', 'totalAssigned', 'pendingCollection', 'samplesCollected', 'cashToCollect', 'cashCollected'
         ));
     }
@@ -132,7 +136,7 @@ class AgentPortalController extends Controller
     public function progress(Request $request)
     {
         $agent = $this->getLoggedInAgent();
-        if (!$agent) {
+        if (! $agent) {
             return redirect()->route('agent.login')->with('error', 'Please login to access the Agent Portal.');
         }
 
@@ -151,22 +155,39 @@ class AgentPortalController extends Controller
 
         $bookings = $query->latest('booking_date')->get();
 
-        return view('agent.progress', compact('agent', 'bookings', 'filter'));
+        return view('agent.pages.progress', compact('agent', 'bookings', 'filter'));
     }
 
     public function updateSampleStatus(Request $request, $id)
     {
         $agent = $this->getLoggedInAgent();
-        if (!$agent) {
+        if (! $agent) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         $request->validate([
             'sample_status' => 'required|in:Out for Collection,Sample Collected,Delivered to Lab',
-            'notes'         => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ]);
 
         $booking = Booking::where('agent_id', $agent->id)->findOrFail($id);
+
+        if ($booking->status === 'Cancelled') {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot update sample status on a cancelled booking.'], 422);
+            }
+
+            return back()->with('error', 'Cannot update sample status on a cancelled booking.');
+        }
+
+        if ($request->sample_status === 'Delivered to Lab' && $booking->sample_status !== 'Sample Collected') {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Sample must be collected before it can be marked as Delivered to Lab.'], 422);
+            }
+
+            return back()->with('error', 'Sample must be collected before it can be marked as Delivered to Lab.');
+        }
+
         $booking->sample_status = $request->sample_status;
 
         if ($request->sample_status === 'Sample Collected') {
@@ -184,19 +205,19 @@ class AgentPortalController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'success'       => true,
+                'success' => true,
                 'sample_status' => $booking->sample_status,
-                'message'       => 'Sample status updated to ' . $booking->sample_status,
+                'message' => 'Sample status updated to '.$booking->sample_status,
             ]);
         }
 
-        return back()->with('success', 'Status updated to ' . $booking->sample_status);
+        return back()->with('success', 'Status updated to '.$booking->sample_status);
     }
 
     public function collections()
     {
         $agent = $this->getLoggedInAgent();
-        if (!$agent) {
+        if (! $agent) {
             return redirect('/')->with('error', 'Please login to access the Agent Portal.');
         }
 
@@ -209,19 +230,31 @@ class AgentPortalController extends Controller
         $totalPendingCash = $bookings->where('payment_status', '!=', 'Paid')->sum('amount');
         $totalOnlinePaid = $bookings->where('payment_status', 'Paid')->where('money_collected_by', '!=', $agent->id)->count();
 
-        return view('agent.collections', compact('agent', 'bookings', 'totalCashInHand', 'totalPendingCash', 'totalOnlinePaid'));
+        return view('agent.pages.collections', compact('agent', 'bookings', 'totalCashInHand', 'totalPendingCash', 'totalOnlinePaid'));
     }
 
     public function collectMoney(Request $request, $id)
     {
         $agent = $this->getLoggedInAgent();
-        if (!$agent) {
+        if (! $agent) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
         $booking = Booking::where('agent_id', $agent->id)->findOrFail($id);
 
+        if ($booking->status === 'Cancelled') {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Cannot collect payment on a cancelled booking.'], 422);
+            }
+
+            return back()->with('error', 'Cannot collect payment on a cancelled booking.');
+        }
+
         if ($booking->payment_status === 'Paid') {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'This booking has already been marked as Paid.']);
+            }
+
             return back()->with('info', 'This booking has already been marked as Paid.');
         }
 
@@ -236,10 +269,10 @@ class AgentPortalController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Payment of ₹' . $booking->amount . ' successfully collected via ' . $paymentMode . '!',
+                'message' => 'Payment of ₹'.$booking->amount.' successfully collected via '.$paymentMode.'!',
             ]);
         }
 
-        return back()->with('success', 'Payment of ₹' . $booking->amount . ' collected successfully!');
+        return back()->with('success', 'Payment of ₹'.$booking->amount.' collected successfully!');
     }
 }

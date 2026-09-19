@@ -12,12 +12,13 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::latest()->paginate(10);
-        return view('admin.categories.index', compact('categories'));
+
+        return view('admin.pages.categories.index', compact('categories'));
     }
 
     public function create()
     {
-        return view('admin.categories.create');
+        return view('admin.pages.categories.create');
     }
 
     public function store(Request $request)
@@ -33,18 +34,20 @@ class CategoryController extends Controller
 
         $subCategories = [];
         $names = $request->input('sub_category_name', []);
-        
+
         foreach ($names as $index => $name) {
-            if (empty(trim($name))) continue;
-            
+            if (empty(trim($name))) {
+                continue;
+            }
+
             $imagePath = null;
             if ($request->hasFile("sub_category_image.$index")) {
                 $imagePath = $request->file("sub_category_image.$index")->store('categories/sub', 'public');
             }
-            
+
             $subCategories[] = [
                 'name' => $name,
-                'image' => $imagePath
+                'image' => $imagePath,
             ];
         }
 
@@ -59,7 +62,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        return view('admin.categories.edit', compact('category'));
+        return view('admin.pages.categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
@@ -77,12 +80,14 @@ class CategoryController extends Controller
         $subCategories = [];
         $names = $request->input('sub_category_name', []);
         $oldImages = $request->input('sub_category_old_image', []);
-        
+
         foreach ($names as $index => $name) {
-            if (empty(trim($name))) continue;
-            
+            if (empty(trim($name))) {
+                continue;
+            }
+
             $imagePath = $oldImages[$index] ?? null;
-            
+
             if ($request->hasFile("sub_category_image.$index")) {
                 // Delete old image if exists
                 if ($imagePath) {
@@ -90,17 +95,17 @@ class CategoryController extends Controller
                 }
                 $imagePath = $request->file("sub_category_image.$index")->store('categories/sub', 'public');
             }
-            
+
             $subCategories[] = [
                 'name' => $name,
-                'image' => $imagePath
+                'image' => $imagePath,
             ];
         }
 
         // Clean up deleted sub categories images
         $existingImages = is_array($category->sub_category) ? array_column($category->sub_category, 'image') : [];
         $keptImages = array_filter(array_column($subCategories, 'image'));
-        
+
         $deletedImages = array_diff($existingImages, $keptImages);
         foreach ($deletedImages as $deletedImage) {
             if ($deletedImage) {
