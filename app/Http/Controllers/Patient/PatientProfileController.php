@@ -89,11 +89,15 @@ class PatientProfileController extends Controller
             return redirect('/');
         }
 
-        $profile = Patient::find($patientId);
+        $profile = Patient::with(['bookings.agent', 'bookings.familyMember', 'bookings.address'])->find($patientId);
         if (! $profile) {
             return redirect('/');
         }
 
-        return view('patient.pages.reports', compact('profile'));
+        $reportBookings = $profile->bookings->filter(function ($b) {
+            return ! empty($b->report_file_path) || in_array($b->status, ['Report Ready', 'Completed']);
+        })->sortByDesc('booking_date');
+
+        return view('patient.pages.reports', compact('profile', 'reportBookings'));
     }
 }

@@ -1,10 +1,8 @@
-@extends('frontend.layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mx-auto px-4 py-8 bg-gray-50/50">
     <div class="flex flex-col md:flex-row gap-8">
         <!-- Sidebar -->
-        @include('patient.layouts.sidebar')
+        <?php echo $__env->make('patient.layouts.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- Main Content -->
         <div class="w-full md:w-2/3 lg:w-3/4 space-y-6">
@@ -19,7 +17,7 @@
                     <p class="text-xs text-gray-500 font-medium mt-1">100% NABL Accredited & Digitally Signed Diagnostic Reports. Download or view anytime.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                    <a href="{{ route('patient.bookings') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-brand-dark hover:border-teal-300 font-extrabold text-xs transition shadow-2xs">
+                    <a href="<?php echo e(route('patient.bookings')); ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-brand-dark hover:border-teal-300 font-extrabold text-xs transition shadow-2xs">
                         <i class="far fa-calendar-check text-brand-primary"></i>
                         <span>Track Bookings</span>
                     </a>
@@ -30,9 +28,9 @@
                 </div>
             </div>
 
-            @php
+            <?php
                 $reportsCount = $reportBookings->count();
-            @endphp
+            ?>
 
             <!-- Reports Highlights Row -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
@@ -42,7 +40,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">Available Reports</span>
-                        <span class="text-xl font-black text-brand-dark">{{ $reportsCount }}</span>
+                        <span class="text-xl font-black text-brand-dark"><?php echo e($reportsCount); ?></span>
                     </div>
                 </div>
 
@@ -83,7 +81,7 @@
                 </span>
             </div>
 
-            @if($reportBookings->isEmpty())
+            <?php if($reportBookings->isEmpty()): ?>
                 <!-- High-Trust Empty State -->
                 <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 md:p-12 text-center">
                     <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-teal-50 to-emerald-100 rounded-3xl flex items-center justify-center mb-5 border border-teal-200 shadow-inner">
@@ -128,28 +126,28 @@
                             <i class="fas fa-flask"></i>
                             <span>Book Health Checkup</span>
                         </a>
-                        <a href="{{ route('patient.bookings') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-teal-300 text-gray-800 font-extrabold px-6 py-3 rounded-xl transition shadow-2xs text-xs">
+                        <a href="<?php echo e(route('patient.bookings')); ?>" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-teal-300 text-gray-800 font-extrabold px-6 py-3 rounded-xl transition shadow-2xs text-xs">
                             <i class="far fa-calendar-check text-brand-primary"></i>
                             <span>Track Active Bookings</span>
                         </a>
-                        <a href="{{ route('patient.prescriptions') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-extrabold px-6 py-3 rounded-xl transition text-xs">
+                        <a href="<?php echo e(route('patient.prescriptions')); ?>" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-extrabold px-6 py-3 rounded-xl transition text-xs">
                             <i class="fas fa-file-medical text-amber-600"></i>
                             <span>Upload Prescription</span>
                         </a>
                     </div>
                 </div>
-            @else
+            <?php else: ?>
                 <!-- Reports List Container -->
                 <div class="space-y-4">
-                    @foreach($reportBookings as $booking)
-                        @php
+                    <?php $__currentLoopData = $reportBookings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $booking): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $forName = $booking->familyMember ? $booking->familyMember->name : ($profile->name ?? 'Patient (Self)');
                             $relation = $booking->familyMember ? $booking->familyMember->relation : 'Self';
                             $testDetails = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);
                             $mainTitle = !empty($testDetails) 
                                 ? (is_array($testDetails[0]) ? ($testDetails[0]['name'] ?? 'Diagnostic Test Report') : $testDetails[0]) 
                                 : 'Diagnostic Health Report';
-                        @endphp
+                        ?>
 
                         <div class="bg-white rounded-2xl border border-gray-200 hover:border-teal-300 shadow-sm transition overflow-hidden">
                             <div class="p-5 md:p-6">
@@ -164,14 +162,15 @@
                                                     <i class="fas fa-check-circle"></i> REPORT READY
                                                 </span>
                                                 <span class="text-xs font-mono font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md">
-                                                    #{{ $booking->booking_reference }}
+                                                    #<?php echo e($booking->booking_reference); ?>
+
                                                 </span>
                                             </div>
-                                            <h3 class="text-base font-extrabold text-gray-900">{{ $mainTitle }}</h3>
+                                            <h3 class="text-base font-extrabold text-gray-900"><?php echo e($mainTitle); ?></h3>
                                             <p class="text-xs text-gray-500 font-semibold mt-0.5 flex items-center gap-2 flex-wrap">
-                                                <span>For: <strong class="text-gray-800">{{ $forName }}</strong> ({{ $relation }})</span>
+                                                <span>For: <strong class="text-gray-800"><?php echo e($forName); ?></strong> (<?php echo e($relation); ?>)</span>
                                                 <span>•</span>
-                                                <span><i class="far fa-calendar-alt text-teal-600 mr-1"></i> Sample: {{ $booking->booking_date ? $booking->booking_date->format('d M Y') : $booking->created_at->format('d M Y') }}</span>
+                                                <span><i class="far fa-calendar-alt text-teal-600 mr-1"></i> Sample: <?php echo e($booking->booking_date ? $booking->booking_date->format('d M Y') : $booking->created_at->format('d M Y')); ?></span>
                                             </p>
                                         </div>
                                     </div>
@@ -187,43 +186,43 @@
                                 </div>
 
                                 <!-- Tests Included in Report -->
-                                @if(count($testDetails) > 1)
+                                <?php if(count($testDetails) > 1): ?>
                                     <div class="py-3">
                                         <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 block mb-1.5">Parameters & Tests Covered:</span>
                                         <div class="flex flex-wrap gap-1.5">
-                                            @foreach($testDetails as $t)
-                                                @php $itemTitle = is_array($t) ? ($t['name'] ?? 'Test') : $t; @endphp
+                                            <?php $__currentLoopData = $testDetails; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                <?php $itemTitle = is_array($t) ? ($t['name'] ?? 'Test') : $t; ?>
                                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700">
                                                     <i class="fas fa-vial text-[10px] text-teal-600"></i>
-                                                    <span>{{ $itemTitle }}</span>
+                                                    <span><?php echo e($itemTitle); ?></span>
                                                 </span>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </div>
                                     </div>
-                                @endif
+                                <?php endif; ?>
 
                                 <!-- Actions Row -->
                                 <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        @if($booking->report_file_path)
-                                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" target="_blank" download class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition">
+                                        <?php if($booking->report_file_path): ?>
+                                            <a href="<?php echo e(asset('storage/' . $booking->report_file_path)); ?>" target="_blank" download class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition">
                                                 <i class="fas fa-file-pdf"></i>
                                                 <span>Download PDF Report</span>
                                             </a>
-                                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 hover:border-teal-300 text-gray-700 hover:text-brand-dark font-extrabold text-xs rounded-xl transition shadow-2xs">
+                                            <a href="<?php echo e(asset('storage/' . $booking->report_file_path)); ?>" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 hover:border-teal-300 text-gray-700 hover:text-brand-dark font-extrabold text-xs rounded-xl transition shadow-2xs">
                                                 <i class="far fa-eye"></i>
                                                 <span>View Online</span>
                                             </a>
-                                        @else
+                                        <?php else: ?>
                                             <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                                                 <i class="fas fa-spinner fa-spin text-amber-600"></i>
                                                 <span>Digital report undergoing final verification</span>
                                             </span>
-                                        @endif
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="flex items-center gap-3">
-                                        <a href="{{ route('patient.bookings') }}" class="text-xs font-bold text-teal-700 hover:text-brand-dark transition flex items-center gap-1">
+                                        <a href="<?php echo e(route('patient.bookings')); ?>" class="text-xs font-bold text-teal-700 hover:text-brand-dark transition flex items-center gap-1">
                                             <span>View Booking Details</span>
                                             <i class="fas fa-arrow-right text-[10px]"></i>
                                         </a>
@@ -232,11 +231,13 @@
 
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
-            @endif
+            <?php endif; ?>
 
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('frontend.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/patient/pages/reports.blade.php ENDPATH**/ ?>
