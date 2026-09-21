@@ -216,6 +216,7 @@ class ExploreController extends Controller
 
         ContactEnquiry::create([
             'name' => $request->patient_name,
+            'phone' => $request->mobile_number,
             'email' => 'phone:'.$request->mobile_number,
             'subject' => 'Doctor Prescription Upload - Urgent Callback',
             'message' => "Patient Mobile: {$request->mobile_number}\nPrescription Document: /storage/{$filePath}\nNotes: ".($request->notes ?? 'Patient requested phone consultation and test booking from uploaded doctor slip.'),

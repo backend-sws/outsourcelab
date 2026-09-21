@@ -109,7 +109,7 @@
                            class="w-[290px] sm:w-[340px] flex-shrink-0 bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-2xl hover:border-teal-500/40 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col group block cursor-pointer">
                             
                             <!-- Top High-Res Hero Image Banner -->
-                            <div class="relative h-44 sm:h-48 w-full overflow-hidden bg-slate-100">
+                            <div class="relative h-52 sm:h-56 w-full overflow-hidden bg-slate-100">
                                 <img src="{{ $imageUrl }}" 
                                      alt="{{ $name }}" 
                                      loading="lazy"
@@ -283,7 +283,7 @@
                             
                             <div>
                                 <!-- Image Preview -->
-                                <div class="relative h-36 w-full overflow-hidden rounded-2xl bg-slate-100 mb-4">
+                                <div class="relative h-52 sm:h-56 w-full overflow-hidden rounded-2xl bg-slate-100 mb-4">
                                     <img src="{{ $imageUrl }}" 
                                          alt="{{ $name }}" 
                                          loading="lazy"
@@ -378,7 +378,7 @@
                        class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-teal-500/50 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col group block cursor-pointer">
                         
                         <!-- Top Image Banner -->
-                        <div class="relative h-44 w-full overflow-hidden bg-slate-100">
+                        <div class="relative h-52 sm:h-56 w-full overflow-hidden bg-slate-100">
                             <img src="{{ $imageUrl }}" 
                                  alt="{{ $name }}" 
                                  loading="lazy"
@@ -702,74 +702,87 @@
 
     <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth {{ count($packages) == 1 ? 'justify-center' : '' }} {{ count($packages) == 2 ? 'md:justify-center' : '' }} {{ count($packages) == 3 ? 'lg:justify-center' : '' }}">
         @forelse($packages as $package)
+        @php
+            $mrp = round($package->price * 1.45);
+            $discountPct = round((($mrp - $package->price) / $mrp) * 100);
+            $pkgGrouped = $package->getGroupedParameters();
+        @endphp
         <!-- Package Card -->
-        <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col justify-between hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 relative overflow-hidden group bg-cover bg-center" style="background-image: url('{{ $package->image ? Storage::url($package->image) : 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&q=80' }}');">
-            <div class="absolute inset-0 bg-white/95 group-hover:opacity-0 transition-opacity duration-500 z-0"></div>
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand-dark to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500 z-10"></div>
-            <div class="relative z-10">
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-blue-50/80 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-200/50 backdrop-blur-sm">MOST BOOKED</span>
-                    <div class="w-8 h-8 rounded-full bg-orange-50/80 flex items-center justify-center text-brand-secondary backdrop-blur-sm">
-                        <i class="fas fa-shield-alt text-sm"></i>
+        <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-gray-100 hover:border-teal-300 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-[0_12px_35px_rgba(15,118,110,0.12)] transition-all duration-300 relative overflow-hidden group">
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-500 via-teal-700 to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="bg-blue-50 text-blue-800 text-[10px] font-extrabold px-3 py-1 rounded-full uppercase border border-blue-200/70 tracking-wider flex items-center gap-1.5">
+                        <i class="fas fa-crown text-amber-500 text-[10px]"></i> MOST BOOKED
+                    </span>
+                    <div class="w-8 h-8 rounded-full bg-amber-50 border border-amber-100/80 flex items-center justify-center text-brand-secondary group-hover:scale-110 transition-transform">
+                        <i class="fas fa-shield-alt text-xs text-amber-600"></i>
                     </div>
                 </div>
-                <h3 class="font-bold text-brand-secondary text-base leading-snug mb-2 group-hover:text-black group-hover:[text-shadow:_0_0_15px_rgba(255,255,255,1),_0_0_20px_rgba(255,255,255,1)] transition-all">
+
+                <h3 class="font-extrabold text-gray-900 group-hover:text-teal-700 text-base leading-snug mb-2 transition-colors line-clamp-2">
                     <a href="{{ route('package.show', $package->id) }}" class="hover:underline">
                         {{ $package->name }}
                     </a>
                 </h3>
-                <div class="bg-gray-50/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between mb-4 border border-gray-200/50">
-                    <div class="text-center">
+
+                <div class="bg-slate-50 rounded-2xl p-3 flex items-center justify-between mt-3 mb-3 border border-slate-100">
+                    <div class="text-center w-full">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Reports In</p>
-                        <p class="text-sm font-bold text-gray-800">10 hrs</p>
+                        <p class="text-xs sm:text-sm font-black text-gray-800">10 hrs</p>
                     </div>
-                    <div class="w-px h-8 bg-gray-200"></div>
-                    <div class="text-center">
+                    <div class="w-px h-7 bg-gray-200 mx-2"></div>
+                    <div class="text-center w-full">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-sm font-bold text-teal-700">{{ $package->total_parameters_count }} Tests</p>
+                        <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->total_parameters_count }} Tests</p>
                     </div>
                 </div>
                 
-                @php
-                    $pkgGrouped = $package->getGroupedParameters();
-                @endphp
                 @if(!empty($pkgGrouped))
-                <div class="flex flex-wrap gap-1.5 mb-4">
+                <div class="flex flex-wrap gap-1.5 mb-3">
                     @foreach(array_slice(array_keys($pkgGrouped), 0, 3) as $deptKey)
-                    <span class="bg-white/90 backdrop-blur-sm text-gray-700 text-[10px] font-medium px-2 py-0.5 rounded-md border border-gray-200/60 flex items-center shadow-xs">
-                        <i class="fas fa-check-circle text-teal-600 mr-1 text-[9px]"></i> {{ \Illuminate\Support\Str::limit($deptKey, 16) }}
+                    <span class="bg-teal-50/70 text-teal-900 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-teal-100/60 flex items-center">
+                        <i class="fas fa-check-circle text-teal-600 mr-1 text-[8px]"></i> {{ \Illuminate\Support\Str::limit($deptKey, 16) }}
                     </span>
                     @endforeach
                     @if(count($pkgGrouped) > 3)
-                    <span class="text-[10px] text-brand-secondary font-bold self-center ml-1">+{{ count($pkgGrouped) - 3 }} More</span>
+                    <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+{{ count($pkgGrouped) - 3 }} More</span>
                     @endif
                 </div>
                 @endif
                 
                 @if($package->description)
-                <p class="text-xs text-gray-600 mb-4 line-clamp-2">{{ $package->description }}</p>
+                <p class="text-xs text-gray-600 mb-4 line-clamp-2 leading-relaxed font-normal">{{ $package->description }}</p>
                 @endif
-                
             </div>
-            <div class="border-t border-gray-200/50 pt-4 mt-auto relative z-10">
-                <div class="flex items-end justify-between mb-3">
-                    <div>
-                        <div class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</div>
-                    </div>
+
+            <div class="border-t border-gray-100 pt-4 mt-auto">
+                <div class="flex items-baseline gap-2 mb-3">
+                    <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
+                    <span class="text-xs text-gray-400 line-through">₹{{ number_format($mrp) }}</span>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">{{ $discountPct }}% OFF</span>
                 </div>
-                <a href="{{ route('package.show', $package->id) }}" class="w-full mb-2.5 py-1.5 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
-                    <i class="fas fa-file-waveform text-teal-600 text-[11px]"></i>
+
+                <a href="{{ route('package.show', $package->id) }}" class="w-full mb-2.5 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-98">
+                    <i class="fas fa-file-waveform text-teal-600 text-xs"></i>
                     <span>View {{ $package->total_parameters_count }} Tests Included</span>
                 </a>
-                <button onclick="addToCart(this)" 
+
+                <button type="button" 
+                    onclick="addToCart(this)" 
                     data-id="{{ $package->id }}"
                     data-type="package"
                     data-name="{{ $package->name }}"
-                    data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ $package->total_parameters_count }} Parameters"
-                    class="w-full bg-white/90 backdrop-blur-sm border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-sm">
+                    data-price="{{ $package->price }}" 
+                    data-mrp="{{ $mrp }}" 
+                    data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                    class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
-                <p class="text-[9px] text-gray-500 font-medium text-center mt-3">Free Home Sample Collection Included</p>
+
+                <p class="text-[10px] text-gray-400 font-medium text-center mt-3 flex items-center justify-center gap-1">
+                    <i class="fas fa-truck-medical text-teal-600 text-[10px]"></i> Free Home Sample Collection Included
+                </p>
             </div>
         </div>
         @empty
@@ -1062,8 +1075,9 @@
 </div>
 
 
-    <!-- Spreading Quality Healthcare Stats Strip -->
+    {{-- Spreading Quality Healthcare Stats Strip (Temporarily disabled as requested)
     @include('frontend.partials.stats')
+    --}}
 
     <!-- Why Book Tests With Us? -->
 <div class="relative py-20 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
@@ -1298,50 +1312,67 @@
 </style>
 
 <div class="container mx-auto px-4 py-12">
-    <div class="text-center mb-10">
-        <h2 class="text-3xl font-extrabold text-brand-dark mb-2">Health Calculators</h2>
-        <p class="text-gray-500 font-medium">Use our free tools to track and monitor your health metrics instantly</p>
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider mb-2 border border-teal-200/60">
+                <i class="fas fa-heart-pulse text-teal-600"></i> Free Self-Assessment Tools
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-dark">Health Calculators</h2>
+            <p class="text-gray-500 font-medium text-xs sm:text-sm mt-1">Use our free clinical tools to track and monitor your vital health metrics instantly</p>
+        </div>
+        <a href="{{ route('calculators.index') }}" class="text-xs font-bold text-teal-700 hover:text-teal-900 self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 transition border border-teal-200/60">
+            <span>View All Calculators</span>
+            <i class="fas fa-arrow-right text-[10px]"></i>
+        </a>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <!-- BMI -->
-        <div class="bg-white border border-blue-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tr-[50px] rounded-bl-[50px] rounded-tl-xl rounded-br-xl group border-b-4 hover:border-b-blue-500">
+        <div class="bg-white border border-blue-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tr-[50px] rounded-bl-[50px] rounded-tl-xl rounded-br-xl group border-b-4 hover:border-b-blue-500 hover:-translate-y-1">
             <div class="bg-blue-50 w-20 h-20 rounded-tl-full rounded-tr-full rounded-br-full rounded-bl-lg mb-5 flex items-center justify-center text-blue-500 text-3xl shadow-inner relative overflow-hidden group-hover:bg-blue-100 transition">
                 <i class="fas fa-weight anim-rock"></i>
             </div>
-            <h4 class="font-bold text-gray-800 text-base mb-2">Body Mass Index (BMI)</h4>
+            <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-blue-600 transition">
+                <a href="{{ route('calculators.bmi') }}">Body Mass Index (BMI)</a>
+            </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Find out if your weight falls within the ideal range for your height and age instantly.</p>
-            <a href="#" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-500 hover:text-white transition w-full">Calculate BMI</a>
+            <a href="{{ route('calculators.bmi') }}" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-2.5 rounded-full hover:bg-blue-600 hover:text-white transition w-full block">Calculate BMI</a>
         </div>
 
         <!-- Heart Health -->
-        <div class="bg-white border border-red-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tl-[50px] rounded-br-[50px] rounded-tr-xl rounded-bl-xl group border-b-4 hover:border-b-red-500">
+        <div class="bg-white border border-red-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tl-[50px] rounded-br-[50px] rounded-tr-xl rounded-bl-xl group border-b-4 hover:border-b-red-500 hover:-translate-y-1">
             <div class="bg-red-50 w-20 h-20 rounded-tl-full rounded-tr-full rounded-bl-full rounded-br-lg mb-5 flex items-center justify-center text-red-500 text-3xl shadow-inner relative overflow-hidden group-hover:bg-red-100 transition">
                 <i class="fas fa-heartbeat anim-beat"></i>
             </div>
-            <h4 class="font-bold text-gray-800 text-base mb-2">Cardiovascular Risk</h4>
+            <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-red-600 transition">
+                <a href="{{ route('calculators.cardiovascular') }}">Cardiovascular Risk</a>
+            </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Evaluate your heart's overall health and discover early warning signs of cardiac issues.</p>
-            <a href="#" class="text-xs font-extrabold text-red-600 bg-red-50 px-4 py-2 rounded-full hover:bg-red-500 hover:text-white transition w-full">Check Heart Health</a>
+            <a href="{{ route('calculators.cardiovascular') }}" class="text-xs font-extrabold text-red-600 bg-red-50 px-4 py-2.5 rounded-full hover:bg-red-600 hover:text-white transition w-full block">Check Heart Health</a>
         </div>
 
         <!-- Pre-Diabetic -->
-        <div class="bg-white border border-teal-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tr-[50px] rounded-bl-[50px] rounded-tl-xl rounded-br-xl group border-b-4 hover:border-b-teal-500">
+        <div class="bg-white border border-teal-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tr-[50px] rounded-bl-[50px] rounded-tl-xl rounded-br-xl group border-b-4 hover:border-b-teal-500 hover:-translate-y-1">
             <div class="bg-teal-50 w-20 h-20 rounded-t-full rounded-b-full mb-5 flex items-center justify-center text-teal-500 text-3xl shadow-inner relative overflow-hidden group-hover:bg-teal-100 transition">
                 <i class="fas fa-tint anim-drip"></i>
             </div>
-            <h4 class="font-bold text-gray-800 text-base mb-2">Diabetes Risk Profiler</h4>
+            <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-teal-700 transition">
+                <a href="{{ route('calculators.diabetes') }}">Diabetes Risk Profiler</a>
+            </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Identify your chances of pre-diabetes early with our comprehensive symptom checker.</p>
-            <a href="#" class="text-xs font-extrabold text-teal-600 bg-teal-50 px-4 py-2 rounded-full hover:bg-teal-500 hover:text-white transition w-full">Evaluate Risk</a>
+            <a href="{{ route('calculators.diabetes') }}" class="text-xs font-extrabold text-teal-600 bg-teal-50 px-4 py-2.5 rounded-full hover:bg-teal-600 hover:text-white transition w-full block">Evaluate Risk</a>
         </div>
 
         <!-- Vitamin D -->
-        <div class="bg-white border border-yellow-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tl-[50px] rounded-br-[50px] rounded-tr-xl rounded-bl-xl group border-b-4 hover:border-b-yellow-500">
+        <div class="bg-white border border-yellow-100 p-6 flex flex-col items-center text-center shadow-lg hover:shadow-2xl transition-all duration-300 rounded-tl-[50px] rounded-br-[50px] rounded-tr-xl rounded-bl-xl group border-b-4 hover:border-b-yellow-500 hover:-translate-y-1">
             <div class="bg-yellow-50 w-20 h-20 rounded-full mb-5 flex items-center justify-center text-yellow-500 text-3xl shadow-inner relative overflow-hidden group-hover:bg-yellow-100 transition">
                 <i class="fas fa-sun anim-spin"></i>
             </div>
-            <h4 class="font-bold text-gray-800 text-base mb-2">Vitamin Deficiency</h4>
+            <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-yellow-600 transition">
+                <a href="{{ route('calculators.vitamin') }}">Vitamin Deficiency</a>
+            </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Check for common signs of Vitamin D & B12 shortages that cause fatigue and bone pain.</p>
-            <a href="#" class="text-xs font-extrabold text-yellow-600 bg-yellow-50 px-4 py-2 rounded-full hover:bg-yellow-500 hover:text-white transition w-full">Start Assessment</a>
+            <a href="{{ route('calculators.vitamin') }}" class="text-xs font-extrabold text-yellow-700 bg-yellow-50 px-4 py-2.5 rounded-full hover:bg-yellow-500 hover:text-slate-900 transition w-full block">Start Assessment</a>
         </div>
     </div>
 </div>

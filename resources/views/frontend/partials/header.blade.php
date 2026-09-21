@@ -1,5 +1,13 @@
 @php
     $siteBannerCoupon = \App\Models\Coupon::where('is_active', true)->where('is_banner', true)->latest()->first();
+    $helplinePrimary = \App\Models\Setting::get('helpline_primary', '898 898 8787');
+    $helplineClean = preg_replace('/[^0-9]/', '', $helplinePrimary);
+    $whatsappNumber = \App\Models\Setting::get('whatsapp_number', $helplineClean ?: '8988988787');
+    $whatsappClean = preg_replace('/[^0-9]/', '', $whatsappNumber);
+    if (strlen($whatsappClean) === 10) {
+        $whatsappClean = '91' . $whatsappClean;
+    }
+    $whatsappUrl = "https://wa.me/{$whatsappClean}?text=" . urlencode("Hello Av Wellcare Diagnostics, I would like to book a test / consultation.");
 @endphp
 @if($siteBannerCoupon)
     @php
@@ -7,19 +15,19 @@
     @endphp
     <div class="relative w-full overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-950 text-white py-2 shadow-inner z-50 coupon-marquee-wrapper border-b border-white/10 select-none cursor-default" title="Hover to pause">
             <style>
-                @keyframes couponTickerLTR {
+                @keyframes couponTickerRTL {
                     0% {
-                        transform: translateX(-50%);
+                        transform: translateX(0%);
                     }
                     100% {
-                        transform: translateX(0%);
+                        transform: translateX(-50%);
                     }
                 }
                 .coupon-marquee-track {
                     display: inline-flex;
                     width: max-content;
                     will-change: transform;
-                    animation: couponTickerLTR 35s linear infinite;
+                    animation: couponTickerRTL 35s linear infinite;
                 }
                 .coupon-marquee-wrapper:hover .coupon-marquee-track {
                     animation-play-state: paused;
@@ -123,6 +131,16 @@
             
             <!-- Actions -->
             <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Mobile Quick Contact Icons (Visible on Mobile Screens) -->
+                <div class="flex lg:hidden items-center gap-1.5">
+                    <a href="tel:{{ $helplineClean }}" class="w-9 h-9 rounded-full bg-amber-50 text-amber-700 border border-amber-300 flex items-center justify-center shadow-xs active:scale-95 transition" title="Call Helpline {{ $helplinePrimary }}">
+                        <i class="fas fa-phone-alt text-xs animate-pulse"></i>
+                    </a>
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shadow-xs active:scale-95 transition" title="Chat on WhatsApp">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                    </a>
+                </div>
+
                 <!-- Desktop Only Options -->
                 <div class="hidden lg:flex items-center space-x-3">
                     <a href="{{ route('download.report') }}" class="flex items-center font-medium text-brand-dark hover:text-brand-primary transition px-3 py-2 text-sm rounded-lg hover:bg-gray-50">
@@ -141,15 +159,15 @@
                     <span id="cartCount" class="bg-brand-secondary text-white text-[10px] lg:text-xs rounded-full px-1.5 py-0.5 lg:px-2 lg:ml-1 font-bold absolute lg:static -top-1 -right-1 lg:top-auto lg:right-auto {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span>
                 </button>
                 
-                <!-- Profile Button (Desktop Only) -->
+                <!-- Profile / Login Button (Desktop Only) -->
                 <div class="hidden lg:block">
                     @if($loggedInPatient)
-                        <a href="{{ route('patient.dashboard') }}" class="flex items-center font-semibold border border-brand-secondary rounded-full px-5 py-2 shadow-sm bg-brand-light/10 hover:bg-brand-light/20 transition text-brand-dark text-sm">
-                            <i class="far fa-user text-brand-secondary mr-2"></i> {{ explode(' ', $loggedInPatient->name ?? 'Guest')[0] }}
+                        <a href="{{ route('patient.dashboard') }}" class="flex items-center font-bold border border-brand-secondary rounded-full px-5 py-2 shadow-xs bg-brand-light/20 hover:bg-brand-light/40 transition text-brand-dark text-sm" title="My Profile & Dashboard">
+                            <i class="far fa-user text-brand-secondary mr-2"></i> {{ !empty($loggedInPatient->name) ? explode(' ', $loggedInPatient->name)[0] : 'Profile' }}
                         </a>
                     @else
-                        <button onclick="window.openLoginModal()" class="flex items-center font-semibold border border-gray-200 rounded-full px-5 py-2 shadow-sm hover:shadow-md hover:bg-gray-50 transition text-sm">
-                            <i class="far fa-user text-gray-500 mr-2"></i> Profile
+                        <button onclick="window.openLoginModal()" class="flex items-center font-bold border border-gray-200 hover:border-teal-600 rounded-full px-5 py-2 shadow-xs hover:shadow-md hover:bg-teal-50/50 hover:text-teal-800 transition text-sm text-gray-700">
+                            <i class="far fa-user text-gray-500 mr-2"></i> Login
                         </button>
                     @endif
                 </div>
@@ -193,17 +211,24 @@
                 </a>
             </div>
 
-            <!-- Right: Phone -->
-            @php
-                $helplinePrimary = \App\Models\Setting::get('helpline_primary', '898 898 8787');
-                $helplineClean = preg_replace('/[^0-9]/', '', $helplinePrimary);
-            @endphp
-            <a href="tel:{{ $helplineClean }}" class="font-bold text-brand-dark flex items-center text-lg md:text-xl bg-gradient-to-r from-brand-light/30 to-brand-light/10 px-5 py-2 rounded-full border border-brand-light/50 shadow-sm hover:shadow-md hover:text-brand-secondary transition">
-                <div class="bg-brand-secondary w-8 h-8 rounded-full flex items-center justify-center mr-3 shadow-md">
-                    <i class="fas fa-phone-alt text-white text-sm animate-pulse"></i>
-                </div>
-                {{ $helplinePrimary }}
-            </a>
+            <!-- Right: Phone & WhatsApp Quick Connect -->
+            <div class="flex items-center gap-3">
+                <!-- Phone Call Button -->
+                <a href="tel:{{ $helplineClean }}" class="font-bold text-brand-dark flex items-center text-sm lg:text-base bg-gradient-to-r from-brand-light/40 to-white px-4 py-2 rounded-full border border-teal-200/70 shadow-xs hover:shadow-md hover:text-brand-secondary transition group" title="Call Helpline {{ $helplinePrimary }}">
+                    <div class="bg-brand-secondary w-7 h-7 rounded-full flex items-center justify-center mr-2.5 shadow-xs group-hover:scale-105 transition-transform">
+                        <i class="fas fa-phone-alt text-white text-xs animate-pulse"></i>
+                    </div>
+                    <span class="font-black">{{ $helplinePrimary }}</span>
+                </a>
+
+                <!-- WhatsApp Quick Redirection Button -->
+                <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="font-bold text-emerald-800 flex items-center text-xs lg:text-sm bg-emerald-50 hover:bg-emerald-500 hover:text-white px-4 py-2 rounded-full border border-emerald-300 shadow-xs hover:shadow-md transition-all group" title="Chat on WhatsApp">
+                    <div class="bg-emerald-500 group-hover:bg-white w-7 h-7 rounded-full flex items-center justify-center mr-2 shadow-xs transition-colors">
+                        <i class="fab fa-whatsapp text-white group-hover:text-emerald-600 text-sm"></i>
+                    </div>
+                    <span class="font-extrabold tracking-wide">WhatsApp</span>
+                </a>
+            </div>
         </div>
     </nav>
 
@@ -288,14 +313,32 @@
                     </a>
                 </div>
                 
-                <!-- Contact Box -->
-                <div class="mt-auto bg-gradient-to-br from-brand-primary to-brand-secondary rounded-2xl p-5 text-white text-center shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 right-0 opacity-10">
-                        <i class="fas fa-stethoscope text-6xl -mr-4 -mt-4"></i>
-                    </div>
-                    <p class="text-sm font-medium mb-1 opacity-90 relative z-10">Need Help? Call Us</p>
-                    <a href="tel:{{ $helplineClean }}" class="text-2xl font-black flex items-center justify-center gap-2 relative z-10 mt-1 hover:scale-105 transition-transform">
-                        <i class="fas fa-phone-alt animate-pulse"></i> {{ $helplinePrimary }}
+                <!-- Contact & WhatsApp Box (Mobile Drawer) -->
+                <div class="mt-auto flex flex-col gap-2.5">
+                    <a href="tel:{{ $helplineClean }}" class="bg-gradient-to-r from-brand-dark to-teal-950 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md hover:opacity-95 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
+                                <i class="fas fa-phone-alt text-xs animate-pulse"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-[10px] text-teal-200 uppercase font-bold block">24/7 Helpline</span>
+                                <span class="text-sm font-black">{{ $helplinePrimary }}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-white/20 px-2.5 py-1 rounded-lg font-bold">Call</span>
+                    </a>
+
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                                <i class="fab fa-whatsapp text-lg text-white"></i>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-[10px] text-emerald-100 uppercase font-bold block">Instant Assistance</span>
+                                <span class="text-sm font-black">Chat on WhatsApp</span>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-white/20 px-2.5 py-1 rounded-lg font-bold">Chat</span>
                     </a>
                 </div>
             </div>

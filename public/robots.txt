@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /agent/
+Disallow: /patient/
+Disallow: /api/
+Disallow: /checkout
+Disallow: /lis-login
+
+Sitemap: https://avwellcarediagnostics.com/sitemap.xml

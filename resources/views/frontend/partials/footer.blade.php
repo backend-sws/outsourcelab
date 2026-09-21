@@ -1,11 +1,15 @@
     <!-- Footer -->
-    <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[8px] border-brand-secondary">
+    <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[8px] border-brand-secondary w-full">
         <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
                 <!-- Brand Info -->
-                <div class="col-span-1 md:col-span-1 pr-4">
-                    <img src="{{ asset('logo.jpeg') }}" alt="Logo" class="h-10 mb-6 bg-white/10 p-2 rounded">
-                    <p class="text-xs text-gray-300 leading-relaxed mb-6">Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation. With home sample collection, every test delivers 4X benefits for earlier risk detection and better health everyday.</p>
+                <div class="col-span-1 pr-2">
+                    <div class="bg-white/95 px-3 py-2 rounded-xl inline-block mb-6 shadow-sm">
+                        <img src="{{ asset('logo.png') }}" alt="Av Wellcare Diagnostics" class="h-10 w-auto object-contain">
+                    </div>
+                    <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                        Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.
+                    </p>
                     
                     <div class="flex items-center space-x-3 bg-white/5 p-3 rounded-xl border border-white/10 shadow-xs">
                         <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 via-yellow-400 to-amber-300 flex items-center justify-center text-slate-900 shadow-md flex-shrink-0">
@@ -13,28 +17,43 @@
                         </div>
                         <p class="text-[10px] font-bold text-gray-300 leading-tight">We are committed to deliver<br><span class="text-amber-400 font-extrabold">highest quality standards</span> and<br>exceptional customer service</p>
                     </div>
-                    <p class="text-[10px] text-gray-500 mt-4 border-t border-gray-700 pt-2">The Content on this website is DMCA protected</p>
+                    <p class="text-[10px] text-gray-400 mt-4 border-t border-white/10 pt-2">The Content on this website is DMCA protected</p>
                 </div>
                 
-                <!-- Quick Links -->
+                <!-- Patient Care & Quick Links -->
                 <div>
-                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm">Quick Links</h4>
+                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fas fa-hand-holding-medical text-brand-secondary text-xs"></i> Patient Care
+                    </h4>
                     <ul class="space-y-3 text-xs text-gray-300">
                         <li><a href="/#reviews" class="hover:text-brand-secondary transition">Patient Reviews & Feedback</a></li>
                         <li><a href="/#contact-enquiry" class="hover:text-brand-secondary transition">Have a Query / Enquiry</a></li>
+                        <li><a href="{{ route('download.report') }}" class="hover:text-brand-secondary transition">Download Patient Report</a></li>
+                        <li><a href="{{ route('faqs') }}" class="hover:text-brand-secondary transition">Frequently Asked Questions (FAQs)</a></li>
+                        <li><a href="{{ route('calculators.index') }}" class="hover:text-brand-secondary transition">Health Risk Calculators</a></li>
                         <li><a href="{{ route('agent.login') }}" class="text-teal-300 hover:text-white font-semibold transition flex items-center gap-1.5"><i class="fas fa-motorcycle text-[10px]"></i> Phlebotomist / Agent Portal</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Partner With Us</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Franchise Opportunity</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">FAQs</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">About Us</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Our Labs</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Career</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Statutory Compliance</a></li>
-                        <li><a href="#" class="hover:text-brand-secondary transition">Membership Subscription</a></li>
+                        <li><a href="{{ route('lis.login') }}" class="hover:text-brand-secondary transition flex items-center gap-1.5"><i class="fas fa-microchip text-[10px]"></i> Laboratory LIS Access</a></li>
+                    </ul>
+                </div>
+
+                <!-- Corporate & Network -->
+                <div>
+                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fas fa-building-shield text-brand-secondary text-xs"></i> Corporate & Network
+                    </h4>
+                    <ul class="space-y-3 text-xs text-gray-300">
+                        <li><a href="{{ route('about') }}" class="hover:text-brand-secondary transition">About Us (Our Story & Team)</a></li>
+                        <li><a href="{{ route('labs') }}" class="hover:text-brand-secondary transition">Our Labs & Pincode Network</a></li>
+                        <li><a href="{{ route('partner') }}" class="hover:text-brand-secondary transition">Partner With Us (Doctors & B2B)</a></li>
+                        <li><a href="{{ route('franchise') }}" class="hover:text-brand-secondary transition">Franchise Opportunity (DCC Hub)</a></li>
+                        <li><a href="{{ route('careers') }}" class="hover:text-brand-secondary transition">Careers / Job Openings</a></li>
+                        <li><a href="{{ route('compliance') }}" class="hover:text-brand-secondary transition">Statutory Compliance (BMWM, PCPNDT)</a></li>
+                        <li><a href="{{ route('membership') }}" class="hover:text-brand-secondary transition">Care+ Health Membership Plans</a></li>
+                        <li><a href="{{ route('sitemap') }}" class="hover:text-brand-secondary transition">Website Directory / Sitemap</a></li>
                     </ul>
                 </div>
                 
-                <!-- Social -->
+                <!-- Social & Contact -->
                 @php
                     $footerEmail = \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
                     $footerPhone = \App\Models\Setting::get('helpline_primary', '898 898 8787');
@@ -51,54 +70,58 @@
                     $yt = \App\Models\Setting::get('social_youtube', '#');
                 @endphp
                 <div>
-                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm">Follow us on</h4>
-                    <div class="flex space-x-4 mb-8">
-                        <a href="{{ $insta }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary transition text-sm"><i class="fab fa-instagram"></i></a>
-                        <a href="{{ $fb }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary transition text-sm"><i class="fab fa-facebook-f"></i></a>
-                        <a href="{{ $twitter }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary transition text-sm"><i class="fab fa-twitter"></i></a>
-                        <a href="{{ $linkedin }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary transition text-sm"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="{{ $yt }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary transition text-sm"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                
-                <!-- Contact -->
-                <div>
-                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm">Connect with us</h4>
-                    <ul class="space-y-4 text-xs text-gray-300">
+                    <h4 class="font-bold text-white mb-6 uppercase tracking-wider text-sm flex items-center gap-2">
+                        <i class="fas fa-headset text-brand-secondary text-xs"></i> Connect with us
+                    </h4>
+                    <ul class="space-y-3 text-xs text-gray-300 mb-6">
                         <li class="flex items-start">
-                            <i class="far fa-envelope mt-1 mr-3 text-brand-secondary flex-shrink-0"></i>
+                            <i class="far fa-envelope mt-1 mr-2.5 text-brand-secondary flex-shrink-0"></i>
                             <a href="mailto:{{ $footerEmail }}" class="hover:text-white transition break-all">{{ $footerEmail }}</a>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-phone-alt mt-1 mr-3 text-brand-secondary"></i>
+                            <i class="fas fa-phone-alt mt-1 mr-2.5 text-brand-secondary flex-shrink-0"></i>
                             <a href="tel:{{ $footerPhoneClean }}" class="hover:text-white transition font-bold text-white">{{ $footerPhone }}</a>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-brand-secondary"></i>
+                            <i class="fas fa-map-marker-alt mt-1 mr-2.5 text-brand-secondary flex-shrink-0"></i>
                             <div>
-                                <strong class="text-white block mb-1">{{ $companyName }}</strong>
-                                <p class="mb-2"><strong>Registered Address:</strong><br>{{ $registeredAddr }}</p>
-                                <p><strong>National Reference Lab:</strong><br>{{ $nationalRefLab }}</p>
+                                <strong class="text-white block mb-0.5">{{ $companyName }}</strong>
+                                <p class="text-[11px] text-gray-300 mb-1 leading-snug">{{ $registeredAddr }}</p>
                             </div>
                         </li>
                     </ul>
                     
-                    <button class="mt-6 w-full bg-white text-brand-dark font-bold py-2 px-4 rounded-full flex justify-between items-center hover:bg-gray-100 transition shadow">
+                    <a href="{{ route('labs') }}" class="w-full bg-white text-brand-dark font-bold py-2.5 px-4 rounded-full flex justify-between items-center hover:bg-gray-100 transition shadow mb-6">
                         <span class="flex items-center text-xs"><i class="fas fa-location-arrow text-brand-secondary mr-2"></i> Find a lab near me</span>
-                        <span class="bg-brand-dark text-white text-[10px] px-2 py-1 rounded-full uppercase">Locate Now</span>
-                    </button>
+                        <span class="bg-brand-dark text-white text-[10px] px-2.5 py-1 rounded-full uppercase font-extrabold">Locate Now</span>
+                    </a>
+
+                    <!-- Follow Us Social Icons -->
+                    <div class="border-t border-white/10 pt-4">
+                        <span class="text-[11px] font-bold text-gray-400 block mb-2 uppercase tracking-wider">Follow Us</span>
+                        <div class="flex space-x-3">
+                            <a href="{{ $insta }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-slate-950 transition text-xs"><i class="fab fa-instagram"></i></a>
+                            <a href="{{ $fb }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-slate-950 transition text-xs"><i class="fab fa-facebook-f"></i></a>
+                            <a href="{{ $twitter }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-slate-950 transition text-xs"><i class="fab fa-twitter"></i></a>
+                            <a href="{{ $linkedin }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-slate-950 transition text-xs"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="{{ $yt }}" target="_blank" rel="noopener" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-slate-950 transition text-xs"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400">
+            <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 gap-3">
                 <p>{{ $copyrightText }}</p>
-                <p>CIN: {{ $cinNumber }}</p>
-                <div class="flex space-x-4 mt-2 md:mt-0">
-                    <a href="#" class="hover:text-white border-b border-gray-500 pb-0.5">Privacy Policy</a>
+                <p class="font-mono">CIN: {{ $cinNumber }}</p>
+                <div class="flex flex-wrap items-center space-x-3 mt-2 md:mt-0">
+                    <a href="{{ route('privacy') }}" class="hover:text-white border-b border-gray-500 pb-0.5 transition">Privacy Policy</a>
                     <span class="text-gray-600">|</span>
-                    <a href="#" class="hover:text-white border-b border-gray-500 pb-0.5">Terms & Condition</a>
+                    <a href="{{ route('terms') }}" class="hover:text-white border-b border-gray-500 pb-0.5 transition">Terms & Conditions</a>
+                    <span class="text-gray-600">|</span>
+                    <a href="{{ route('sitemap') }}" class="hover:text-white border-b border-gray-500 pb-0.5 transition">HTML Sitemap</a>
+                    <span class="text-gray-600">|</span>
+                    <a href="{{ route('sitemap.xml') }}" target="_blank" class="hover:text-white border-b border-gray-500 pb-0.5 transition">XML Sitemap</a>
                 </div>
             </div>
         </div>
     </footer>
-

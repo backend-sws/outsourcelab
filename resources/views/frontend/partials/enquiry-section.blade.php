@@ -87,6 +87,11 @@
                         </span>
                     </div>
 
+                    @php
+                        $enquiryPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
+                        $enquiryPatientEmail = ($enquiryPatient && $enquiryPatient->email !== '-') ? $enquiryPatient->email : '';
+                    @endphp
+
                     <form id="enquiryForm" action="{{ route('enquiries.store') }}" method="POST" class="space-y-4">
                         @csrf
 
@@ -94,28 +99,36 @@
                             <!-- Name -->
                             <div>
                                 <label for="enquiry_name" class="block text-xs font-semibold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
-                                <input type="text" name="name" id="enquiry_name" value="{{ session('patient_id') ? (\App\Models\Patient::find(session('patient_id'))->name ?? '') : '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. Amit Verma" required>
+                                <input type="text" name="name" id="enquiry_name" value="{{ $enquiryPatient->name ?? '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. Amit Verma" required>
                             </div>
 
-                            <!-- Email -->
+                            <!-- Mobile Number -->
                             <div>
-                                <label for="enquiry_email" class="block text-xs font-semibold text-gray-700 mb-1">Email Address <span class="text-red-500">*</span></label>
-                                <input type="email" name="email" id="enquiry_email" value="{{ session('patient_id') ? (\App\Models\Patient::find(session('patient_id'))->email ?? '') : '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. amit@example.com" required>
+                                <label for="enquiry_phone" class="block text-xs font-semibold text-gray-700 mb-1">Mobile Number <span class="text-red-500">*</span></label>
+                                <input type="tel" name="phone" id="enquiry_phone" value="{{ $enquiryPatient->mobile ?? '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. 9876543210" minlength="10" maxlength="15" required>
                             </div>
                         </div>
 
-                        <!-- Subject -->
-                        <div>
-                            <label for="enquiry_subject" class="block text-xs font-semibold text-gray-700 mb-1">Enquiry Subject / Category <span class="text-red-500">*</span></label>
-                            <select name="subject" id="enquiry_subject" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" required>
-                                <option value="" disabled selected>Select Enquiry Topic...</option>
-                                <option value="Home Sample Collection Booking">Home Sample Collection Request</option>
-                                <option value="Package & Test Pricing Query">Health Package & Test Pricing</option>
-                                <option value="Report Delivery & WhatsApp Assistance">Report Delivery & WhatsApp Assistance</option>
-                                <option value="Doctor or Corporate Tie-Up">Corporate / Doctor Partnership</option>
-                                <option value="Prescription Review / Test Guidance">Upload Prescription for Guidance</option>
-                                <option value="General Diagnostic Query">General Medical Enquiry</option>
-                            </select>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Email -->
+                            <div>
+                                <label for="enquiry_email" class="block text-xs font-semibold text-gray-700 mb-1">Email Address <span class="text-gray-400 font-normal">(Optional)</span></label>
+                                <input type="email" name="email" id="enquiry_email" value="{{ $enquiryPatientEmail }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. amit@example.com">
+                            </div>
+
+                            <!-- Subject -->
+                            <div>
+                                <label for="enquiry_subject" class="block text-xs font-semibold text-gray-700 mb-1">Enquiry Subject / Category <span class="text-red-500">*</span></label>
+                                <select name="subject" id="enquiry_subject" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" required>
+                                    <option value="" disabled selected>Select Enquiry Topic...</option>
+                                    <option value="Home Sample Collection Booking">Home Sample Collection Request</option>
+                                    <option value="Package & Test Pricing Query">Health Package & Test Pricing</option>
+                                    <option value="Report Delivery & WhatsApp Assistance">Report Delivery & WhatsApp Assistance</option>
+                                    <option value="Doctor or Corporate Tie-Up">Corporate / Doctor Partnership</option>
+                                    <option value="Prescription Review / Test Guidance">Upload Prescription for Guidance</option>
+                                    <option value="General Diagnostic Query">General Medical Enquiry</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Message -->

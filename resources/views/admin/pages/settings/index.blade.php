@@ -41,9 +41,11 @@
             <button type="button" onclick="switchSettingsTab('tab-social')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]">
                 <i class="fas fa-share-nodes"></i> Social Links
             </button>
+            {{-- Homepage Stats Tab (Temporarily disabled as requested)
             <button type="button" onclick="switchSettingsTab('tab-stats')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]">
                 <i class="fas fa-chart-line"></i> Homepage Stats
             </button>
+            --}}
             <button type="button" onclick="switchSettingsTab('tab-pincodes')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]">
                 <i class="fas fa-truck-medical"></i> Serviceable Pincodes
             </button>
@@ -181,7 +183,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: Homepage Stats Counter -->
+            {{-- TAB 5: Homepage Stats Counter (Temporarily disabled as requested)
             <div id="tab-stats" class="settings-tab-content space-y-5 hidden">
                 <input type="hidden" name="settings_group" value="stats">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -246,6 +248,7 @@
                     </div>
                 </div>
             </div>
+            --}}
 
             <!-- TAB 6: Serviceable Pincodes -->
             <div id="tab-pincodes" class="settings-tab-content space-y-5 hidden">

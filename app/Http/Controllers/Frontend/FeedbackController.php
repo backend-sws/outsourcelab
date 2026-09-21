@@ -67,7 +67,8 @@ class FeedbackController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
-            'email' => 'required|email|max:100',
+            'phone' => 'required|string|min:10|max:20',
+            'email' => 'nullable|email|max:100',
             'subject' => 'required|string|max:200',
             'message' => 'required|string|min:5|max:2000',
         ]);
@@ -87,7 +88,8 @@ class FeedbackController extends Controller
 
         $enquiry = ContactEnquiry::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
             'subject' => $validated['subject'],
             'message' => $validated['message'],
             'status' => 'Unread',

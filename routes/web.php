@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\TestCategoryController as AdminTestCategoryContro
 use App\Http\Controllers\Admin\TestController as AdminTestController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Agent\AgentPortalController;
+use App\Http\Controllers\Frontend\CalculatorController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\ExploreController;
 use App\Http\Controllers\Frontend\FeedbackController;
@@ -53,6 +54,20 @@ Route::get('/download-report', [PageController::class, 'downloadReport'])->name(
 Route::get('/lis-login', [PageController::class, 'lisLogin'])->name('lis.login');
 Route::get('/login', [PageController::class, 'loginRedirect'])->name('login');
 
+// Corporate, Info, Legal & SEO Pages
+Route::get('/about-us', [PageController::class, 'about'])->name('about');
+Route::get('/our-labs', [PageController::class, 'labs'])->name('labs');
+Route::get('/partner-with-us', [PageController::class, 'partner'])->name('partner');
+Route::get('/franchise', [PageController::class, 'franchise'])->name('franchise');
+Route::get('/faqs', [PageController::class, 'faqs'])->name('faqs');
+Route::get('/careers', [PageController::class, 'careers'])->name('careers');
+Route::get('/statutory-compliance', [PageController::class, 'compliance'])->name('compliance');
+Route::get('/membership', [PageController::class, 'membership'])->name('membership');
+Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
+Route::get('/terms-and-conditions', [PageController::class, 'terms'])->name('terms');
+Route::get('/sitemap', [PageController::class, 'sitemap'])->name('sitemap');
+Route::get('/sitemap.xml', [PageController::class, 'sitemapXml'])->name('sitemap.xml');
+
 // Product & Category Exploration Pages
 Route::get('/checkups/{id}', [ExploreController::class, 'category'])->name('category.show');
 Route::get('/package/{id}', [ExploreController::class, 'package'])->name('package.show');
@@ -64,6 +79,15 @@ Route::post('/prescription-upload', [ExploreController::class, 'uploadPrescripti
 
 Route::post('/reviews', [FeedbackController::class, 'storeReview'])->name('reviews.store');
 Route::post('/enquiries', [FeedbackController::class, 'storeEnquiry'])->name('enquiries.store');
+
+// Health Calculators & Self-Assessment Suite
+Route::prefix('calculators')->name('calculators.')->group(function () {
+    Route::get('/', [CalculatorController::class, 'index'])->name('index');
+    Route::get('/bmi', [CalculatorController::class, 'bmi'])->name('bmi');
+    Route::get('/cardiovascular-risk', [CalculatorController::class, 'cardiovascularRisk'])->name('cardiovascular');
+    Route::get('/diabetes-risk', [CalculatorController::class, 'diabetesRisk'])->name('diabetes');
+    Route::get('/vitamin-deficiency', [CalculatorController::class, 'vitaminDeficiency'])->name('vitamin');
+});
 
 // =========================================================================
 // 2. PATIENT PORTAL ROUTES

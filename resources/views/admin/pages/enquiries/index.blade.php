@@ -11,6 +11,7 @@
                 <tr class="bg-gray-50/50 text-gray-500 text-xs uppercase tracking-wider">
                     <th class="px-6 py-4 font-semibold">Date</th>
                     <th class="px-6 py-4 font-semibold">Name</th>
+                    <th class="px-6 py-4 font-semibold">Mobile</th>
                     <th class="px-6 py-4 font-semibold">Email</th>
                     <th class="px-6 py-4 font-semibold">Subject</th>
                     <th class="px-6 py-4 font-semibold text-center">Status</th>
@@ -22,7 +23,8 @@
                 <tr class="hover:bg-gray-50/50 transition-colors {{ $enquiry->status == 'Unread' ? 'bg-indigo-50/30' : '' }}">
                     <td class="px-6 py-4 text-gray-600">{{ $enquiry->created_at->format('M d, Y') }}</td>
                     <td class="px-6 py-4 font-medium {{ $enquiry->status == 'Unread' ? 'text-gray-900 font-bold' : 'text-gray-800' }}">{{ $enquiry->name }}</td>
-                    <td class="px-6 py-4 text-gray-600">{{ $enquiry->email }}</td>
+                    <td class="px-6 py-4 text-gray-600 font-mono text-xs">{{ $enquiry->phone ?? '-' }}</td>
+                    <td class="px-6 py-4 text-gray-600">{{ $enquiry->email ?? '-' }}</td>
                     <td class="px-6 py-4 text-gray-600 truncate max-w-xs">{{ $enquiry->subject }}</td>
                     <td class="px-6 py-4 text-center">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
@@ -38,7 +40,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">No contact enquiries found.</td>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">No contact enquiries found.</td>
                 </tr>
                 @endforelse
             </tbody>
