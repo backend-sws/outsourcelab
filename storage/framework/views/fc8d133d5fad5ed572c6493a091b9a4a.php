@@ -1,5 +1,4 @@
-@extends('frontend.layouts.app')
-@section('content')
+<?php $__env->startSection('content'); ?>
     <!-- Global Glassy Blurred Background -->
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-slate-50/30 backdrop-blur-3xl">
         <!-- Soft animated color blobs -->
@@ -8,10 +7,10 @@
         <div class="absolute -bottom-[20%] left-[20%] w-[70vw] h-[70vw] bg-red-200/10 rounded-full mix-blend-multiply filter blur-[150px] animate-[pulse_12s_ease-in-out_infinite_4s]"></div>
     </div>
 
-    @include('frontend.partials.hero')
+    <?php echo $__env->make('frontend.partials.hero', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- Routine Health Checkups -->
-@php
+<?php
     $subcategoryFallbackImages = [
         'Basic Preventive Screening' => 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80',
         'Advanced Full Body Checkup' => 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80',
@@ -31,20 +30,20 @@
         'Stress & Fatigue Profile' => 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
     ];
     $genericFallback = 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80';
-@endphp
+?>
 
 <div class="container mx-auto px-4 py-8 flex flex-col gap-10">
-    @foreach($categories as $category)
-    @php
+    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php
         $hasSubs = is_array($category->sub_category) && count($category->sub_category) > 0;
         $patternIndex = $loop->index % 3;
-    @endphp
-    @if($hasSubs)
+    ?>
+    <?php if($hasSubs): ?>
 
-        {{-- ========================================================= --}}
-        {{-- PATTERN 0: PANORAMIC VISUAL SLIDER SHOWCASE (Light Modern) --}}
-        {{-- ========================================================= --}}
-        @if($patternIndex === 0)
+        
+        
+        
+        <?php if($patternIndex === 0): ?>
         <div class="relative overflow-hidden rounded-[2.25rem] bg-white border border-slate-200/90 shadow-md shadow-slate-100/80 p-6 sm:p-8 transition-all">
             <!-- Ambient decorative background glows -->
             <div class="absolute -top-24 -right-24 w-80 h-80 bg-teal-50/70 rounded-full blur-3xl pointer-events-none"></div>
@@ -65,14 +64,14 @@
                         </span>
                     </div>
                     <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        Routine health checkups for <span class="text-teal-800">{{ $category->name }}</span>
+                        Routine health checkups for <span class="text-teal-800"><?php echo e($category->name); ?></span>
                     </h3>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium max-w-2xl">
-                        Certified clinical checkups and preventive pathology screening designed specifically for {{ strtolower($category->name) }}.
+                        Certified clinical checkups and preventive pathology screening designed specifically for <?php echo e(strtolower($category->name)); ?>.
                     </p>
                 </div>
                 <div class="flex items-center gap-3 self-start md:self-auto">
-                    <a href="{{ route('category.show', $category->id) }}" class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-md shadow-teal-900/10 hover:shadow-lg transition-all duration-200">
+                    <a href="<?php echo e(route('category.show', $category->id)); ?>" class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-md shadow-teal-900/10 hover:shadow-lg transition-all duration-200">
                         <span>View All</span>
                         <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                     </a>
@@ -82,16 +81,16 @@
             <!-- Relative wrapper for slider and buttons -->
             <div class="relative group/slider">
                 <!-- Left Scroll Button -->
-                <button type="button" onclick="document.getElementById('cat-slider-{{ $category->id }}').scrollBy({left: -380, behavior: 'smooth'})" 
+                <button type="button" onclick="document.getElementById('cat-slider-<?php echo e($category->id); ?>').scrollBy({left: -380, behavior: 'smooth'})" 
                         class="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/80 flex items-center justify-center text-slate-700 hover:text-teal-700 hover:scale-110 active:scale-95 transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 disabled:opacity-0 hidden md:flex"
                         aria-label="Previous">
                     <i class="fas fa-chevron-left text-sm"></i>
                 </button>
 
                 <!-- Cards Track -->
-                <div id="cat-slider-{{ $category->id }}" class="flex space-x-6 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth px-1 {{ count($category->sub_category) == 1 ? 'justify-center' : '' }} {{ count($category->sub_category) == 2 ? 'md:justify-center' : '' }} {{ count($category->sub_category) == 3 ? 'lg:justify-center' : '' }}">
-                    @foreach($category->sub_category as $sub)
-                        @php
+                <div id="cat-slider-<?php echo e($category->id); ?>" class="flex space-x-6 overflow-x-auto pb-4 hide-scroll-bar scroll-smooth px-1 <?php echo e(count($category->sub_category) == 1 ? 'justify-center' : ''); ?> <?php echo e(count($category->sub_category) == 2 ? 'md:justify-center' : ''); ?> <?php echo e(count($category->sub_category) == 3 ? 'lg:justify-center' : ''); ?>">
+                    <?php $__currentLoopData = $category->sub_category; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $isObj = is_array($sub);
                             $name = $isObj ? ($sub['name'] ?? '') : $sub;
                             $rawImage = $isObj ? ($sub['image'] ?? null) : null;
@@ -103,15 +102,15 @@
                             } else {
                                 $imageUrl = $subcategoryFallbackImages[$name] ?? $genericFallback;
                             }
-                        @endphp
-                        @if($name)
-                        <a href="{{ route('category.show', ['id' => $category->id, 'subcategory' => $name]) }}" 
+                        ?>
+                        <?php if($name): ?>
+                        <a href="<?php echo e(route('category.show', ['id' => $category->id, 'subcategory' => $name])); ?>" 
                            class="w-[290px] sm:w-[340px] flex-shrink-0 bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-2xl hover:border-teal-500/40 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col group block cursor-pointer">
                             
                             <!-- Top High-Res Hero Image Banner -->
                             <div class="relative h-52 sm:h-56 w-full overflow-hidden bg-slate-100">
-                                <img src="{{ $imageUrl }}" 
-                                     alt="{{ $name }}" 
+                                <img src="<?php echo e($imageUrl); ?>" 
+                                     alt="<?php echo e($name); ?>" 
                                      loading="lazy"
                                      class="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out">
                                 
@@ -141,7 +140,8 @@
                             <div class="p-5 sm:p-6 flex flex-col flex-grow justify-between gap-4 bg-white">
                                 <div>
                                     <h4 class="text-lg font-black text-slate-900 group-hover:text-teal-800 transition-colors tracking-tight line-clamp-1 mb-2">
-                                        {{ $name }}
+                                        <?php echo e($name); ?>
+
                                     </h4>
 
                                     <div class="space-y-1.5 text-xs text-slate-600 font-medium">
@@ -173,12 +173,12 @@
                                 </div>
                             </div>
                         </a>
-                        @endif
-                    @endforeach
+                        <?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
 
                 <!-- Right Scroll Button -->
-                <button type="button" onclick="document.getElementById('cat-slider-{{ $category->id }}').scrollBy({left: 380, behavior: 'smooth'})" 
+                <button type="button" onclick="document.getElementById('cat-slider-<?php echo e($category->id); ?>').scrollBy({left: 380, behavior: 'smooth'})" 
                         class="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/80 flex items-center justify-center text-slate-700 hover:text-teal-700 hover:scale-110 active:scale-95 transition-all opacity-0 group-hover/slider:opacity-100 focus:opacity-100 disabled:opacity-0 hidden md:flex"
                         aria-label="Next">
                     <i class="fas fa-chevron-right text-sm"></i>
@@ -186,10 +186,10 @@
             </div>
         </div>
 
-        {{-- ========================================================= --}}
-        {{-- PATTERN 1: ASYMMETRIC SPOTLIGHT HERO + SUB-CARDS GRID --}}
-        {{-- ========================================================= --}}
-        @elseif($patternIndex === 1)
+        
+        
+        
+        <?php elseif($patternIndex === 1): ?>
         <div class="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-teal-950 to-indigo-950 text-white p-6 sm:p-10 shadow-2xl transition-all">
             <!-- Ambient glows -->
             <div class="absolute -top-20 -right-20 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -202,15 +202,16 @@
                         <i class="fas fa-bullseye"></i> Specialized Pathology Profiles
                     </span>
                     <h3 class="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                        Targeted Care for {{ $category->name }}
+                        Targeted Care for <?php echo e($category->name); ?>
+
                     </h3>
                     <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl font-medium">
                         Focused clinical panels with advanced biomarkers tailored for risk screening, organ wellness, and vitality.
                     </p>
                 </div>
                 <div class="flex items-center gap-3 self-start md:self-auto">
-                    <a href="{{ route('category.show', $category->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-md transition-all duration-200">
-                        <span>View All {{ $category->name }}</span>
+                    <a href="<?php echo e(route('category.show', $category->id)); ?>" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 backdrop-blur-md transition-all duration-200">
+                        <span>View All <?php echo e($category->name); ?></span>
                         <i class="fas fa-arrow-right text-[10px]"></i>
                     </a>
                 </div>
@@ -225,7 +226,7 @@
                             <i class="fas fa-microscope"></i>
                         </div>
                         <h4 class="text-xl sm:text-2xl font-black text-white mb-2 leading-tight">
-                            Comprehensive {{ $category->name }} Shield
+                            Comprehensive <?php echo e($category->name); ?> Shield
                         </h4>
                         <p class="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed mb-6">
                             Every checkup is processed inside ISO/NABL accredited laboratories with barcoded collection and end-to-end cold chain integrity.
@@ -254,7 +255,7 @@
                     </div>
 
                     <div class="pt-6 mt-6 border-t border-white/10">
-                        <a href="{{ route('category.show', $category->id) }}" class="w-full py-3 px-5 rounded-2xl bg-white text-slate-950 hover:bg-teal-300 font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2">
+                        <a href="<?php echo e(route('category.show', $category->id)); ?>" class="w-full py-3 px-5 rounded-2xl bg-white text-slate-950 hover:bg-teal-300 font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2">
                             <span>Browse Complete Catalogue</span>
                             <i class="fas fa-arrow-right text-[11px]"></i>
                         </a>
@@ -263,8 +264,8 @@
 
                 <!-- Right Cards Grid -->
                 <div class="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    @foreach($category->sub_category as $sub)
-                        @php
+                    <?php $__currentLoopData = $category->sub_category; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php
                             $isObj = is_array($sub);
                             $name = $isObj ? ($sub['name'] ?? '') : $sub;
                             $rawImage = $isObj ? ($sub['image'] ?? null) : null;
@@ -276,16 +277,16 @@
                             } else {
                                 $imageUrl = $subcategoryFallbackImages[$name] ?? $genericFallback;
                             }
-                        @endphp
-                        @if($name)
-                        <a href="{{ route('category.show', ['id' => $category->id, 'subcategory' => $name]) }}" 
+                        ?>
+                        <?php if($name): ?>
+                        <a href="<?php echo e(route('category.show', ['id' => $category->id, 'subcategory' => $name])); ?>" 
                            class="bg-white text-slate-900 rounded-3xl p-5 shadow-lg hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group border border-white/20 relative overflow-hidden">
                             
                             <div>
                                 <!-- Image Preview -->
                                 <div class="relative h-52 sm:h-56 w-full overflow-hidden rounded-2xl bg-slate-100 mb-4">
-                                    <img src="{{ $imageUrl }}" 
-                                         alt="{{ $name }}" 
+                                    <img src="<?php echo e($imageUrl); ?>" 
+                                         alt="<?php echo e($name); ?>" 
                                          loading="lazy"
                                          class="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500">
                                     
@@ -304,7 +305,8 @@
                                 </div>
 
                                 <h5 class="text-base font-black text-slate-900 group-hover:text-teal-800 transition-colors line-clamp-1 mb-1.5">
-                                    {{ $name }}
+                                    <?php echo e($name); ?>
+
                                 </h5>
                                 
                                 <p class="text-xs text-slate-500 font-medium leading-relaxed line-clamp-2">
@@ -321,16 +323,16 @@
                                 </div>
                             </div>
                         </a>
-                        @endif
-                    @endforeach
+                        <?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
         </div>
 
-        {{-- ========================================================= --}}
-        {{-- PATTERN 2: CLINICAL WELLNESS MULTI-COLUMN MATRIX GRID     --}}
-        {{-- ========================================================= --}}
-        @else
+        
+        
+        
+        <?php else: ?>
         <div class="relative overflow-hidden rounded-[2.25rem] bg-gradient-to-b from-teal-50/60 via-white to-slate-50/70 border border-teal-200/80 shadow-md shadow-teal-900/5 p-6 sm:p-8 transition-all">
             <!-- Ambient glows -->
             <div class="absolute -top-20 -right-20 w-80 h-80 bg-teal-100/50 rounded-full blur-3xl pointer-events-none"></div>
@@ -343,15 +345,15 @@
                         <i class="fas fa-heart-pulse text-teal-700"></i> Comprehensive Wellness Matrix
                     </span>
                     <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                        Preventive Panels for <span class="text-teal-800">{{ $category->name }}</span>
+                        Preventive Panels for <span class="text-teal-800"><?php echo e($category->name); ?></span>
                     </h3>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
                         Multi-parameter clinical screening designed for early detection, cellular health, and overall wellness.
                     </p>
                 </div>
                 <div class="flex items-center gap-3 self-start md:self-auto">
-                    <a href="{{ route('category.show', $category->id) }}" class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-md shadow-teal-900/10 hover:shadow-lg transition-all duration-200">
-                        <span>View All {{ $category->name }}</span>
+                    <a href="<?php echo e(route('category.show', $category->id)); ?>" class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-800 hover:bg-teal-900 text-white text-xs font-bold shadow-md shadow-teal-900/10 hover:shadow-lg transition-all duration-200">
+                        <span>View All <?php echo e($category->name); ?></span>
                         <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                     </a>
                 </div>
@@ -359,8 +361,8 @@
 
             <!-- Multi-Column Grid -->
             <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6">
-                @foreach($category->sub_category as $sub)
-                    @php
+                <?php $__currentLoopData = $category->sub_category; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php
                         $isObj = is_array($sub);
                         $name = $isObj ? ($sub['name'] ?? '') : $sub;
                         $rawImage = $isObj ? ($sub['image'] ?? null) : null;
@@ -372,15 +374,15 @@
                         } else {
                             $imageUrl = $subcategoryFallbackImages[$name] ?? $genericFallback;
                         }
-                    @endphp
-                    @if($name)
-                    <a href="{{ route('category.show', ['id' => $category->id, 'subcategory' => $name]) }}" 
+                    ?>
+                    <?php if($name): ?>
+                    <a href="<?php echo e(route('category.show', ['id' => $category->id, 'subcategory' => $name])); ?>" 
                        class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-teal-500/50 hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col group block cursor-pointer">
                         
                         <!-- Top Image Banner -->
                         <div class="relative h-52 sm:h-56 w-full overflow-hidden bg-slate-100">
-                            <img src="{{ $imageUrl }}" 
-                                 alt="{{ $name }}" 
+                            <img src="<?php echo e($imageUrl); ?>" 
+                                 alt="<?php echo e($name); ?>" 
                                  loading="lazy"
                                  class="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 ease-out">
                             
@@ -403,7 +405,8 @@
                         <div class="pt-7 p-5 flex flex-col flex-grow justify-between gap-3 bg-white">
                             <div>
                                 <h4 class="text-base font-black text-slate-900 group-hover:text-teal-800 transition-colors tracking-tight line-clamp-1 mb-2">
-                                    {{ $name }}
+                                    <?php echo e($name); ?>
+
                                 </h4>
 
                                 <div class="space-y-1.5 text-xs text-slate-500 font-medium">
@@ -426,14 +429,14 @@
                             </div>
                         </div>
                     </a>
-                    @endif
-                @endforeach
+                    <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
-        @endif
+        <?php endif; ?>
 
-    @endif
-    @endforeach
+    <?php endif; ?>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 </div>
 
 <!-- Interactive Health Concern & Symptom Explorer -->
@@ -645,7 +648,7 @@
 
 
     <!-- Single Health Checkup (Individual Tests Managed by Admin) -->
-    @include('frontend.partials.single-tests-section')
+    <?php echo $__env->make('frontend.partials.single-tests-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- Quick Doctor Prescription Upload Banner (Tata 1mg / Dr Lal PathLabs Style) -->
     <div class="container mx-auto px-4 py-4">
@@ -675,13 +678,13 @@
                     <span>Upload Prescription</span>
                 </button>
 
-                @php
+                <?php
                     $helplinePrimary = \App\Models\Setting::get('helpline_primary', '898 898 8787');
                     $helplineClean = preg_replace('/[^0-9]/', '', $helplinePrimary);
-                @endphp
-                <a href="tel:{{ $helplineClean }}" class="w-full sm:w-auto px-5 py-3.5 bg-teal-900/60 hover:bg-teal-900 text-white font-bold text-xs rounded-2xl border border-white/20 transition flex items-center justify-center gap-2">
+                ?>
+                <a href="tel:<?php echo e($helplineClean); ?>" class="w-full sm:w-auto px-5 py-3.5 bg-teal-900/60 hover:bg-teal-900 text-white font-bold text-xs rounded-2xl border border-white/20 transition flex items-center justify-center gap-2">
                     <i class="fas fa-phone-volume text-amber-300"></i>
-                    <span>Call {{ $helplinePrimary }}</span>
+                    <span>Call <?php echo e($helplinePrimary); ?></span>
                 </a>
             </div>
         </div>
@@ -700,13 +703,13 @@
         </div>
     </div>
 
-    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth {{ count($packages) == 1 ? 'justify-center' : '' }} {{ count($packages) == 2 ? 'md:justify-center' : '' }} {{ count($packages) == 3 ? 'lg:justify-center' : '' }}">
-        @forelse($packages as $package)
-        @php
+    <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth <?php echo e(count($packages) == 1 ? 'justify-center' : ''); ?> <?php echo e(count($packages) == 2 ? 'md:justify-center' : ''); ?> <?php echo e(count($packages) == 3 ? 'lg:justify-center' : ''); ?>">
+        <?php $__empty_1 = true; $__currentLoopData = $packages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        <?php
             $mrp = round($package->price * 1.45);
             $discountPct = round((($mrp - $package->price) / $mrp) * 100);
             $pkgGrouped = $package->getGroupedParameters();
-        @endphp
+        ?>
         <!-- Package Card -->
         <div class="w-[290px] md:w-[330px] flex-shrink-0 snap-start bg-white rounded-[2rem] p-6 shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-gray-100 hover:border-teal-300 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-[0_12px_35px_rgba(15,118,110,0.12)] transition-all duration-300 relative overflow-hidden group">
             <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-500 via-teal-700 to-brand-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -721,8 +724,9 @@
                 </div>
 
                 <h3 class="font-extrabold text-gray-900 group-hover:text-teal-700 text-base leading-snug mb-2 transition-colors line-clamp-2">
-                    <a href="{{ route('package.show', $package->id) }}" class="hover:underline">
-                        {{ $package->name }}
+                    <a href="<?php echo e(route('package.show', $package->id)); ?>" class="hover:underline">
+                        <?php echo e($package->name); ?>
+
                     </a>
                 </h3>
 
@@ -734,48 +738,49 @@
                     <div class="w-px h-7 bg-gray-200 mx-2"></div>
                     <div class="text-center w-full">
                         <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->total_parameters_count }} Tests</p>
+                        <p class="text-xs sm:text-sm font-black text-teal-700"><?php echo e($package->total_parameters_count); ?> Tests</p>
                     </div>
                 </div>
                 
-                @if(!empty($pkgGrouped))
+                <?php if(!empty($pkgGrouped)): ?>
                 <div class="flex flex-wrap gap-1.5 mb-3">
-                    @foreach(array_slice(array_keys($pkgGrouped), 0, 3) as $deptKey)
+                    <?php $__currentLoopData = array_slice(array_keys($pkgGrouped), 0, 3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $deptKey): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <span class="bg-teal-50/70 text-teal-900 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-teal-100/60 flex items-center">
-                        <i class="fas fa-check-circle text-teal-600 mr-1 text-[8px]"></i> {{ \Illuminate\Support\Str::limit($deptKey, 16) }}
+                        <i class="fas fa-check-circle text-teal-600 mr-1 text-[8px]"></i> <?php echo e(\Illuminate\Support\Str::limit($deptKey, 16)); ?>
+
                     </span>
-                    @endforeach
-                    @if(count($pkgGrouped) > 3)
-                    <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+{{ count($pkgGrouped) - 3 }} More</span>
-                    @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php if(count($pkgGrouped) > 3): ?>
+                    <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+<?php echo e(count($pkgGrouped) - 3); ?> More</span>
+                    <?php endif; ?>
                 </div>
-                @endif
+                <?php endif; ?>
                 
-                @if($package->description)
-                <p class="text-xs text-gray-600 mb-4 line-clamp-2 leading-relaxed font-normal">{{ $package->description }}</p>
-                @endif
+                <?php if($package->description): ?>
+                <p class="text-xs text-gray-600 mb-4 line-clamp-2 leading-relaxed font-normal"><?php echo e($package->description); ?></p>
+                <?php endif; ?>
             </div>
 
             <div class="border-t border-gray-100 pt-4 mt-auto">
                 <div class="flex items-baseline gap-2 mb-3">
-                    <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                    <span class="text-xs text-gray-400 line-through">₹{{ number_format($mrp) }}</span>
-                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">{{ $discountPct }}% OFF</span>
+                    <span class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></span>
+                    <span class="text-xs text-gray-400 line-through">₹<?php echo e(number_format($mrp)); ?></span>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md"><?php echo e($discountPct); ?>% OFF</span>
                 </div>
 
-                <a href="{{ route('package.show', $package->id) }}" class="w-full mb-2.5 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-98">
+                <a href="<?php echo e(route('package.show', $package->id)); ?>" class="w-full mb-2.5 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-98">
                     <i class="fas fa-file-waveform text-teal-600 text-xs"></i>
-                    <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                    <span>View <?php echo e($package->total_parameters_count); ?> Tests Included</span>
                 </a>
 
                 <button type="button" 
                     onclick="addToCart(this)" 
-                    data-id="{{ $package->id }}"
+                    data-id="<?php echo e($package->id); ?>"
                     data-type="package"
-                    data-name="{{ $package->name }}"
-                    data-price="{{ $package->price }}" 
-                    data-mrp="{{ $mrp }}" 
-                    data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                    data-name="<?php echo e($package->name); ?>"
+                    data-price="<?php echo e($package->price); ?>" 
+                    data-mrp="<?php echo e($mrp); ?>" 
+                    data-params="Includes <?php echo e($package->total_parameters_count); ?> Parameters"
                     class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
@@ -785,9 +790,9 @@
                 </p>
             </div>
         </div>
-        @empty
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
         <div class="text-gray-500 italic p-4">No packages available at the moment.</div>
-        @endforelse
+        <?php endif; ?>
     </div>
 </div>
 
@@ -822,29 +827,31 @@
 
         <!-- Slider of habit cards -->
         <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
-            @forelse($habitPackages as $package)
-            @php
+            <?php $__empty_1 = true; $__currentLoopData = $habitPackages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <?php
                 $mrp = round($package->price * 1.45);
                 $discountPct = round((($mrp - $package->price) / $mrp) * 100);
                 $pkgGrouped = $package->getGroupedParameters();
-            @endphp
+            ?>
             <!-- Habit Package Card -->
-            <div onclick="window.location.href='{{ route('package.show', $package->id) }}'" 
+            <div onclick="window.location.href='<?php echo e(route('package.show', $package->id)); ?>'" 
                 class="habit-card cursor-pointer w-[290px] sm:w-[310px] md:w-[330px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-gray-100 hover:border-teal-300 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-[0_12px_35px_rgba(15,118,110,0.12)] transition-all duration-300 relative overflow-hidden group" 
-                data-category="{{ $package->subcategory }}">
+                data-category="<?php echo e($package->subcategory); ?>">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-400 via-teal-600 to-brand-dark transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-center mb-3">
                         <span class="bg-teal-50 text-teal-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase border border-teal-100 tracking-wider flex items-center gap-1">
-                            <i class="fas fa-tag text-[9px]"></i> {{ $package->subcategory ?? 'Lifestyle' }}
+                            <i class="fas fa-tag text-[9px]"></i> <?php echo e($package->subcategory ?? 'Lifestyle'); ?>
+
                         </span>
                         <div class="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center text-teal-600 group-hover:scale-110 transition-transform">
                             <i class="fas fa-notes-medical text-xs"></i>
                         </div>
                     </div>
                     <h4 class="font-extrabold text-gray-900 text-base leading-snug mb-2 group-hover:text-teal-700 transition-colors line-clamp-2">
-                        <a href="{{ route('package.show', $package->id) }}" class="hover:underline" onclick="event.stopPropagation();">
-                            {{ $package->name }}
+                        <a href="<?php echo e(route('package.show', $package->id)); ?>" class="hover:underline" onclick="event.stopPropagation();">
+                            <?php echo e($package->name); ?>
+
                         </a>
                     </h4>
                     
@@ -856,53 +863,54 @@
                         <div class="w-px h-7 bg-gray-200 mx-2"></div>
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->total_parameters_count }} Tests</p>
+                            <p class="text-xs sm:text-sm font-black text-teal-700"><?php echo e($package->total_parameters_count); ?> Tests</p>
                         </div>
                     </div>
 
-                    @if(!empty($pkgGrouped))
+                    <?php if(!empty($pkgGrouped)): ?>
                     <div class="flex flex-wrap gap-1.5 mb-3">
-                        @foreach(array_slice(array_keys($pkgGrouped), 0, 3) as $deptKey)
+                        <?php $__currentLoopData = array_slice(array_keys($pkgGrouped), 0, 3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $deptKey): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <span class="bg-teal-50/70 text-teal-900 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-teal-100/60 flex items-center">
-                            <i class="fas fa-check-circle text-teal-600 mr-1 text-[8px]"></i> {{ \Illuminate\Support\Str::limit($deptKey, 15) }}
-                        </span>
-                        @endforeach
-                        @if(count($pkgGrouped) > 3)
-                        <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+{{ count($pkgGrouped) - 3 }} more</span>
-                        @endif
-                    </div>
-                    @endif
+                            <i class="fas fa-check-circle text-teal-600 mr-1 text-[8px]"></i> <?php echo e(\Illuminate\Support\Str::limit($deptKey, 15)); ?>
 
-                    @if($package->description)
-                    <p class="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed">{{ $package->description }}</p>
-                    @endif
+                        </span>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php if(count($pkgGrouped) > 3): ?>
+                        <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+<?php echo e(count($pkgGrouped) - 3); ?> more</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if($package->description): ?>
+                    <p class="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed"><?php echo e($package->description); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-baseline justify-between mb-3">
                         <div class="flex items-baseline gap-2">
-                            <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                            <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($mrp) }}</span>
+                            <span class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></span>
+                            <span class="text-xs text-gray-400 line-through font-semibold">₹<?php echo e(number_format($mrp)); ?></span>
                         </div>
                         <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                            {{ $discountPct }}% OFF
+                            <?php echo e($discountPct); ?>% OFF
                         </span>
                     </div>
                     
                     <button type="button" 
-                        onclick="event.stopPropagation(); openPackageDetails({{ $package->id }})" 
+                        onclick="event.stopPropagation(); openPackageDetails(<?php echo e($package->id); ?>)" 
                         class="w-full mb-2 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                         <i class="fas fa-file-waveform text-teal-600 text-xs"></i>
-                        <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                        <span>View <?php echo e($package->total_parameters_count); ?> Tests Included</span>
                     </button>
 
                     <button type="button" 
                         onclick="event.stopPropagation(); addToCart(this)" 
-                        data-id="{{ $package->id }}"
+                        data-id="<?php echo e($package->id); ?>"
                         data-type="package"
-                        data-name="{{ $package->name }}"
-                        data-price="{{ $package->price }}" 
-                        data-mrp="{{ $mrp }}" 
-                        data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                        data-name="<?php echo e($package->name); ?>"
+                        data-price="<?php echo e($package->price); ?>" 
+                        data-mrp="<?php echo e($mrp); ?>" 
+                        data-params="Includes <?php echo e($package->total_parameters_count); ?> Parameters"
                         class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
@@ -911,9 +919,9 @@
                     </p>
                 </div>
             </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <div class="text-gray-500 italic p-6 bg-white rounded-2xl w-full text-center border border-gray-100">No habit packages available yet.</div>
-            @endforelse
+            <?php endif; ?>
         </div>
 
         <!-- Habits Empty State (Filtered) -->
@@ -966,29 +974,31 @@
 
         <!-- Slider of Femcliffe cards -->
         <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
-            @forelse($femcliffePackages as $package)
-            @php
+            <?php $__empty_1 = true; $__currentLoopData = $femcliffePackages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $package): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <?php
                 $mrp = round($package->price * 1.45);
                 $discountPct = round((($mrp - $package->price) / $mrp) * 100);
                 $pkgGrouped = $package->getGroupedParameters();
-            @endphp
+            ?>
             <!-- Femcliffe Package Card -->
-            <div onclick="window.location.href='{{ route('package.show', $package->id) }}'" 
+            <div onclick="window.location.href='<?php echo e(route('package.show', $package->id)); ?>'" 
                 class="femcliffe-card cursor-pointer w-[290px] sm:w-[310px] md:w-[330px] flex-shrink-0 snap-start bg-white rounded-3xl p-6 border border-pink-100 hover:border-pink-300 flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-[0_12px_35px_rgba(236,72,153,0.16)] transition-all duration-300 relative overflow-hidden group" 
-                data-category="{{ $package->subcategory }}">
+                data-category="<?php echo e($package->subcategory); ?>">
                 <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-pink-400 via-rose-500 to-purple-600 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 <div>
                     <div class="flex justify-between items-center mb-3">
                         <span class="bg-pink-50 text-pink-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase border border-pink-200/80 tracking-wider flex items-center gap-1">
-                            <i class="fas fa-venus text-[9px]"></i> {{ $package->subcategory ?? 'Women Care' }}
+                            <i class="fas fa-venus text-[9px]"></i> <?php echo e($package->subcategory ?? 'Women Care'); ?>
+
                         </span>
                         <div class="w-8 h-8 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 group-hover:scale-110 transition-transform">
                             <i class="fas fa-heart text-xs"></i>
                         </div>
                     </div>
                     <h4 class="font-extrabold text-gray-900 text-base leading-snug mb-2 group-hover:text-pink-600 transition-colors line-clamp-2">
-                        <a href="{{ route('package.show', $package->id) }}" class="hover:underline" onclick="event.stopPropagation();">
-                            {{ $package->name }}
+                        <a href="<?php echo e(route('package.show', $package->id)); ?>" class="hover:underline" onclick="event.stopPropagation();">
+                            <?php echo e($package->name); ?>
+
                         </a>
                     </h4>
                     
@@ -1000,53 +1010,54 @@
                         <div class="w-px h-7 bg-pink-200 mx-2"></div>
                         <div class="text-center w-full">
                             <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-xs sm:text-sm font-black text-pink-600">{{ $package->total_parameters_count }} Tests</p>
+                            <p class="text-xs sm:text-sm font-black text-pink-600"><?php echo e($package->total_parameters_count); ?> Tests</p>
                         </div>
                     </div>
 
-                    @if(!empty($pkgGrouped))
+                    <?php if(!empty($pkgGrouped)): ?>
                     <div class="flex flex-wrap gap-1.5 mb-3">
-                        @foreach(array_slice(array_keys($pkgGrouped), 0, 3) as $deptKey)
+                        <?php $__currentLoopData = array_slice(array_keys($pkgGrouped), 0, 3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $deptKey): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <span class="bg-pink-50/60 text-pink-900 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-pink-100 flex items-center">
-                            <i class="fas fa-check-circle text-pink-500 mr-1 text-[8px]"></i> {{ \Illuminate\Support\Str::limit($deptKey, 15) }}
-                        </span>
-                        @endforeach
-                        @if(count($pkgGrouped) > 3)
-                        <span class="text-[10px] text-pink-600 font-bold self-center ml-1">+{{ count($pkgGrouped) - 3 }} more</span>
-                        @endif
-                    </div>
-                    @endif
+                            <i class="fas fa-check-circle text-pink-500 mr-1 text-[8px]"></i> <?php echo e(\Illuminate\Support\Str::limit($deptKey, 15)); ?>
 
-                    @if($package->description)
-                    <p class="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed">{{ $package->description }}</p>
-                    @endif
+                        </span>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        <?php if(count($pkgGrouped) > 3): ?>
+                        <span class="text-[10px] text-pink-600 font-bold self-center ml-1">+<?php echo e(count($pkgGrouped) - 3); ?> more</span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if($package->description): ?>
+                    <p class="text-xs text-gray-500 mb-4 line-clamp-2 leading-relaxed"><?php echo e($package->description); ?></p>
+                    <?php endif; ?>
                 </div>
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-baseline justify-between mb-3">
                         <div class="flex items-baseline gap-2">
-                            <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                            <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($mrp) }}</span>
+                            <span class="text-2xl font-black text-gray-900 tracking-tight">₹<?php echo e(number_format($package->price)); ?></span>
+                            <span class="text-xs text-gray-400 line-through font-semibold">₹<?php echo e(number_format($mrp)); ?></span>
                         </div>
                         <span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                            {{ $discountPct }}% OFF
+                            <?php echo e($discountPct); ?>% OFF
                         </span>
                     </div>
                     
                     <button type="button" 
-                        onclick="event.stopPropagation(); openPackageDetails({{ $package->id }})" 
+                        onclick="event.stopPropagation(); openPackageDetails(<?php echo e($package->id); ?>)" 
                         class="w-full mb-2 py-2 px-3 bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                         <i class="fas fa-file-waveform text-pink-500 text-xs"></i>
-                        <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                        <span>View <?php echo e($package->total_parameters_count); ?> Tests Included</span>
                     </button>
 
                     <button type="button" 
                         onclick="event.stopPropagation(); addToCart(this)" 
-                        data-id="{{ $package->id }}"
+                        data-id="<?php echo e($package->id); ?>"
                         data-type="package"
-                        data-name="{{ $package->name }}"
-                        data-price="{{ $package->price }}" 
-                        data-mrp="{{ $mrp }}" 
-                        data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                        data-name="<?php echo e($package->name); ?>"
+                        data-price="<?php echo e($package->price); ?>" 
+                        data-mrp="<?php echo e($mrp); ?>" 
+                        data-params="Includes <?php echo e($package->total_parameters_count); ?> Parameters"
                         class="w-full bg-white border-2 border-pink-500 text-pink-600 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-600 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
@@ -1055,9 +1066,9 @@
                     </p>
                 </div>
             </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <div class="text-gray-500 italic p-6 bg-white rounded-2xl w-full text-center border border-pink-100">No femcliffe packages available yet.</div>
-            @endforelse
+            <?php endif; ?>
         </div>
 
         <!-- Femcliffe Empty State (Filtered) -->
@@ -1075,9 +1086,7 @@
 </div>
 
 
-    {{-- Spreading Quality Healthcare Stats Strip (Temporarily disabled as requested)
-    @include('frontend.partials.stats')
-    --}}
+    
 
     <!-- Why Book Tests With Us? -->
 <div class="relative py-20 overflow-hidden bg-gradient-to-br from-gray-50 to-white">
@@ -1320,7 +1329,7 @@
             <h2 class="text-2xl sm:text-3xl font-extrabold text-brand-dark">Health Calculators</h2>
             <p class="text-gray-500 font-medium text-xs sm:text-sm mt-1">Use our free clinical tools to track and monitor your vital health metrics instantly</p>
         </div>
-        <a href="{{ route('calculators.index') }}" class="text-xs font-bold text-teal-700 hover:text-teal-900 self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 transition border border-teal-200/60">
+        <a href="<?php echo e(route('calculators.index')); ?>" class="text-xs font-bold text-teal-700 hover:text-teal-900 self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100 transition border border-teal-200/60">
             <span>View All Calculators</span>
             <i class="fas fa-arrow-right text-[10px]"></i>
         </a>
@@ -1333,10 +1342,10 @@
                 <i class="fas fa-weight anim-rock"></i>
             </div>
             <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-blue-600 transition">
-                <a href="{{ route('calculators.bmi') }}">Body Mass Index (BMI)</a>
+                <a href="<?php echo e(route('calculators.bmi')); ?>">Body Mass Index (BMI)</a>
             </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Find out if your weight falls within the ideal range for your height and age instantly.</p>
-            <a href="{{ route('calculators.bmi') }}" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-2.5 rounded-full hover:bg-blue-600 hover:text-white transition w-full block">Calculate BMI</a>
+            <a href="<?php echo e(route('calculators.bmi')); ?>" class="text-xs font-extrabold text-blue-600 bg-blue-50 px-4 py-2.5 rounded-full hover:bg-blue-600 hover:text-white transition w-full block">Calculate BMI</a>
         </div>
 
         <!-- Heart Health -->
@@ -1345,10 +1354,10 @@
                 <i class="fas fa-heartbeat anim-beat"></i>
             </div>
             <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-red-600 transition">
-                <a href="{{ route('calculators.cardiovascular') }}">Cardiovascular Risk</a>
+                <a href="<?php echo e(route('calculators.cardiovascular')); ?>">Cardiovascular Risk</a>
             </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Evaluate your heart's overall health and discover early warning signs of cardiac issues.</p>
-            <a href="{{ route('calculators.cardiovascular') }}" class="text-xs font-extrabold text-red-600 bg-red-50 px-4 py-2.5 rounded-full hover:bg-red-600 hover:text-white transition w-full block">Check Heart Health</a>
+            <a href="<?php echo e(route('calculators.cardiovascular')); ?>" class="text-xs font-extrabold text-red-600 bg-red-50 px-4 py-2.5 rounded-full hover:bg-red-600 hover:text-white transition w-full block">Check Heart Health</a>
         </div>
 
         <!-- Pre-Diabetic -->
@@ -1357,10 +1366,10 @@
                 <i class="fas fa-tint anim-drip"></i>
             </div>
             <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-teal-700 transition">
-                <a href="{{ route('calculators.diabetes') }}">Diabetes Risk Profiler</a>
+                <a href="<?php echo e(route('calculators.diabetes')); ?>">Diabetes Risk Profiler</a>
             </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Identify your chances of pre-diabetes early with our comprehensive symptom checker.</p>
-            <a href="{{ route('calculators.diabetes') }}" class="text-xs font-extrabold text-teal-600 bg-teal-50 px-4 py-2.5 rounded-full hover:bg-teal-600 hover:text-white transition w-full block">Evaluate Risk</a>
+            <a href="<?php echo e(route('calculators.diabetes')); ?>" class="text-xs font-extrabold text-teal-600 bg-teal-50 px-4 py-2.5 rounded-full hover:bg-teal-600 hover:text-white transition w-full block">Evaluate Risk</a>
         </div>
 
         <!-- Vitamin D -->
@@ -1369,10 +1378,10 @@
                 <i class="fas fa-sun anim-spin"></i>
             </div>
             <h4 class="font-bold text-gray-800 text-base mb-2 group-hover:text-yellow-600 transition">
-                <a href="{{ route('calculators.vitamin') }}">Vitamin Deficiency</a>
+                <a href="<?php echo e(route('calculators.vitamin')); ?>">Vitamin Deficiency</a>
             </h4>
             <p class="text-xs text-gray-500 mb-5 leading-relaxed flex-grow">Check for common signs of Vitamin D & B12 shortages that cause fatigue and bone pain.</p>
-            <a href="{{ route('calculators.vitamin') }}" class="text-xs font-extrabold text-yellow-700 bg-yellow-50 px-4 py-2.5 rounded-full hover:bg-yellow-500 hover:text-slate-900 transition w-full block">Start Assessment</a>
+            <a href="<?php echo e(route('calculators.vitamin')); ?>" class="text-xs font-extrabold text-yellow-700 bg-yellow-50 px-4 py-2.5 rounded-full hover:bg-yellow-500 hover:text-slate-900 transition w-full block">Start Assessment</a>
         </div>
     </div>
 </div>
@@ -1408,7 +1417,7 @@
         <div class="relative mt-6 md:mt-0 md:w-2/5 flex justify-center md:justify-end z-10">
             <div class="relative w-44 h-44 sm:w-52 sm:h-52 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/20 transform md:rotate-2 group-hover:rotate-0 transition-all duration-500">
                 <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80" 
-                     onerror="this.onerror=null; this.src='{{ asset('two-asian.jpg') }}';" 
+                     onerror="this.onerror=null; this.src='<?php echo e(asset('two-asian.jpg')); ?>';" 
                      alt="Customise Package" 
                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                 <div class="absolute bottom-2 left-2 right-2 bg-black/60 backdrop-blur-md rounded-xl p-1.5 text-center text-white border border-white/10">
@@ -1878,7 +1887,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-end mb-6">
         <h2 class="section-title mb-0">Awards & Recognition</h2>
-        <a href="{{ route('about') }}" class="text-xs font-bold text-gray-500 hover:text-brand-secondary border-b border-gray-400 border-dashed">View All ></a>
+        <a href="<?php echo e(route('about')); ?>" class="text-xs font-bold text-gray-500 hover:text-brand-secondary border-b border-gray-400 border-dashed">View All ></a>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1931,13 +1940,13 @@
 
 
     <!-- Patient Reviews & Testimonials Section -->
-    @include('frontend.partials.reviews-section')
+    <?php echo $__env->make('frontend.partials.reviews-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- Contact & Quick Medical Enquiry Section -->
-    @include('frontend.partials.enquiry-section')
+    <?php echo $__env->make('frontend.partials.enquiry-section', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- Package Clinical Breakdown Modal (Dr Lal / 1mg Style) -->
-    @include('frontend.partials.package-details-modal')
+    <?php echo $__env->make('frontend.partials.package-details-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <!-- Femcliffe Information Modal -->
     <div id="femcliffeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden transition-opacity duration-300">
@@ -2009,7 +2018,7 @@
         </div>
     </div>
 
-    @php
+    <?php
         $allPackagesForModal = ($packages ?? collect())->merge($habitPackages ?? collect())->merge($femcliffePackages ?? collect())->unique('id');
         $packagesModalPayload = [];
         foreach ($allPackagesForModal as $p) {
@@ -2022,9 +2031,9 @@
                 'grouped' => $p->getGroupedParameters(),
             ];
         }
-    @endphp
+    ?>
     <script>
-        window.PACKAGE_DETAILS_DATA = {!! json_encode($packagesModalPayload) !!};
+        window.PACKAGE_DETAILS_DATA = <?php echo json_encode($packagesModalPayload); ?>;
 
         function openFemcliffeModal() {
             const modal = document.getElementById('femcliffeModal');
@@ -2114,4 +2123,6 @@
             slider.scrollTo({ left: 0, behavior: 'smooth' });
         }
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('frontend.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/frontend/pages/home.blade.php ENDPATH**/ ?>

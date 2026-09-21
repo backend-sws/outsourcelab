@@ -193,7 +193,7 @@
                         </div>
                         <h3 class="font-black text-slate-800 text-lg mb-1">Your Diagnostic Cart is Empty</h3>
                         <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto mb-5">Browse doctor-curated full body packages and lab tests with free home sample collection.</p>
-                        <a href="/" class="inline-flex items-center gap-2 bg-teal-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-teal-900 transition shadow-md">
+                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 bg-teal-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-teal-900 transition shadow-md">
                             <i class="fas fa-magnifying-glass text-xs"></i>
                             <span>Browse Health Packages</span>
                         </a>

@@ -2,17 +2,17 @@
 <div id="enquiry-section" class="scroll-mt-24"></div>
 <section id="contact-enquiry" class="container mx-auto px-4 py-12 scroll-mt-24">
     <!-- Success Alert -->
-    @if(session('enquiry_success'))
+    <?php if(session('enquiry_success')): ?>
         <div id="enquirySuccessAlert" class="mb-8 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between shadow-sm animate-fade-in">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
-                <span class="text-sm font-medium">{{ session('enquiry_success') }}</span>
+                <span class="text-sm font-medium"><?php echo e(session('enquiry_success')); ?></span>
             </div>
             <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="bg-gradient-to-br from-brand-dark via-slate-900 to-teal-950 rounded-3xl p-6 sm:p-10 lg:p-12 text-white shadow-2xl relative overflow-hidden">
         <!-- Subtle Ambient Glows -->
@@ -36,12 +36,12 @@
                 </div>
 
                 <!-- Contact Tiles -->
-                @php
+                <?php
                     $enquiryHelpline = \App\Models\Setting::get('helpline_primary', '898 898 8787');
                     $enquiryHelplineClean = preg_replace('/[^0-9]/', '', $enquiryHelpline);
                     $enquiryEmail = \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
                     $enquiryHours = \App\Models\Setting::get('working_hours', 'Daily 6:00 AM – 9:00 PM');
-                @endphp
+                ?>
                 <div class="space-y-3 pt-2">
                     <div class="flex items-center space-x-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
                         <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center flex-shrink-0">
@@ -49,7 +49,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">24/7 Helpline</div>
-                            <a href="tel:{{ $enquiryHelplineClean }}" class="text-sm font-bold text-white hover:text-brand-secondary transition block truncate">{{ $enquiryHelpline }}</a>
+                            <a href="tel:<?php echo e($enquiryHelplineClean); ?>" class="text-sm font-bold text-white hover:text-brand-secondary transition block truncate"><?php echo e($enquiryHelpline); ?></a>
                         </div>
                     </div>
 
@@ -59,7 +59,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Official Support Email</div>
-                            <a href="mailto:{{ $enquiryEmail }}" class="text-xs sm:text-sm font-bold text-white hover:text-brand-secondary transition block break-all">{{ $enquiryEmail }}</a>
+                            <a href="mailto:<?php echo e($enquiryEmail); ?>" class="text-xs sm:text-sm font-bold text-white hover:text-brand-secondary transition block break-all"><?php echo e($enquiryEmail); ?></a>
                         </div>
                     </div>
 
@@ -69,7 +69,7 @@
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Home Sample Collection</div>
-                            <div class="text-xs font-bold text-white leading-snug">{{ $enquiryHours }} <span class="block sm:inline text-[11px] text-purple-200/80 font-normal">(Trained Phlebotomists)</span></div>
+                            <div class="text-xs font-bold text-white leading-snug"><?php echo e($enquiryHours); ?> <span class="block sm:inline text-[11px] text-purple-200/80 font-normal">(Trained Phlebotomists)</span></div>
                         </div>
                     </div>
                 </div>
@@ -88,25 +88,25 @@
                         </span>
                     </div>
 
-                    @php
+                    <?php
                         $enquiryPatient = session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null;
                         $enquiryPatientEmail = ($enquiryPatient && $enquiryPatient->email !== '-') ? $enquiryPatient->email : '';
-                    @endphp
+                    ?>
 
-                    <form id="enquiryForm" action="{{ route('enquiries.store') }}" method="POST" class="space-y-4">
-                        @csrf
+                    <form id="enquiryForm" action="<?php echo e(route('enquiries.store')); ?>" method="POST" class="space-y-4">
+                        <?php echo csrf_field(); ?>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- Name -->
                             <div>
                                 <label for="enquiry_name" class="block text-xs font-semibold text-gray-700 mb-1">Full Name <span class="text-red-500">*</span></label>
-                                <input type="text" name="name" id="enquiry_name" value="{{ $enquiryPatient->name ?? '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. Amit Verma" required>
+                                <input type="text" name="name" id="enquiry_name" value="<?php echo e($enquiryPatient->name ?? ''); ?>" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. Amit Verma" required>
                             </div>
 
                             <!-- Mobile Number -->
                             <div>
                                 <label for="enquiry_phone" class="block text-xs font-semibold text-gray-700 mb-1">Mobile Number <span class="text-red-500">*</span></label>
-                                <input type="tel" name="phone" id="enquiry_phone" value="{{ $enquiryPatient->mobile ?? '' }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. 9876543210" minlength="10" maxlength="15" required>
+                                <input type="tel" name="phone" id="enquiry_phone" value="<?php echo e($enquiryPatient->mobile ?? ''); ?>" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. 9876543210" minlength="10" maxlength="15" required>
                             </div>
                         </div>
 
@@ -114,7 +114,7 @@
                             <!-- Email -->
                             <div>
                                 <label for="enquiry_email" class="block text-xs font-semibold text-gray-700 mb-1">Email Address <span class="text-gray-400 font-normal">(Optional)</span></label>
-                                <input type="email" name="email" id="enquiry_email" value="{{ $enquiryPatientEmail }}" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. amit@example.com">
+                                <input type="email" name="email" id="enquiry_email" value="<?php echo e($enquiryPatientEmail); ?>" class="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-800 focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition" placeholder="e.g. amit@example.com">
                             </div>
 
                             <!-- Subject -->
@@ -194,3 +194,4 @@
         e.preventDefault();
     });
 </script>
+<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/frontend/partials/enquiry-section.blade.php ENDPATH**/ ?>

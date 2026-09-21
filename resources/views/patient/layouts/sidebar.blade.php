@@ -120,11 +120,11 @@
                     </span>
                 </a>
             </li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-gift w-6 text-gray-400"></i> My Gift Card</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-heartbeat w-6 text-gray-400"></i> One Health</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-utensils w-6 text-gray-400"></i> Diet Plan</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-weight w-6 text-gray-400"></i> Measure Your Health</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="far fa-question-circle w-6 text-gray-400"></i> Queries & Tickets</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('patient.coupons') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-gift w-6 text-gray-400"></i> My Gift Card</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('patient.membership') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-heartbeat w-6 text-gray-400"></i> One Health</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('calculators.bmi') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-utensils w-6 text-gray-400"></i> Diet Plan</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('calculators.index') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-weight w-6 text-gray-400"></i> Measure Your Health</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('faqs') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="far fa-question-circle w-6 text-gray-400"></i> Queries & Tickets</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
         </ul>
     </div>
 
@@ -132,9 +132,9 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
         <h5 class="font-extrabold text-brand-dark text-lg p-4 pb-2">Legal & Privacy</h5>
         <ul class="text-sm font-semibold text-gray-700 divide-y divide-gray-100">
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-shield-alt w-6 text-gray-400"></i> Privacy Policy</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-cog w-6 text-gray-400"></i> Account Settings</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
-            <li><a href="#" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-file-contract w-6 text-gray-400"></i> Terms & Conditions</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('privacy') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-shield-alt w-6 text-gray-400"></i> Privacy Policy</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('patient.profile.edit') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-cog w-6 text-gray-400"></i> Account Settings</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('terms') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition"><span class="flex items-center"><i class="fas fa-file-contract w-6 text-gray-400"></i> Terms & Conditions</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
         </ul>
     </div>
 
