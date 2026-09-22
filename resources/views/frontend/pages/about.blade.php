@@ -50,7 +50,8 @@
         </div>
     </div>
 
-    <!-- Impact & Footprint Counter Cards -->
+    {{-- Impact & Footprint Counter Cards — Hidden (commented out) --}}
+    {{--
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-16">
         <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm text-center">
             <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 mx-auto flex items-center justify-center text-xl mb-3">
@@ -84,6 +85,7 @@
             <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Collection Points</p>
         </div>
     </div>
+    --}}
 
     <!-- Core Philosophy: Preventive-First Approach -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">

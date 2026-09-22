@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Patient extends Model
 {
+    use Notifiable;
+
     protected $fillable = [
         'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp', 'otp_expires_at', 'last_login_at', 'cart', 'reward_coins',
     ];
@@ -124,5 +127,25 @@ class Patient extends Model
             'description' => $description,
             'balance_after' => $newBalance,
         ]);
+    }
+
+    public function paymentTransactions()
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function routeNotificationForMail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->mobile;
+    }
+
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->mobile;
     }
 }

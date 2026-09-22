@@ -158,6 +158,46 @@
                     <span class="hidden lg:inline">Cart</span> 
                     <span id="cartCount" class="bg-brand-secondary text-white text-[10px] lg:text-xs rounded-full px-1.5 py-0.5 lg:px-2 lg:ml-1 font-bold absolute lg:static -top-1 -right-1 lg:top-auto lg:right-auto {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span>
                 </button>
+
+                @if($loggedInPatient)
+                    <!-- Patient Notification Bell & Dropdown -->
+                    <div class="relative" id="patientNotifDropdownContainer">
+                        <button id="patientNotifBtn" type="button" aria-label="My Notifications" class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 flex items-center justify-center text-gray-600 hover:text-teal-700 transition focus:outline-none shadow-xs">
+                            <i class="fas fa-bell text-sm"></i>
+                            <span id="patientNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white shadow-sm animate-pulse">0</span>
+                        </button>
+
+                        <!-- Patient Notification Dropdown Menu -->
+                        <div id="patientNotifMenu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-gray-200 shadow-2xl z-50 overflow-hidden text-left">
+                            <!-- Dropdown Header -->
+                            <div class="p-3.5 px-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-xs text-gray-900">Notifications</span>
+                                    <span id="patientNotifHeaderCount" class="hidden px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">0 Unread</span>
+                                </div>
+                                <button type="button" onclick="markAllPatientNotifsRead()" class="text-[11px] font-semibold text-teal-600 hover:underline">
+                                    Mark all as read
+                                </button>
+                            </div>
+
+                            <!-- Notification Items List -->
+                            <div id="patientNotifList" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                                <div class="p-6 text-center text-xs text-gray-400">
+                                    <i class="fas fa-spinner fa-spin text-teal-500 mb-2 text-base block"></i>
+                                    <span>Loading your alerts...</span>
+                                </div>
+                            </div>
+
+                            <!-- Dropdown Footer -->
+                            <div class="p-2.5 bg-gray-50 border-t border-gray-100 text-center">
+                                <a href="{{ route('patient.notifications') }}" class="text-xs font-bold text-teal-700 hover:underline flex items-center justify-center gap-1.5 py-1">
+                                    <span>View All Notifications</span>
+                                    <i class="fas fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 
                 <!-- Profile / Login Button (Desktop Only) -->
                 <div class="hidden lg:block">
@@ -384,5 +424,109 @@
                 }
             });
         }
+
+        @if($loggedInPatient)
+        // ── Patient In-App Notifications Bell ──
+        const patientNotifBtn = document.getElementById('patientNotifBtn');
+        const patientNotifMenu = document.getElementById('patientNotifMenu');
+        const patientNotifBadge = document.getElementById('patientNotifBadge');
+        const patientNotifHeaderCount = document.getElementById('patientNotifHeaderCount');
+        const patientNotifList = document.getElementById('patientNotifList');
+
+        window.loadPatientNotifications = function() {
+            fetch("{{ route('patient.notifications.unreadFeed') }}", {
+                headers: { 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.unread_count > 0) {
+                    patientNotifBadge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                    patientNotifBadge.classList.remove('hidden');
+                    patientNotifHeaderCount.textContent = `${data.unread_count} Unread`;
+                    patientNotifHeaderCount.classList.remove('hidden');
+                } else {
+                    patientNotifBadge.classList.add('hidden');
+                    patientNotifHeaderCount.classList.add('hidden');
+                }
+
+                if (!data.notifications || data.notifications.length === 0) {
+                    patientNotifList.innerHTML = `
+                        <div class="p-8 text-center text-xs text-gray-400">
+                            <i class="far fa-bell-slash text-2xl text-gray-300 mb-2 block"></i>
+                            <span>No notifications yet</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                patientNotifList.innerHTML = data.notifications.map(item => `
+                    <div onclick="handlePatientNotifClick(${item.id}, '${item.action_url}')" class="p-3.5 px-4 flex items-start gap-3 hover:bg-gray-50 transition cursor-pointer ${item.is_read ? 'opacity-70' : 'bg-teal-50/50'}">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${item.badge_class}">
+                            <i class="${item.icon} text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-1">
+                                <h5 class="text-xs font-bold text-gray-900 truncate ${item.is_read ? '' : 'text-teal-700'}">${item.title}</h5>
+                                ${!item.is_read ? '<span class="w-2 h-2 rounded-full bg-teal-500 flex-shrink-0 animate-pulse"></span>' : ''}
+                            </div>
+                            <p class="text-[11px] text-gray-500 line-clamp-2 mt-0.5 leading-snug">${item.message}</p>
+                            <span class="text-[10px] text-gray-400 mt-1 block">${item.time_ago}</span>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {
+                patientNotifList.innerHTML = `
+                    <div class="p-4 text-center text-xs text-rose-500">
+                        Failed to load notifications
+                    </div>
+                `;
+            });
+        };
+
+        window.handlePatientNotifClick = function(notifId, actionUrl) {
+            fetch(`{{ url('/patient/notifications/mark-read') }}/${notifId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                }
+            }).finally(() => {
+                if (actionUrl && actionUrl !== '#' && !actionUrl.includes('javascript')) {
+                    window.location.href = actionUrl;
+                } else {
+                    loadPatientNotifications();
+                }
+            });
+        };
+
+        window.markAllPatientNotifsRead = function() {
+            fetch("{{ route('patient.notifications.markRead') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                }
+            }).then(() => {
+                loadPatientNotifications();
+            });
+        };
+
+        if (patientNotifBtn && patientNotifMenu) {
+            patientNotifBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = patientNotifMenu.classList.contains('hidden');
+                patientNotifMenu.classList.toggle('hidden', !isHidden);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!patientNotifMenu.contains(e.target) && !patientNotifBtn.contains(e.target)) {
+                    patientNotifMenu.classList.add('hidden');
+                }
+            });
+        }
+
+        loadPatientNotifications();
+        @endif
     </script>
 

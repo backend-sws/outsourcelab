@@ -310,14 +310,10 @@
                                 <i class="fas fa-check-circle text-emerald-600"></i> Currently Active Plan
                             </div>
                             @else
-                            <form action="{{ route('patient.membership.purchase') }}" method="POST" onsubmit="return confirm('Activate {{ $plan->name }} for ₹{{ number_format($plan->price, 0) }}? Your VIP perks will be applied immediately!')">
-                                @csrf
-                                <input type="hidden" name="plan_id" value="{{ $plan->id }}">
-                                <button type="submit" class="w-full py-3.5 rounded-2xl {{ $plan->is_popular ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20' : 'bg-brand-dark hover:bg-brand-secondary text-white shadow-md' }} font-black text-xs transition flex items-center justify-center gap-2">
-                                    <i class="fas fa-bolt"></i>
-                                    <span>{{ $activeMembership ? 'Upgrade to '.$plan->name : 'Activate '.$plan->name.' Now' }}</span>
-                                </button>
-                            </form>
+                            <button type="button" onclick="purchaseMembershipRazorpay({{ $plan->id }}, '{{ addslashes($plan->name) }}', {{ $plan->price }}, this)" class="w-full py-3.5 rounded-2xl {{ $plan->is_popular ? 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20' : 'bg-brand-dark hover:bg-brand-secondary text-white shadow-md' }} font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fas fa-bolt"></i>
+                                <span>{{ $activeMembership ? 'Upgrade to '.$plan->name : 'Activate '.$plan->name.' Now' }}</span>
+                            </button>
                             @endif
                         </div>
                     </div>
@@ -420,4 +416,96 @@
         </div>
     </div>
 </div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function purchaseMembershipRazorpay(planId, planName, price, btn) {
+        let originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Initializing...';
+
+        fetch("{{ route('razorpay.membership.order') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                plan_id: planId
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Could not initiate membership payment.');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                return;
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                name: data.name || 'Av Wellcare Diagnostics',
+                description: data.description || ('VIP Membership - ' + planName),
+                order_id: data.order_id,
+                prefill: data.prefill || {},
+                theme: data.theme || { color: '#d97706' },
+                handler: function(response) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Activating Membership...';
+                    fetch("{{ route('razorpay.membership.verify') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            plan_id: planId
+                        })
+                    })
+                    .then(vr => vr.json())
+                    .then(vData => {
+                        if (vData.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Membership verification error: ' + (vData.message || 'Please contact support.'));
+                            window.location.reload();
+                        }
+                    })
+                    .catch(err => {
+                        alert('Network issue during verification. Your membership will update shortly.');
+                        window.location.reload();
+                    });
+                },
+                modal: {
+                    ondismiss: function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                alert('Payment failed: ' + (response.error.description || 'Transaction declined.'));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+            rzp.open();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+</script>
 @endsection
+

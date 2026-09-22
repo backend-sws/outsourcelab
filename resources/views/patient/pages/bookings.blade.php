@@ -272,12 +272,23 @@
                                     <div class="lg:text-right lg:border-l lg:border-gray-100 lg:pl-6 flex-shrink-0">
                                         <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 block">Total Amount</span>
                                         <span class="text-2xl font-black text-brand-dark block mt-0.5">₹{{ number_format($booking->amount, 0) }}</span>
-                                        <div class="mt-1 flex items-center lg:justify-end gap-1.5">
-                                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full {{ $booking->payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                                                <i class="fas {{ $booking->payment_status === 'Paid' ? 'fa-check-circle' : 'fa-hourglass-half' }} text-[10px]"></i>
-                                                <span>{{ $booking->payment_status === 'Paid' ? 'Paid Online' : 'Cash on Collection' }}</span>
+                                        <div class="mt-1 flex items-center lg:justify-end gap-1.5 flex-wrap">
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full {{ $booking->payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                                <i class="fas {{ $booking->payment_status === 'Paid' ? 'fa-check-circle text-emerald-600' : 'fa-hourglass-half text-amber-600' }} text-[10px]"></i>
+                                                <span>{{ $booking->payment_status === 'Paid' ? 'Paid Online' : ($booking->payment_method === 'Cash' ? 'Pay on Collection' : 'Payment Pending') }}</span>
                                             </span>
+                                            @if($booking->razorpay_payment_id)
+                                                <span class="font-mono text-[10px] text-gray-400 block">ID: {{ $booking->razorpay_payment_id }}</span>
+                                            @endif
                                         </div>
+
+                                        @if($booking->payment_status !== 'Paid' && $booking->status !== 'Cancelled')
+                                            <button type="button" onclick="retryBookingPayment({{ $booking->id }}, {{ $booking->amount }}, '{{ $booking->booking_reference }}', this)" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-xs cursor-pointer">
+                                                <i class="fas fa-credit-card text-[10px]"></i>
+                                                <span>Pay Online Now</span>
+                                            </button>
+                                        @endif
+
                                         <span class="text-[11px] text-gray-500 font-semibold block mt-1">
                                             <i class="fas fa-map-pin text-[10px] mr-1 text-teal-600"></i> {{ $booking->collection_type ?: 'Home Collection' }}
                                         </span>
@@ -388,6 +399,7 @@
     </div>
 </div>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     function filterBookings(type) {
         // 1. Update button states
@@ -412,6 +424,90 @@
             } else {
                 card.style.display = 'none';
             }
+        });
+    }
+
+    function retryBookingPayment(bookingId, amount, ref, btn) {
+        let originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i>';
+
+        fetch("{{ url('razorpay/booking') }}/" + bookingId + "/retry", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Payment retry initialization failed.');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                return;
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                name: data.name || 'Av Wellcare Diagnostics',
+                description: data.description || ('Payment for #' + ref),
+                order_id: data.order_id,
+                prefill: data.prefill || {},
+                theme: data.theme || { color: '#0d9488' },
+                handler: function(response) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Verifying...';
+                    fetch("{{ route('razorpay.payment.verify') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            booking_id: bookingId
+                        })
+                    })
+                    .then(vr => vr.json())
+                    .then(vData => {
+                        if (vData.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Verification failed: ' + (vData.message || 'Please contact support.'));
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {
+                        alert('Network issue during verification. Your booking will update automatically.');
+                        window.location.reload();
+                    });
+                },
+                modal: {
+                    ondismiss: function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function(response) {
+                alert('Payment failed: ' + (response.error.description || 'Declined'));
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+            rzp.open();
+        })
+        .catch(() => {
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         });
     }
 </script>

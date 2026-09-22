@@ -10,7 +10,8 @@ class Booking extends Model
         'booking_reference', 'patient_id', 'family_member_id', 'address_id', 'agent_id',
         'test_details', 'collection_type', 'collection_slot', 'amount', 'coupon_code', 'discount_amount',
         'coins_redeemed', 'coins_discount', 'coins_earned',
-        'payment_method', 'payment_status', 'status', 'sample_status', 'sample_collected_at',
+        'payment_method', 'payment_status', 'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature',
+        'status', 'sample_status', 'sample_collected_at',
         'sample_notes', 'money_collected_at', 'money_collected_by', 'money_payment_mode',
         'report_file_path', 'booking_date',
     ];
@@ -50,6 +51,16 @@ class Booking extends Model
     public function rewardTransactions()
     {
         return $this->hasMany(RewardTransaction::class);
+    }
+
+    public function paymentTransactions()
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function latestPaymentTransaction()
+    {
+        return $this->hasOne(PaymentTransaction::class)->latestOfMany();
     }
 
     public function getDisplaySlotAttribute(): string

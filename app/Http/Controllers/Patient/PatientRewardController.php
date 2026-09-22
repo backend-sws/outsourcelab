@@ -45,8 +45,10 @@ class PatientRewardController extends Controller
 
         $totalEarned = (int) $patient->rewardTransactions()->where('type', 'credit')->sum('coins');
         $totalRedeemed = abs((int) $patient->rewardTransactions()->where('type', 'debit')->sum('coins'));
+        $profile = $patient;
 
         return view('patient.pages.rewards', compact(
+            'profile',
             'patient',
             'coinName',
             'coinValue',

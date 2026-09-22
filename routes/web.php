@@ -8,12 +8,14 @@ use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnquiryController as AdminEnquiryController;
 use App\Http\Controllers\Admin\MembershipController as AdminMembershipController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 use App\Http\Controllers\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RewardController as AdminRewardController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TestCategoryController as AdminTestCategoryController;
 use App\Http\Controllers\Admin\TestController as AdminTestController;
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Agent\AgentPortalController;
 use App\Http\Controllers\Frontend\CalculatorController;
@@ -28,9 +30,13 @@ use App\Http\Controllers\Patient\PatientBookingController;
 use App\Http\Controllers\Patient\PatientCouponController;
 use App\Http\Controllers\Patient\PatientFamilyController;
 use App\Http\Controllers\Patient\PatientMembershipController;
+use App\Http\Controllers\Patient\PatientNotificationController;
+use App\Http\Controllers\Patient\PatientPaymentController;
 use App\Http\Controllers\Patient\PatientPrescriptionController;
 use App\Http\Controllers\Patient\PatientProfileController;
 use App\Http\Controllers\Patient\PatientRewardController;
+use App\Http\Controllers\Payment\RazorpayController;
+use App\Http\Controllers\Payment\RazorpayWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -89,6 +95,14 @@ Route::prefix('calculators')->name('calculators.')->group(function () {
     Route::get('/vitamin-deficiency', [CalculatorController::class, 'vitaminDeficiency'])->name('vitamin');
 });
 
+// Razorpay Payment Gateway & Webhook Endpoints
+Route::post('/razorpay/order/create', [RazorpayController::class, 'createBookingOrder'])->name('razorpay.order.create');
+Route::post('/razorpay/payment/verify', [RazorpayController::class, 'verifyBookingPayment'])->name('razorpay.payment.verify');
+Route::post('/razorpay/membership/order', [RazorpayController::class, 'createMembershipOrder'])->name('razorpay.membership.order');
+Route::post('/razorpay/membership/verify', [RazorpayController::class, 'verifyMembershipPayment'])->name('razorpay.membership.verify');
+Route::post('/razorpay/booking/{id}/retry', [RazorpayController::class, 'retryBookingPayment'])->name('razorpay.booking.retry');
+Route::post('/api/razorpay/webhook', [RazorpayWebhookController::class, 'handle'])->name('razorpay.webhook');
+
 // =========================================================================
 // 2. PATIENT PORTAL ROUTES
 // =========================================================================
@@ -138,6 +152,15 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::get('/bookings', [PatientBookingController::class, 'index'])->name('bookings');
     Route::post('/bookings', [PatientBookingController::class, 'placeBooking'])->name('place_booking');
     Route::post('/cart/sync', [PatientBookingController::class, 'syncCart'])->name('cart.sync');
+
+    // Payment History & Invoices
+    Route::get('/transactions', [PatientPaymentController::class, 'index'])->name('transactions');
+    Route::get('/transactions/{id}/receipt', [PatientPaymentController::class, 'receipt'])->name('transactions.receipt');
+
+    // In-App Notifications
+    Route::get('/notifications', [PatientNotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications/unread-feed', [PatientNotificationController::class, 'unreadFeed'])->name('notifications.unreadFeed');
+    Route::post('/notifications/mark-read/{id?}', [PatientNotificationController::class, 'markAsRead'])->name('notifications.markRead');
 });
 
 // =========================================================================
@@ -187,6 +210,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/status', [AdminBookingController::class, 'updateStatus'])->name('bookings.updateStatus');
         Route::post('/bookings/{id}/assign-agent', [AdminBookingController::class, 'assignAgent'])->name('bookings.assign_agent');
         Route::get('/bookings/{id}/print', [AdminBookingController::class, 'print'])->name('bookings.print');
+        Route::post('/bookings/{id}/report', [AdminBookingController::class, 'uploadReport'])->name('bookings.report.upload');
+        Route::delete('/bookings/{id}/report', [AdminBookingController::class, 'deleteReport'])->name('bookings.report.delete');
 
         // Test Catalog
         Route::resource('tests', AdminTestController::class);
@@ -224,6 +249,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/rewards', [AdminRewardController::class, 'index'])->name('rewards.index');
         Route::post('/rewards/settings', [AdminRewardController::class, 'updateSettings'])->name('rewards.update');
         Route::post('/rewards/adjust', [AdminRewardController::class, 'manualAdjustment'])->name('rewards.adjust');
+
+        // Payment & Gateway Transaction Logs
+        Route::get('/transactions', [AdminTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/transactions/{id}', [AdminTransactionController::class, 'show'])->name('transactions.show');
+
+        // Multi-Channel Notifications (Email, SMS, WhatsApp, In-App)
+        Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+        Route::get('/notifications/unread-feed', [AdminNotificationController::class, 'unreadFeed'])->name('notifications.unreadFeed');
+        Route::post('/notifications/mark-read/{id?}', [AdminNotificationController::class, 'markAsRead'])->name('notifications.markRead');
+        Route::post('/notifications/test', [AdminNotificationController::class, 'sendTest'])->name('notifications.test');
 
         // Site Settings / CMS
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');

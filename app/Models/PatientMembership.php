@@ -45,6 +45,11 @@ class PatientMembership extends Model
         return $this->belongsTo(Booking::class);
     }
 
+    public function paymentTransactions()
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active')

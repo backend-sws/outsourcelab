@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,7 +20,8 @@ class SettingController extends Controller
     public function update(Request $request)
     {
         $group = $request->input('settings_group', 'general');
-        $inputs = $request->except(['_token', 'settings_group']);
+        $activeTab = $request->input('active_tab', 'general');
+        $inputs = $request->except(['_token', 'settings_group', 'active_tab']);
 
         // Handle File Uploads (Logo & Favicon)
         if ($request->hasFile('site_logo')) {
@@ -35,11 +37,22 @@ class SettingController extends Controller
         }
 
         foreach ($inputs as $key => $value) {
-            Setting::set($key, is_string($value) ? trim($value) : $value, $group);
+            $keyGroup = match (true) {
+                str_starts_with($key, 'razorpay_') => 'payment',
+                str_starts_with($key, 'mail_') || $key === 'email_notifications_enabled' => 'mail',
+                str_starts_with($key, 'sms_') || str_starts_with($key, 'msg91_') || str_starts_with($key, 'twilio_') => 'sms',
+                str_starts_with($key, 'whatsapp_') || str_starts_with($key, 'interakt_') || str_starts_with($key, 'aisensy_') => 'whatsapp',
+                default => $group,
+            };
+
+            Setting::set($key, is_string($value) ? trim($value) : $value, $keyGroup);
         }
 
         Setting::clearSettingCache();
+        NotificationService::applyMailConfig();
 
-        return back()->with('success', 'Site settings successfully updated.');
+        return back()
+            ->with('success', 'Credentials and site settings successfully saved.')
+            ->with('active_tab', $activeTab);
     }
 }

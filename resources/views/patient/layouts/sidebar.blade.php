@@ -1,3 +1,10 @@
+@php
+    $patientModel = $profile ?? $patient ?? (session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null);
+    $userName = is_array($patientModel) ? ($patientModel['name'] ?? 'Patient') : ($patientModel?->name ?? 'Patient');
+    $userMobile = is_array($patientModel) ? ($patientModel['mobile'] ?? '') : ($patientModel?->mobile ?? '');
+    $activeVip = ($patientModel instanceof \App\Models\Patient) ? $patientModel->activeMembership() : null;
+@endphp
+
 <div class="w-full md:w-1/3 lg:w-1/4 space-y-4">
     <!-- User Info -->
     <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center justify-between">
@@ -6,20 +13,14 @@
                 <i class="far fa-user"></i>
             </div>
             <div>
-                <h4 class="font-extrabold text-brand-dark">{{ $profile['name'] }}</h4>
-                <p class="text-xs text-gray-500 font-medium">+91 {{ $profile['mobile'] }}</p>
+                <h4 class="font-extrabold text-brand-dark">{{ $userName }}</h4>
+                <p class="text-xs text-gray-500 font-medium">+91 {{ $userMobile }}</p>
             </div>
         </div>
         <a href="{{ route('patient.dashboard') }}#profile-form" class="text-gray-400 hover:text-brand-secondary transition p-2" title="Edit Profile">
             <i class="far fa-edit"></i>
         </a>
     </div>
-    @php
-        $patientModel = ($profile instanceof \App\Models\Patient) 
-            ? $profile 
-            : (session('patient_id') ? \App\Models\Patient::find(session('patient_id')) : null);
-        $activeVip = $patientModel?->activeMembership();
-    @endphp
 
     @if($activeVip)
         <!-- VIP Member Status Card -->
@@ -64,9 +65,26 @@
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
         <h5 class="font-extrabold text-brand-dark text-lg p-4 pb-2">My Details</h5>
         <ul class="text-sm font-semibold text-gray-700 divide-y divide-gray-100">
-            <li><a href="{{ route('patient.dashboard') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.dashboard') || request()->routeIs('patient.profile.edit') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}"><span class="flex items-center"><i class="far fa-user-circle w-6 {{ request()->routeIs('patient.dashboard') || request()->routeIs('patient.profile.edit') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> My Profile</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('patient.dashboard') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.dashboard') || request()->routeIs('patient.profile.edit') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}"><span class="flex items-center"><i class="fas fa-th-large w-6 {{ request()->routeIs('patient.dashboard') || request()->routeIs('patient.profile.edit') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Dashboard</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="{{ route('patient.bookings') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.bookings*') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}"><span class="flex items-center"><i class="far fa-calendar-check w-6 {{ request()->routeIs('patient.bookings*') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> My Bookings</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li><a href="{{ route('patient.transactions') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.transactions*') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}"><span class="flex items-center"><i class="fas fa-receipt w-6 {{ request()->routeIs('patient.transactions*') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Payment History</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="{{ route('patient.reports') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.reports*') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}"><span class="flex items-center"><i class="far fa-file-alt w-6 {{ request()->routeIs('patient.reports*') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Test Reports</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
+            <li>
+                <a href="{{ route('patient.notifications') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.notifications*') ? 'text-brand-secondary bg-gray-50 font-bold' : '' }}">
+                    <span class="flex items-center">
+                        <i class="fas fa-bell w-6 {{ request()->routeIs('patient.notifications*') ? 'text-brand-secondary' : 'text-teal-600' }}"></i> 
+                        <span>Notifications</span>
+                    </span> 
+                    @php
+                        $sidebarUnreadCount = session('patient_id') ? \App\Models\NotificationLog::where('notifiable_type', \App\Models\Patient::class)->where('notifiable_id', session('patient_id'))->whereNull('read_at')->count() : 0;
+                    @endphp
+                    @if($sidebarUnreadCount > 0)
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white animate-pulse">{{ $sidebarUnreadCount }}</span>
+                    @else
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                    @endif
+                </a>
+            </li>
             <li><a href="{{ route('patient.family_members') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.family_members') ? 'text-brand-secondary bg-gray-50' : '' }}"><span class="flex items-center"><i class="fas fa-users w-6 {{ request()->routeIs('patient.family_members') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Family Members</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="{{ route('patient.prescriptions') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.prescriptions') ? 'text-brand-secondary bg-gray-50' : '' }}"><span class="flex items-center"><i class="fas fa-file-medical w-6 {{ request()->routeIs('patient.prescriptions') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Prescription</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>
             <li><a href="{{ route('patient.address_book') }}" class="flex justify-between items-center p-4 hover:bg-gray-50 transition {{ request()->routeIs('patient.address_book') ? 'text-brand-secondary bg-gray-50' : '' }}"><span class="flex items-center"><i class="fas fa-map-marker-alt w-6 {{ request()->routeIs('patient.address_book') ? 'text-brand-secondary' : 'text-gray-400' }}"></i> Address book</span> <i class="fas fa-chevron-right text-gray-300 text-xs"></i></a></li>

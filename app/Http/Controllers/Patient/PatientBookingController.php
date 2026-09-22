@@ -14,10 +14,12 @@ use App\Models\PatientCoupon;
 use App\Models\PatientMembership;
 use App\Models\Setting;
 use App\Models\Test;
+use App\Services\NotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PatientBookingController extends Controller
 {
@@ -306,6 +308,13 @@ class PatientBookingController extends Controller
 
         // Clear patient cart in DB
         $patient->update(['cart' => []]);
+
+        // Dispatch notification (Email, SMS, WhatsApp)
+        try {
+            app(NotificationService::class)->bookingPlaced($booking);
+        } catch (\Throwable $e) {
+            Log::warning('Booking placed notification failed: '.$e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

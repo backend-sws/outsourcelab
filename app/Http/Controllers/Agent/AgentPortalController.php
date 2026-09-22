@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Agent;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Booking;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AgentPortalController extends Controller
 {
@@ -51,6 +53,12 @@ class AgentPortalController extends Controller
             'status' => 'pending_approval',
             'last_login_at' => null,
         ]);
+
+        try {
+            app(NotificationService::class)->agentRegistered($agent);
+        } catch (\Throwable $e) {
+            Log::warning('Agent registration notification failed: '.$e->getMessage());
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -203,6 +211,15 @@ class AgentPortalController extends Controller
 
         $booking->save();
 
+        if ($request->sample_status === 'Sample Collected') {
+            try {
+                $booking->load(['patient', 'agent']);
+                app(NotificationService::class)->sampleCollected($booking);
+            } catch (\Throwable $e) {
+                Log::warning('Sample collected notification failed: '.$e->getMessage());
+            }
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -265,6 +282,13 @@ class AgentPortalController extends Controller
         $booking->money_collected_by = $agent->id;
         $booking->money_payment_mode = $paymentMode;
         $booking->save();
+
+        try {
+            $booking->load('patient');
+            app(NotificationService::class)->paymentSuccess($booking);
+        } catch (\Throwable $e) {
+            Log::warning('Payment success notification failed: '.$e->getMessage());
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
 class Agent extends Model
 {
+    use Notifiable;
+
     protected $fillable = [
         'name',
         'email',
@@ -43,5 +46,20 @@ class Agent extends Model
     public function completedBookings()
     {
         return $this->hasMany(Booking::class)->where('sample_status', 'Delivered to Lab');
+    }
+
+    public function routeNotificationForMail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function routeNotificationForWhatsapp(): ?string
+    {
+        return $this->phone;
     }
 }

@@ -247,11 +247,173 @@
                 </div>
                 <div class="border-t pt-2 flex justify-between items-center">
                     <span class="font-bold text-gray-800">Total Amount</span>
-                    <span class="text-xl font-black text-indigo-600">₹{{ $booking->amount }}</span>
+                    <span class="text-xl font-black text-teal-600">₹{{ $booking->amount }}</span>
                 </div>
             </div>
         </div>
-        
+
+        <!-- ═══════════════ REPORT MANAGEMENT CARD ═══════════════ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-file-medical-alt text-emerald-600"></i>
+                    Test Report
+                </h3>
+                @if($booking->report_file_path)
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        <i class="fas fa-check-circle text-xs"></i> Uploaded
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                        <i class="fas fa-clock text-xs"></i> Pending
+                    </span>
+                @endif
+            </div>
+
+            {{-- Current Report Display --}}
+            @if($booking->report_file_path)
+                <div class="mb-4 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <p class="text-xs font-bold text-emerald-800 mb-2 flex items-center gap-1.5">
+                        <i class="fas fa-file-pdf"></i> Current Report
+                    </p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        @if(str_starts_with($booking->report_file_path, 'http'))
+                            {{-- External link --}}
+                            <a href="{{ $booking->report_file_path }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                                <i class="fas fa-external-link-alt"></i> Open Link
+                            </a>
+                        @else
+                            {{-- Stored file --}}
+                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                                <i class="fas fa-eye"></i> View Report
+                            </a>
+                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" download
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-gray-50 border border-emerald-300 text-emerald-800 text-xs font-bold transition">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        @endif
+                        {{-- Remove report --}}
+                        <form method="POST" action="{{ route('admin.bookings.report.delete', $booking->id) }}"
+                              onsubmit="return confirm('Remove this report? The customer will no longer see it.')"
+                              style="display:inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 text-xs font-bold transition">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </button>
+                        </form>
+                    </div>
+                    @if(!str_starts_with($booking->report_file_path, 'http'))
+                        <p class="text-[10px] text-emerald-600 mt-2 font-mono truncate">
+                            {{ basename($booking->report_file_path) }}
+                        </p>
+                    @endif
+                </div>
+                <p class="text-xs font-bold text-gray-600 mb-3">
+                    <i class="fas fa-edit text-teal-500 mr-1"></i> Replace / Update Report:
+                </p>
+            @else
+                <p class="text-xs text-gray-500 mb-4">
+                    Upload the diagnostic PDF or paste an external report link. The patient will instantly see it in their portal.
+                </p>
+            @endif
+
+            {{-- Upload / Link Form --}}
+            <form action="{{ route('admin.bookings.report.upload', $booking->id) }}"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  id="reportForm">
+                @csrf
+
+                {{-- Toggle: File vs Link --}}
+                <div class="flex gap-2 mb-4" id="reportTypeTabs">
+                    <button type="button" data-type="file"
+                            class="report-tab flex-1 py-2 rounded-xl text-xs font-bold border transition active-tab
+                                   bg-teal-600 text-white border-teal-600"
+                            onclick="switchReportTab('file')">
+                        <i class="fas fa-upload mr-1"></i> Upload PDF
+                    </button>
+                    <button type="button" data-type="link"
+                            class="report-tab flex-1 py-2 rounded-xl text-xs font-bold border transition
+                                   bg-white text-gray-600 border-gray-300 hover:border-teal-400"
+                            onclick="switchReportTab('link')">
+                        <i class="fas fa-link mr-1"></i> Paste Link
+                    </button>
+                </div>
+
+                <input type="hidden" name="report_type" id="reportTypeInput" value="file">
+
+                {{-- File Upload Panel --}}
+                <div id="filePanel">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Select PDF / Image File</label>
+                    <div class="border-2 border-dashed border-gray-300 hover:border-teal-400 rounded-xl p-4 text-center cursor-pointer transition bg-gray-50/60"
+                         onclick="document.getElementById('reportFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt text-2xl text-teal-500 mb-1"></i>
+                        <p class="text-xs font-bold text-gray-600">Click to browse</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">PDF, JPG or PNG • Max 20 MB</p>
+                        <p class="text-[11px] text-teal-600 font-semibold mt-1" id="selectedFileName">No file chosen</p>
+                    </div>
+                    <input type="file" name="report_file" id="reportFileInput" accept=".pdf,.jpg,.jpeg,.png" class="hidden"
+                           onchange="document.getElementById('selectedFileName').textContent = this.files[0]?.name || 'No file chosen'">
+                </div>
+
+                {{-- Link Panel --}}
+                <div id="linkPanel" class="hidden">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1.5">Report URL / Drive Link</label>
+                    <input type="url" name="report_link" id="reportLinkInput"
+                           placeholder="https://drive.google.com/... or any PDF URL"
+                           class="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 text-sm bg-white outline-none transition">
+                    <p class="text-[11px] text-gray-400 mt-1.5">
+                        <i class="fas fa-info-circle text-teal-500"></i>
+                        Paste a Google Drive, Dropbox, or any direct PDF/report link.
+                    </p>
+                </div>
+
+                @error('report_file')
+                    <p class="text-xs text-rose-500 mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>
+                @enderror
+                @error('report_link')
+                    <p class="text-xs text-rose-500 mt-1.5 flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>
+                @enderror
+
+                <button type="submit"
+                        class="w-full mt-4 flex justify-center items-center gap-2 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-500 hover:to-teal-600 text-white text-sm font-bold shadow-sm transition">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    {{ $booking->report_file_path ? 'Update Report' : 'Upload Report' }}
+                </button>
+            </form>
+
+            <p class="text-[11px] text-gray-400 text-center mt-3">
+                <i class="fas fa-shield-alt text-teal-500"></i>
+                Report will be instantly visible in the patient's portal.
+            </p>
+        </div>
+        {{-- ══════════════════════════════════════════════════════ --}}
+
     </div>
 </div>
 @endsection
+
+@section('scripts')
+<script>
+    function switchReportTab(type) {
+        document.getElementById('reportTypeInput').value = type;
+        document.getElementById('filePanel').classList.toggle('hidden', type !== 'file');
+        document.getElementById('linkPanel').classList.toggle('hidden', type !== 'link');
+
+        document.querySelectorAll('.report-tab').forEach(btn => {
+            const isActive = btn.dataset.type === type;
+            btn.classList.toggle('bg-teal-600',   isActive);
+            btn.classList.toggle('text-white',     isActive);
+            btn.classList.toggle('border-teal-600',isActive);
+            btn.classList.toggle('bg-white',       !isActive);
+            btn.classList.toggle('text-gray-600',  !isActive);
+            btn.classList.toggle('border-gray-300',!isActive);
+        });
+    }
+</script>
+@endsection
+

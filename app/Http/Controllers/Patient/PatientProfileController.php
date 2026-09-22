@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Patient;
 
 use App\Http\Controllers\Controller;
+use App\Models\NotificationLog;
 use App\Models\Patient;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -20,12 +21,50 @@ class PatientProfileController extends Controller
             return redirect('/');
         }
 
-        $profile = Patient::with(['bookings', 'familyMembers', 'prescriptions', 'addresses'])->find($patientId);
+        $profile = Patient::with([
+            'bookings' => fn ($q) => $q->with('agent')->latest(),
+            'familyMembers',
+            'prescriptions',
+            'addresses',
+        ])->find($patientId);
+
         if (! $profile) {
             return redirect('/');
         }
 
-        return view('patient.pages.dashboard', compact('profile'));
+        // Active / ongoing booking
+        $activeBooking = $profile->bookings
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->first();
+
+        // Recent bookings
+        $recentBookings = $profile->bookings->take(5);
+
+        // Ready test reports
+        $readyReports = $profile->bookings
+            ->filter(fn ($b) => in_array($b->status, ['Report Ready', 'Completed']) || ! empty($b->report_file_path))
+            ->take(6);
+
+        // Notifications
+        $notifications = NotificationLog::where('notifiable_type', Patient::class)
+            ->where('notifiable_id', $patientId)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        $unreadNotificationsCount = NotificationLog::where('notifiable_type', Patient::class)
+            ->where('notifiable_id', $patientId)
+            ->whereNull('read_at')
+            ->count();
+
+        return view('patient.pages.dashboard', compact(
+            'profile',
+            'activeBooking',
+            'recentBookings',
+            'readyReports',
+            'notifications',
+            'unreadNotificationsCount'
+        ));
     }
 
     /**

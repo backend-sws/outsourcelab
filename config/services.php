@@ -35,4 +35,47 @@ return [
         ],
     ],
 
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY_ID', env('RAZORPAY_KEY', '')),
+        'secret' => env('RAZORPAY_KEY_SECRET', env('RAZORPAY_SECRET', '')),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET', ''),
+        'verify_ssl' => env('RAZORPAY_VERIFY_SSL', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SMS Service (MSG91 / Twilio — set SMS_ENABLED=true when keys are ready)
+    |--------------------------------------------------------------------------
+    */
+    'sms' => [
+        'enabled' => env('SMS_ENABLED', false),
+        'provider' => env('SMS_PROVIDER', 'msg91'),
+        'msg91' => [
+            'auth_key' => env('MSG91_AUTH_KEY'),
+            'sender_id' => env('MSG91_SENDER_ID', 'OUTSLAB'),
+            'template_id' => env('MSG91_TEMPLATE_ID'),
+        ],
+        'twilio' => [
+            'sid' => env('TWILIO_SID'),
+            'token' => env('TWILIO_TOKEN'),
+            'from' => env('TWILIO_FROM'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | WhatsApp Service (Interakt / AiSensy — set WHATSAPP_ENABLED=true when ready)
+    |--------------------------------------------------------------------------
+    */
+    'whatsapp' => [
+        'enabled' => env('WHATSAPP_ENABLED', false),
+        'provider' => env('WHATSAPP_PROVIDER', 'interakt'),
+        'interakt' => [
+            'api_key' => env('INTERAKT_API_KEY'),
+        ],
+        'aisensy' => [
+            'api_key' => env('AISENSY_API_KEY'),
+        ],
+    ],
+
 ];

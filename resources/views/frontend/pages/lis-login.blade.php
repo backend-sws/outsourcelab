@@ -88,7 +88,7 @@
             </div>
         </div>
 
-        <!-- Bottom Footer Stats -->
+        {{-- Bottom Footer Stats (Removed as requested)
         <div class="relative z-10 flex flex-wrap gap-12 lg:gap-16 border-t border-teal-800/10 pt-8">
             <div>
                 <h4 class="text-slate-900 font-extrabold text-2xl lg:text-3xl tracking-tight mb-0.5">500+</h4>
@@ -105,6 +105,7 @@
                 <p class="text-teal-900/80 text-[11px] font-bold uppercase tracking-wider">System Uptime</p>
             </div>
         </div>
+        --}}
     </div>
 
     <!-- Right Side: Clean Modern Form -->

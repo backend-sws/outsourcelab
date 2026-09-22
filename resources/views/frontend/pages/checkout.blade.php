@@ -899,11 +899,11 @@
                     </button>
                     
                     <div id="btnPay" class="hidden flex gap-3 mt-3">
-                        <button onclick="payOnCollection()" class="flex-1 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-bold py-3.5 rounded-2xl transition shadow-sm text-xs">
+                        <button type="button" onclick="payOnCollection()" class="flex-1 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-bold py-3.5 rounded-2xl transition shadow-sm text-xs">
                             <i class="fas fa-money-bill-wave text-teal-600 mr-1.5"></i> Pay on Collection
                         </button>
-                        <button class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-1.5">
-                            <i class="fas fa-lock text-xs"></i> Pay Now Online
+                        <button type="button" onclick="payOnlineRazorpay()" id="btnPayOnline" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-lock text-xs"></i> <span>Pay Now Online</span>
                         </button>
                     </div>
                     
@@ -1047,9 +1047,35 @@
     <script id="checkout-patient-data" type="application/json">
         {!! json_encode([
             'patientId' => (string)($patient->id ?? session('patient_id', '')),
+            'patientVip' => $patientVipData ?? null,
+            'allVipPlans' => $allVipPlansData ?? [],
+            'featuredPlan' => isset($featuredPlan) && $featuredPlan ? [
+                'id' => $featuredPlan->id,
+                'name' => $featuredPlan->name,
+                'formatted_duration' => $featuredPlan->formatted_duration,
+                'price' => (float) $featuredPlan->price,
+                'discount_percentage' => (int) $featuredPlan->discount_percentage,
+                'is_popular' => (bool) $featuredPlan->is_popular,
+            ] : null,
+            'activeMemberId' => null,
+            'activeAddressId' => isset($defaultAddress) ? $defaultAddress?->id : null,
+            'initialStep' => (int) request('step', 1),
+            'rewardSettings' => $rewardSettings ?? [
+                'enabled' => false,
+                'patient_coins' => 0,
+                'coin_value' => 1,
+                'earn_type' => 'percentage',
+                'earn_value' => 5,
+                'min_order_to_earn' => 100,
+                'max_redeem_type' => 'percentage',
+                'max_redeem_value' => 20,
+                'min_order_to_redeem' => 200,
+                'min_coins_to_redeem' => 10,
+            ],
             'serverCart' => $patient->cart ?? []
-        ]) !!}
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
     </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     // --- Cart & Coupon Data (keyed by patient ID) ---
     const checkoutPatientMeta = JSON.parse(document.getElementById('checkout-patient-data').textContent);
@@ -1824,6 +1850,125 @@
             btn.innerText = 'Pay On Collection';
         });
     }
+
+    function payOnlineRazorpay() {
+        let cart = getCheckoutCart();
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return;
+        }
+
+        // Get selected date
+        let activeDateEl = document.querySelector('.date-item.active-date');
+        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10);
+
+        // Get selected slot
+        let activeSlotEl = document.querySelector('.slot-item.active-slot');
+        let selectedSlot = activeSlotEl ? activeSlotEl.innerText.trim() : '07:00 AM - 08:00 AM';
+
+        // Parse slot start time for full datetime
+        let slotStart = selectedSlot.split('-')[0].trim();
+        let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
+
+        let btn = document.getElementById('btnPayOnline') || event.target;
+        let originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Initializing...';
+
+        fetch("{{ route('razorpay.order.create') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                cart: cart,
+                collection_type: 'Home Collection',
+                booking_date: bookingDate,
+                collection_slot: selectedSlot,
+                address_id: window.selectedAddressId || null,
+                family_member_id: window.selectedMemberId || null,
+                coupon_code: currentAppliedCoupon ? currentAppliedCoupon.code : null,
+                discount_amount: currentAppliedCoupon ? currentAppliedCoupon.discount : 0,
+                membership_plan_id: selectedVipPlan ? selectedVipPlan.id : null,
+                coins_to_redeem: window.coinsToRedeem || 0,
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Payment initiation failed. Please try again.');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                name: data.name || 'Av Wellcare Diagnostics',
+                description: data.description || 'Health Checkup Booking',
+                order_id: data.order_id,
+                prefill: data.prefill || {},
+                theme: data.theme || { color: '#0d9488' },
+                handler: function (response) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying Payment...';
+                    fetch("{{ route('razorpay.payment.verify') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            booking_id: data.booking_id
+                        })
+                    })
+                    .then(vr => vr.json())
+                    .then(vData => {
+                        if (vData.success) {
+                            localStorage.removeItem(checkoutCartKey);
+                            localStorage.removeItem('cart_guest');
+                            window.location.href = vData.redirect_url || "{{ route('patient.bookings') }}";
+                        } else {
+                            alert('Payment verification error: ' + (vData.message || 'Please contact customer support.'));
+                            window.location.href = "{{ route('patient.bookings') }}";
+                        }
+                    })
+                    .catch(err => {
+                        alert('Network error during verification. If money was debited, your booking will be confirmed automatically.');
+                        window.location.href = "{{ route('patient.bookings') }}";
+                    });
+                },
+                modal: {
+                    ondismiss: function () {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment failed: ' + (response.error.description || 'Transaction declined.'));
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            });
+            rzp.open();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+
 
     @php
         $pincodeStr = \App\Models\Setting::get('serviceable_pincodes', '800001, 800002, 110001, 400001');

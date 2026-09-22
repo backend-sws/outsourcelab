@@ -140,7 +140,7 @@
                             <p class="text-xs text-teal-100/90 font-medium">Book now, earn coins, and protect your family's health.</p>
                         </div>
                     </div>
-                    <a href="{{ route('explore.tests') }}" class="px-5 py-2.5 rounded-xl bg-white text-teal-900 hover:bg-teal-50 font-black text-xs transition shadow-sm whitespace-nowrap">
+                    <a href="{{ route('home') }}#popular-packages" class="px-5 py-2.5 rounded-xl bg-white text-teal-900 hover:bg-teal-50 font-black text-xs transition shadow-sm whitespace-nowrap">
                         Browse Tests
                     </a>
                 </div>

@@ -1,4 +1,8 @@
-    <!-- Spreading Quality Healthcare -->
+{{-- ====================================================================
+     Stats Section — Hidden (commented out)
+     To re-enable: remove the opening {{-- and closing --}} below
+     ==================================================================== --}}
+{{--
 <div class="container mx-auto px-4 py-6 relative z-10 my-4">
     <div class="bg-white rounded-2xl p-6 shadow-2xl border border-gray-100">
         <h3 class="text-center text-brand-dark font-bold mb-6 text-xl">Spreading Quality Healthcare Across India</h3>
@@ -63,27 +67,26 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const counters = document.querySelectorAll('.count-up');
-    
+
     const animateCounters = (entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const targetEl = entry.target;
                 const target = parseInt(targetEl.getAttribute('data-target'), 10);
-                
-                // For very small numbers like 1, just set it immediately or count very fast
+
                 if (target === 1) {
                     targetEl.innerText = target;
                     observer.unobserve(targetEl);
                     return;
                 }
-                
-                const duration = 2500; // 2.5 seconds
-                const stepTime = 30; 
+
+                const duration = 2500;
+                const stepTime = 30;
                 const steps = duration / stepTime;
                 const inc = target / steps;
-                
+
                 let current = 0;
-                
+
                 const updateCount = setInterval(() => {
                     current += inc;
                     if (current >= target) {
@@ -93,16 +96,17 @@ document.addEventListener("DOMContentLoaded", function() {
                         targetEl.innerText = Math.ceil(current).toLocaleString('en-IN');
                     }
                 }, stepTime);
-                
+
                 observer.unobserve(targetEl);
             }
         });
     };
 
     const observer = new IntersectionObserver(animateCounters, { threshold: 0.3 });
-    
+
     counters.forEach(counter => {
         observer.observe(counter);
     });
 });
 </script>
+--}}

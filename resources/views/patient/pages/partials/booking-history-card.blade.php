@@ -88,12 +88,23 @@
         <div class="lg:text-right lg:border-l lg:border-gray-100 lg:pl-6 flex-shrink-0">
             <span class="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 block">Total Amount</span>
             <span class="text-2xl font-black text-brand-dark block mt-0.5">₹{{ number_format($booking->amount, 0) }}</span>
-            <div class="mt-1 flex items-center lg:justify-end gap-1.5">
-                <span class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full {{ $booking->payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                    <i class="fas {{ $booking->payment_status === 'Paid' ? 'fa-check-circle' : 'fa-hourglass-half' }} text-[10px]"></i>
-                    <span>{{ $booking->payment_status === 'Paid' ? 'Paid Online' : 'Cash on Collection' }}</span>
+            <div class="mt-1 flex items-center lg:justify-end gap-1.5 flex-wrap">
+                <span class="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full {{ $booking->payment_status === 'Paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                    <i class="fas {{ $booking->payment_status === 'Paid' ? 'fa-check-circle text-emerald-600' : 'fa-hourglass-half text-amber-600' }} text-[10px]"></i>
+                    <span>{{ $booking->payment_status === 'Paid' ? 'Paid Online' : ($booking->payment_method === 'Cash' ? 'Pay on Collection' : 'Payment Pending') }}</span>
                 </span>
+                @if($booking->razorpay_payment_id)
+                    <span class="font-mono text-[10px] text-gray-400 block">ID: {{ $booking->razorpay_payment_id }}</span>
+                @endif
             </div>
+
+            @if($booking->payment_status !== 'Paid' && $booking->status !== 'Cancelled')
+                <button type="button" onclick="retryBookingPayment({{ $booking->id }}, {{ $booking->amount }}, '{{ $booking->booking_reference }}', this)" class="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-xs cursor-pointer">
+                    <i class="fas fa-credit-card text-[10px]"></i>
+                    <span>Pay Online Now</span>
+                </button>
+            @endif
+
             <span class="text-[11px] text-gray-400 font-semibold block mt-1">
                 <i class="fas fa-map-pin text-[10px] mr-1"></i> {{ $booking->collection_type ?: 'Home Collection' }}
             </span>
