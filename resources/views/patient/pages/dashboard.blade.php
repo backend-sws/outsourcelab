@@ -72,6 +72,9 @@
 
                     <!-- Quick Action Buttons -->
                     <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <button type="button" onclick="switchDashboardTab('profile'); const el = document.getElementById('profile-form'); if(el) { el.scrollIntoView({behavior:'smooth', block:'start'}); el.classList.add('ring-2', 'ring-brand-secondary', 'ring-offset-2'); setTimeout(() => el.classList.remove('ring-2', 'ring-brand-secondary', 'ring-offset-2'), 1500); } window.location.hash = 'profile-form';" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white border border-gray-200 hover:border-brand-secondary hover:text-brand-secondary text-gray-700 text-xs font-extrabold rounded-xl shadow-2xs transition flex-shrink-0 cursor-pointer" title="Edit Profile">
+                            <i class="far fa-edit text-brand-secondary"></i> Edit Profile
+                        </button>
                         <a href="/" class="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-brand-dark hover:bg-brand-primary text-white text-xs font-extrabold rounded-xl shadow-sm transition flex-shrink-0">
                             <i class="fas fa-plus"></i> Book Test
                         </a>
@@ -377,7 +380,7 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-black text-brand-dark">Latest Certified Medical Reports</h3>
-                                <p class="text-[11px] text-gray-500 font-medium">100% NABL Accredited & Digitally Signed PDF Reports</p>
+                                <p class="text-[11px] text-gray-500 font-medium">100% Verified & Digitally Signed PDF Reports</p>
                             </div>
                         </div>
                         <a href="{{ route('patient.reports') }}" class="text-xs font-black text-teal-700 hover:underline flex items-center gap-1">
@@ -440,7 +443,7 @@
                             </div>
                             <h4 class="font-extrabold text-sm text-gray-800 mb-1">No Test Reports Ready Yet</h4>
                             <p class="text-xs text-gray-500 max-w-md mx-auto">
-                                When our NABL certified pathologist validates your diagnostic samples, your digitally signed PDF reports will be available here for 1-click download.
+                                When our certified pathologist validates your diagnostic samples, your digitally signed PDF reports will be available here for 1-click download.
                             </p>
                         </div>
                     @endif
@@ -770,21 +773,32 @@
 
                         <!-- Contact Details Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <!-- Primary Mobile (Locked & Verified) -->
+                            <!-- Primary Mobile Number -->
                             <div>
                                 <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">
-                                    Mobile Number (Primary)
+                                    Mobile Number (Primary) <span class="text-rose-500">*</span>
                                 </label>
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between">
-                                    <div>
-                                        <span class="block text-xs font-bold text-gray-400 mb-0.5">Verified Primary Number</span>
-                                        <span class="font-black text-gray-800 text-base tracking-wide">+91 {{ $profile->mobile }}</span>
-                                    </div>
-                                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-black px-2.5 py-1 rounded-full">
-                                        <i class="fas fa-check-circle text-xs"></i> Verified
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm border-r pr-3 border-gray-200 flex items-center gap-1">
+                                        <span>+91</span>
+                                        <i class="fas fa-caret-down text-gray-400 text-xs"></i>
                                     </span>
+                                    <input 
+                                        type="tel" 
+                                        name="mobile" 
+                                        value="{{ old('mobile', $profile->mobile) }}" 
+                                        maxlength="10" 
+                                        placeholder="Enter 10-digit Primary Mobile" 
+                                        required
+                                        class="w-full pl-24 {{ $profile->mobile ? 'pr-24' : 'pr-4' }} py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary font-bold text-gray-800 text-sm outline-none transition placeholder-gray-300"
+                                    >
+                                    @if($profile->mobile)
+                                        <span class="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-black px-2.5 py-1 rounded-full pointer-events-none">
+                                            <i class="fas fa-check-circle text-xs"></i> Saved
+                                        </span>
+                                    @endif
                                 </div>
-                                <input type="hidden" name="mobile" value="{{ $profile->mobile }}">
+                                @error('mobile')<p class="text-rose-500 text-xs mt-1 font-semibold">{{ $message }}</p>@enderror
                             </div>
 
                             <!-- Alternate Mobile -->
@@ -919,15 +933,34 @@
             });
         }
 
-        // Check URL hash on page load
-        const hash = window.location.hash;
-        if (hash === '#profile-form' || hash === '#profile') {
-            switchDashboardTab('profile');
-        } else if (hash === '#notifications') {
-            switchDashboardTab('notifications');
-        } else {
-            switchDashboardTab('overview');
+        // Handle URL hash on page load and hash change
+        function handleDashboardHash(shouldScroll = false) {
+            const hash = window.location.hash;
+            if (hash === '#profile-form' || hash === '#profile') {
+                switchDashboardTab('profile');
+                if (shouldScroll) {
+                    setTimeout(() => {
+                        const el = document.getElementById('profile-form');
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            el.classList.add('ring-2', 'ring-brand-secondary', 'ring-offset-2');
+                            setTimeout(() => el.classList.remove('ring-2', 'ring-brand-secondary', 'ring-offset-2'), 1500);
+                        }
+                    }, 150);
+                }
+            } else if (hash === '#notifications') {
+                switchDashboardTab('notifications');
+            } else if (hash === '#overview' || (!hash && !window.location.hash)) {
+                switchDashboardTab('overview');
+            }
         }
+
+        window.addEventListener('hashchange', function() {
+            handleDashboardHash(true);
+        });
+
+        // Initial check on page load
+        handleDashboardHash(Boolean(window.location.hash && (window.location.hash === '#profile-form' || window.location.hash === '#profile')));
     });
 </script>
 @endsection

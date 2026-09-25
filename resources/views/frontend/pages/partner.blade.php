@@ -130,7 +130,7 @@
                         <i class="fas fa-check text-emerald-600"></i> Dedicated dispatch riders for STAT routine samples
                     </li>
                     <li class="flex items-center gap-2">
-                        <i class="fas fa-check text-emerald-600"></i> NABL-standard validation & audits
+                        <i class="fas fa-check text-emerald-600"></i> Standard clinical quality validation & audits
                     </li>
                 </ul>
             </div>

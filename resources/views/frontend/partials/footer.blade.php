@@ -32,7 +32,9 @@
                         <li><a href="{{ route('faqs') }}" class="hover:text-brand-secondary transition">Frequently Asked Questions (FAQs)</a></li>
                         <li><a href="{{ route('calculators.index') }}" class="hover:text-brand-secondary transition">Health Risk Calculators</a></li>
                         <li><a href="{{ route('agent.login') }}" class="text-teal-300 hover:text-white font-semibold transition flex items-center gap-1.5"><i class="fas fa-motorcycle text-[10px]"></i> Phlebotomist / Agent Portal</a></li>
+                        @if(config('pathology.sso_enabled', true))
                         <li><a href="{{ route('lis.login') }}" class="hover:text-brand-secondary transition flex items-center gap-1.5"><i class="fas fa-microchip text-[10px]"></i> Laboratory LIS Access</a></li>
+                        @endif
                     </ul>
                 </div>
 

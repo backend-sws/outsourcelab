@@ -62,10 +62,12 @@
     <style>
         html, body {
             height: 100%;
+            width: 100%;
             max-height: 100%;
             overflow: hidden;
             margin: 0;
             padding: 0;
+            overscroll-behavior: none;
         }
 
         body {
@@ -160,7 +162,7 @@
 </head>
 <body class="h-full bg-slate-50 text-slate-800 dark:bg-[#030f0e] dark:text-slate-100 antialiased overflow-hidden selection:bg-teal-500 selection:text-white">
 
-    <div class="flex h-full max-h-screen w-full relative overflow-hidden">
+    <div class="flex h-screen w-screen fixed inset-0 overflow-hidden">
 
         <!-- Mobile Sidebar Overlay -->
         <div id="sidebarOverlay" class="fixed inset-0 bg-black/65 backdrop-blur-sm z-30 hidden transition-opacity opacity-0 md:hidden"></div>
@@ -841,6 +843,15 @@
             setTimeout(() => {
                 document.querySelectorAll('[data-flash]').forEach(el => el.remove());
             }, 5000);
+
+            // ── Prevent window scroll displacement on focus/click ──
+            const lockWindowScroll = () => {
+                if (window.scrollY !== 0 || window.scrollX !== 0) {
+                    window.scrollTo(0, 0);
+                }
+            };
+            window.addEventListener('scroll', lockWindowScroll, { passive: true });
+            window.addEventListener('focusin', lockWindowScroll, { passive: true });
         });
     </script>
 

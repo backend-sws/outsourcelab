@@ -127,11 +127,11 @@
             <!-- Form Header -->
             <div class="mb-8">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-3 py-1 rounded-md border border-teal-100 inline-block mb-3">
-                    Authorized Laboratory Portal
+                    Patient Portal SSO Access
                 </span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Welcome Back</h2>
                 <p class="text-slate-500 text-sm leading-relaxed">
-                    Please enter your verified email and credentials to sign into the diagnostic management console.
+                    Enter your Patient ID or Bill Number and registered mobile number to seamlessly access your laboratory dashboard and reports.
                 </p>
             </div>
 
@@ -141,73 +141,56 @@
                 <span id="loginAlertMessage">Invalid credentials. Please try again.</span>
             </div>
 
+            <!-- Success Banner -->
+            <div id="loginSuccessBox" class="hidden mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-3 animate-fade-in">
+                <i class="fas fa-circle-check text-base text-emerald-500 flex-shrink-0"></i>
+                <span>Authentication verified! Launching your Patient Dashboard...</span>
+            </div>
+
             <!-- Login Form -->
             <form id="lisLoginForm" class="space-y-5">
                 @csrf
                 
-                <!-- Email / Identity -->
+                <!-- Patient ID / Bill Number -->
                 <div>
-                    <label for="loginEmail" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Work Email Address
+                    <label for="patientIdInput" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Patient ID or Bill Number
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                            <i class="far fa-envelope text-sm"></i>
+                            <i class="fas fa-id-card text-sm"></i>
                         </div>
                         <input 
-                            type="email" 
-                            id="loginEmail" 
-                            name="email" 
-                            class="block w-full pl-11 pr-4 py-3.5 bg-slate-50/90 border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-600/15 transition-all outline-none shadow-sm" 
-                            placeholder="e.g. admin@wellcare.com" 
+                            type="text" 
+                            id="patientIdInput" 
+                            name="patient_id" 
+                            class="block w-full pl-11 pr-4 py-3.5 bg-slate-50/90 border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-600/15 transition-all outline-none shadow-sm uppercase tracking-wide" 
+                            placeholder="e.g. PAT-1002 or INV-2609-0012" 
                             required 
                             autofocus
                         >
                     </div>
                 </div>
 
-                <!-- Password -->
+                <!-- Mobile Number -->
                 <div>
-                    <div class="flex justify-between items-center mb-2">
-                        <label for="loginPassword" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                            Account Password
-                        </label>
-                        <a href="{{ route('home') }}#forgot" class="text-xs font-bold text-teal-700 hover:text-teal-800 transition">
-                            Forgot Password?
-                        </a>
-                    </div>
+                    <label for="phoneInput" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        Registered Mobile Number
+                    </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                            <i class="fas fa-lock text-sm"></i>
+                            <i class="fas fa-phone-alt text-sm"></i>
                         </div>
                         <input 
-                            type="password" 
-                            id="loginPassword" 
-                            name="password" 
-                            class="block w-full pl-11 pr-11 py-3.5 bg-slate-50/90 border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-600/15 transition-all outline-none shadow-sm" 
-                            placeholder="••••••••••••" 
+                            type="tel" 
+                            id="phoneInput" 
+                            name="phone" 
+                            maxlength="10" 
+                            class="block w-full pl-11 pr-4 py-3.5 bg-slate-50/90 border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-600/15 transition-all outline-none shadow-sm" 
+                            placeholder="e.g. 9876543210" 
                             required
                         >
-                        <button 
-                            type="button" 
-                            id="togglePasswordBtn" 
-                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition"
-                            title="Toggle Password Visibility"
-                        >
-                            <i class="far fa-eye text-sm" id="togglePasswordIcon"></i>
-                        </button>
                     </div>
-                </div>
-                
-                <!-- Remember me -->
-                <div class="flex items-center justify-between pt-1">
-                    <label class="flex items-center space-x-2.5 cursor-pointer text-xs font-medium text-slate-600">
-                        <input id="rememberMe" name="remember" type="checkbox" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-slate-300 rounded transition cursor-pointer">
-                        <span>Remember this device</span>
-                    </label>
-                    <span class="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                        <i class="fas fa-shield-alt text-emerald-600"></i> SSL Protected
-                    </span>
                 </div>
 
                 <!-- Submit Button -->
@@ -216,7 +199,7 @@
                     id="submitLoginBtn" 
                     class="w-full mt-3 flex justify-center items-center gap-2 py-3.5 px-6 rounded-2xl shadow-lg shadow-teal-800/20 text-sm font-bold text-white bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 hover:shadow-teal-800/30 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-teal-600/30 transition-all cursor-pointer"
                 >
-                    <span id="btnText">Sign into Laboratory Dashboard</span>
+                    <span id="btnText">Login & Open Dashboard</span>
                     <i class="fas fa-arrow-right text-xs transition-transform group-hover:translate-x-1" id="btnIcon"></i>
                 </button>
             </form>
@@ -225,7 +208,7 @@
             <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
                 <a href="{{ route('download.report') }}" class="flex-1 inline-flex justify-center items-center gap-2 py-3 px-3.5 border border-slate-200/90 rounded-2xl text-xs font-bold text-slate-700 hover:text-teal-800 hover:bg-teal-50/50 hover:border-teal-200 transition shadow-sm">
                     <i class="fas fa-file-medical text-teal-600 text-sm"></i>
-                    <span>Download Report</span>
+                    <span>Track Report Status</span>
                 </a>
                 <a href="{{ route('agent.login') }}" class="flex-1 inline-flex justify-center items-center gap-2 py-3 px-3.5 border border-slate-200/90 rounded-2xl text-xs font-bold text-slate-700 hover:text-teal-800 hover:bg-teal-50/50 hover:border-teal-200 transition shadow-sm">
                     <i class="fas fa-vial text-emerald-600 text-sm"></i>
@@ -236,30 +219,18 @@
             <!-- Notice Footer -->
             <div class="mt-8 text-center">
                 <p class="text-xs text-slate-400 font-normal leading-relaxed">
-                    Laboratory staff logins are monitored. For credentials or role access issues, contact your laboratory administrator.
+                    Powered by Pathology LIS Cloud. Secured with 256-Bit SSL Encryption.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- Interactive Toggle & AJAX Script -->
+    <!-- AJAX Script -->
     <script>
-        // Password Visibility Toggle
-        const toggleBtn = document.getElementById('togglePasswordBtn');
-        const passwordInput = document.getElementById('loginPassword');
-        const passwordIcon = document.getElementById('togglePasswordIcon');
-
-        toggleBtn.addEventListener('click', () => {
-            const isPassword = passwordInput.getAttribute('type') === 'password';
-            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-            passwordIcon.classList.toggle('fa-eye');
-            passwordIcon.classList.toggle('fa-eye-slash');
-        });
-
-        // AJAX Authentication Handler
         const form = document.getElementById('lisLoginForm');
         const alertBox = document.getElementById('loginAlertBox');
         const alertMsg = document.getElementById('loginAlertMessage');
+        const successBox = document.getElementById('loginSuccessBox');
         const submitBtn = document.getElementById('submitLoginBtn');
         const btnText = document.getElementById('btnText');
         const btnIcon = document.getElementById('btnIcon');
@@ -267,43 +238,50 @@
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             alertBox.classList.add('hidden');
+            successBox.classList.add('hidden');
             
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const patientId = document.getElementById('patientIdInput').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
 
-            if (!email || !password) {
-                showAlert('Please enter both email and password.');
+            if (!patientId || !phone) {
+                showAlert('Please enter both Patient ID / Bill Number and Mobile Number.');
                 return;
             }
 
             // Button loading state
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-80');
-            btnText.textContent = 'Authenticating...';
+            btnText.textContent = 'Verifying Credentials...';
             btnIcon.className = 'fas fa-circle-notch fa-spin text-xs';
 
             try {
-                const res = await fetch('{{ route("patient.login") }}', {
+                const res = await fetch('{{ route("lis.login.authenticate") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        phone: phone
+                    })
                 });
 
                 const data = await res.json();
 
-                if (data.success && data.redirect) {
+                if (data.success && data.data && data.data.redirect_url) {
+                    successBox.classList.remove('hidden');
                     btnText.textContent = 'Redirecting...';
-                    window.location.href = data.redirect;
+                    btnIcon.className = 'fas fa-check text-xs';
+                    // Seamless redirect to authenticated dashboard
+                    window.location.href = data.data.redirect_url;
                 } else {
-                    showAlert(data.message || 'Invalid credentials. Please check your email and password.');
+                    showAlert(data.message || 'Invalid details. Please verify your ID and Mobile.');
                     resetBtn();
                 }
             } catch (err) {
-                showAlert('Server connection error. Please try again.');
+                showAlert('Server connection error. Please try again later.');
                 resetBtn();
             }
         });
@@ -316,9 +294,10 @@
         function resetBtn() {
             submitBtn.disabled = false;
             submitBtn.classList.remove('opacity-80');
-            btnText.textContent = 'Sign into Laboratory Dashboard';
+            btnText.textContent = 'Login & Open Dashboard';
             btnIcon.className = 'fas fa-arrow-right text-xs';
         }
     </script>
+
 </body>
 </html>

@@ -3,14 +3,19 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\MembershipPlan;
 use App\Models\Package;
 use App\Models\Setting;
 use App\Models\Test;
+use App\Services\PathologyApiService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
@@ -23,10 +28,145 @@ class PageController extends Controller
     }
 
     /**
+     * Track and fetch verified report status with PDF download link.
+     */
+    public function fetchReportTrack(Request $request, PathologyApiService $api): JsonResponse
+    {
+        $validated = $request->validate([
+            'ref' => 'required|string|max:100',
+            'mobile' => 'required|string|min:10|max:15',
+        ]);
+
+        $ref = trim($validated['ref']);
+        $mobile = preg_replace('/[^0-9]/', '', $validated['mobile']);
+
+        // 1. Search local bookings
+        $booking = Booking::with('patient')
+            ->where(function ($q) use ($ref) {
+                $q->where('booking_reference', $ref)
+                    ->orWhere('lis_booking_reference', $ref)
+                    ->orWhere('lis_bill_number', $ref);
+            })
+            ->whereHas('patient', function ($q) use ($mobile) {
+                $q->where('mobile', 'like', "%{$mobile}%");
+            })
+            ->first();
+
+        // If local booking already has ready report file
+        if ($booking && $booking->report_file_path) {
+            $isUrl = str_starts_with($booking->report_file_path, 'http');
+            $downloadUrl = $isUrl ? $booking->report_file_path : Storage::url($booking->report_file_path);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report is ready for download.',
+                'data' => [
+                    'bill_number' => $booking->lis_booking_reference ?: $booking->booking_reference,
+                    'patient_name' => $booking->patient?->name ?? 'Patient',
+                    'current_stage' => 'Report Ready',
+                    'is_ready' => true,
+                    'download_url' => $downloadUrl,
+                    'tests' => is_array($booking->test_details) ? array_map(fn ($t) => [
+                        'name' => $t['name'] ?? 'Diagnostic Test',
+                        'status' => 'approved',
+                    ], $booking->test_details) : [],
+                ],
+            ]);
+        }
+
+        // 2. Query Pathology SaaS LIS API
+        if ($api->isConfigured()) {
+            $targetRef = $booking?->lis_booking_reference ?: $ref;
+            $reportData = $api->trackReport($targetRef, $mobile);
+
+            if ($reportData) {
+                // Auto-link report to booking if ready
+                if ($booking && ! empty($reportData['is_ready']) && ! empty($reportData['download_url'])) {
+                    $booking->report_file_path = $reportData['download_url'];
+                    $booking->status = 'Report Ready';
+                    $booking->lis_status = 'Report Ready';
+                    $booking->lis_synced_at = now();
+                    $booking->save();
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'message' => ! empty($reportData['is_ready']) ? 'Report is ready for download.' : 'Report is currently in progress.',
+                    'data' => $reportData,
+                ]);
+            }
+        }
+
+        // 3. Fallback: If local booking found but still processing
+        if ($booking) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Your sample is currently being processed by the laboratory.',
+                'data' => [
+                    'bill_number' => $booking->booking_reference,
+                    'patient_name' => $booking->patient?->name ?? 'Patient',
+                    'current_stage' => $booking->status ?: 'Sample Processing',
+                    'is_ready' => false,
+                    'download_url' => null,
+                    'tests' => is_array($booking->test_details) ? array_map(fn ($t) => [
+                        'name' => $t['name'] ?? 'Diagnostic Test',
+                        'status' => 'pending',
+                    ], $booking->test_details) : [],
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No booking or report found matching the provided Reference ID / Bill Number and Registered Mobile.',
+        ], 404);
+    }
+
+    /**
+     * Authenticate patient via Single Sign-On (SSO) to Pathology LIS Dashboard.
+     */
+    public function authenticateLisSso(Request $request, PathologyApiService $api): JsonResponse
+    {
+        if (! config('pathology.enabled', true) || ! config('pathology.sso_enabled', true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'SSO login is currently disabled.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'patient_id' => 'required|string|max:100',
+            'phone' => 'required|string|min:10|max:15',
+        ]);
+
+        $patientId = trim($validated['patient_id']);
+        $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
+
+        $ssoResult = $api->patientLogin($patientId, $phone);
+
+        if ($ssoResult && ! empty($ssoResult['redirect_url'])) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Login verified successfully. Redirecting to your patient dashboard...',
+                'data' => $ssoResult,
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid Patient ID / Bill Number or Mobile Number. Please verify and try again.',
+        ], 401);
+    }
+
+    /**
      * Display the LIS laboratory login page.
      */
-    public function lisLogin(): View
+    public function lisLogin(): View|RedirectResponse
     {
+        if (! config('pathology.enabled', true) || ! config('pathology.sso_enabled', true)) {
+            return redirect()->route('home');
+        }
+
         return view('frontend.pages.lis-login');
     }
 
@@ -107,6 +247,14 @@ class PageController extends Controller
         $plans = MembershipPlan::where('is_active', true)->get();
 
         return view('frontend.pages.membership', compact('plans'));
+    }
+
+    /**
+     * Display Pharmacy Coming Soon page.
+     */
+    public function pharmacy(): View
+    {
+        return view('frontend.pages.pharmacy');
     }
 
     /**

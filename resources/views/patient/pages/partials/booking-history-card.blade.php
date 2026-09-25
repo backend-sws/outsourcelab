@@ -152,17 +152,28 @@
             @else
                 <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl">
                     <i class="fas fa-clock text-amber-500"></i>
-                    <span>Report under analysis at NABL lab</span>
+                    <span>Report under analysis at certified lab</span>
                 </span>
             @endif
         </div>
 
-        <a 
-            href="{{ route('patient.bookings') }}" 
-            class="inline-flex items-center justify-center gap-1.5 text-xs font-extrabold text-brand-dark hover:text-brand-secondary transition"
-        >
-            <span>View Full Timeline & Tracking</span>
-            <i class="fas fa-arrow-right text-[10px]"></i>
-        </a>
+        <div class="flex items-center gap-3">
+            @php
+                $canModify = !in_array($booking->status, ['Sample Collected', 'In Process', 'Processing', 'Report Ready', 'Completed', 'Cancelled']) && $booking->sample_status !== 'Sample Collected';
+            @endphp
+            @if($canModify)
+                <button type="button" onclick="openModifyBookingModal({{ $booking->id }})" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-black transition shadow-2xs hover:shadow-xs cursor-pointer">
+                    <i class="fas fa-edit text-[11px] text-teal-700"></i>
+                    <span>Modify</span>
+                </button>
+            @endif
+            <a 
+                href="{{ route('patient.bookings') }}" 
+                class="inline-flex items-center justify-center gap-1.5 text-xs font-extrabold text-brand-dark hover:text-brand-secondary transition"
+            >
+                <span>View Full Timeline & Tracking</span>
+                <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
     </div>
 </div>

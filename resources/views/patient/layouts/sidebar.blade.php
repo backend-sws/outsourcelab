@@ -17,8 +17,12 @@
                 <p class="text-xs text-gray-500 font-medium">+91 {{ $userMobile }}</p>
             </div>
         </div>
-        <a href="{{ route('patient.dashboard') }}#profile-form" class="text-gray-400 hover:text-brand-secondary transition p-2" title="Edit Profile">
-            <i class="far fa-edit"></i>
+        <a href="{{ route('patient.dashboard') }}#profile-form" 
+           id="sidebarEditProfileBtn"
+           onclick="if (typeof switchDashboardTab === 'function') { event.preventDefault(); switchDashboardTab('profile'); const el = document.getElementById('profile-form'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-brand-secondary', 'ring-offset-2'); setTimeout(() => el.classList.remove('ring-2', 'ring-brand-secondary', 'ring-offset-2'), 1500); } if (history.pushState) { history.pushState(null, null, '#profile-form'); } else { window.location.hash = 'profile-form'; } }" 
+           class="text-gray-400 hover:text-brand-secondary hover:bg-teal-50 w-9 h-9 rounded-lg flex items-center justify-center transition cursor-pointer" 
+           title="Edit Profile">
+            <i class="far fa-edit text-base"></i>
         </a>
     </div>
 

@@ -61,7 +61,7 @@ class MembershipPlanSeeder extends Seeder
                     '1 Complimentary Annual CBC with ESR Blood Profile',
                     'Unlimited Free Tele-Consultation with Senior Physicians',
                     'Covers up to 6 Family Members including Elderly Parents',
-                    'Super-Fast Express Report Processing (NABL Accredited)',
+                    'Super-Fast Express Report Processing (Certified Lab)',
                 ],
                 'theme_color' => 'platinum',
                 'is_popular' => false,

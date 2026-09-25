@@ -103,11 +103,89 @@
                 </div>
             </div>
             
-            <!-- Price -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Price (₹) <span class="text-red-500">*</span></label>
-                <input type="number" step="0.01" name="price" value="{{ old('price', $package->price ?? '') }}" required class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-gray-50">
-                @error('price')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            <!-- Commercial Pricing & Offers Box -->
+            <div class="md:col-span-2 p-5 rounded-2xl bg-gradient-to-br from-indigo-50/60 to-purple-50/40 border border-indigo-100 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-indigo-200/50 pb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
+                        <i class="fas fa-tag text-indigo-600"></i> Website Commercial & Offer Pricing
+                    </h3>
+                    @if(config('pathology.admin_sync_enabled', false) && isset($package) && $package->lis_price)
+                        <span class="text-[11px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200">
+                            LIS Base Cost: <strong class="text-slate-800">₹{{ number_format($package->lis_price, 2) }}</strong>
+                        </span>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Market MRP -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Market MRP (Strike-through ~₹~)
+                        </label>
+                        <input type="number" step="0.01" name="original_price" id="pkg_original_price" value="{{ old('original_price', $package->original_price ?? '') }}" placeholder="e.g., 2999" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
+                        <p class="text-[11px] text-gray-400 mt-1">Crossed-out price on website card.</p>
+                    </div>
+
+                    <!-- Selling Price -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Website Selling Price (₹) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" step="0.01" name="price" id="pkg_selling_price" value="{{ old('price', $package->price ?? '') }}" required placeholder="e.g., 1499" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white font-bold text-indigo-700">
+                        @error('price')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                    </div>
+
+                    <!-- Discount Percentage Badge -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Offer Badge / Discount %
+                        </label>
+                        <input type="number" name="discount_percentage" id="pkg_discount_percentage" value="{{ old('discount_percentage', $package->discount_percentage ?? '') }}" placeholder="e.g., 50" min="0" max="100" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
+                        <p class="text-[11px] text-gray-400 mt-1">Leave empty to auto-calculate from MRP & Selling Price.</p>
+                    </div>
+                </div>
+
+                @if(config('pathology.admin_sync_enabled', false))
+                <!-- Price Lock Protection Toggle -->
+                <div class="pt-2 flex items-center justify-between border-t border-indigo-200/40">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="lock_pricing" value="1" {{ old('lock_pricing', $package->lock_pricing ?? false) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-xs font-bold text-indigo-950">Lock Custom Price (Protect from LIS auto-sync overwrites)</span>
+                    </label>
+                </div>
+                @endif
+            </div>
+
+            <!-- Package Specifications Box -->
+            <div class="md:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-microscope text-indigo-600"></i> {{ config('pathology.admin_sync_enabled', false) ? 'LIS Specifications & Sample Info' : 'Sample & Package Specifications' }}
+                    </h3>
+                    @if(config('pathology.admin_sync_enabled', false) && isset($package) && $package->lis_synced_at)
+                        <span class="text-[10px] text-slate-400">Synced: {{ $package->lis_synced_at->format('d M Y, h:i A') }}</span>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Package Code -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">{{ config('pathology.admin_sync_enabled', false) ? 'LIS Package Code' : 'Package Code' }}</label>
+                        <input type="text" name="package_code" placeholder="e.g., EXEC-FULL" value="{{ old('package_code', $package->package_code ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white font-mono uppercase">
+                    </div>
+
+                    <!-- Sample Type -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Sample Type</label>
+                        <input type="text" name="sample_type" placeholder="e.g., Blood & Urine" value="{{ old('sample_type', $package->sample_type ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
+                    </div>
+
+                    <!-- Turnaround Time Hours -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">TAT (Hours)</label>
+                        <input type="number" name="tat_hours" placeholder="e.g., 24" value="{{ old('tat_hours', $package->tat_hours ?? '') }}" min="1" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
+                    </div>
+                </div>
             </div>
 
             <!-- Total Parameters Count -->
@@ -137,53 +215,106 @@
                 @error('description')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
 
-            <!-- Parameters -->
-            <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Package Parameters / Tests Included</label>
-                <div id="parameters-container" class="space-y-3">
-                    @php
-                        $parameters = old('parameters', $package->parameters ?? []);
-                    @endphp
-                    
-                    @if(!empty($parameters) && count($parameters) > 0)
-                        @foreach($parameters as $index => $parameter)
-                            <div class="flex items-center gap-2 parameter-row">
-                                <select name="parameters[]" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-gray-50">
-                                    <option value="">Select a Test Parameter</option>
-                                    @foreach($testParameters as $tp)
-                                        <option value="{{ $tp->name }}" {{ $parameter == $tp->name ? 'selected' : '' }}>{{ $tp->name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="remove-parameter text-red-500 hover:text-red-700 p-2"><i class="fas fa-trash"></i></button>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="flex items-center gap-2 parameter-row">
-                            <select name="parameters[]" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-gray-50">
-                                <option value="">Select a Test Parameter</option>
-                                @foreach($testParameters as $tp)
-                                    <option value="{{ $tp->name }}">{{ $tp->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="button" class="remove-parameter text-red-500 hover:text-red-700 p-2"><i class="fas fa-trash"></i></button>
-                        </div>
-                    @endif
+            <!-- ══ Package Tests Builder ══ -->
+            <div class="md:col-span-2 p-5 rounded-2xl bg-teal-50/40 border border-teal-100 shadow-sm space-y-4">
+                <div class="flex items-start justify-between border-b border-teal-200/50 pb-3 flex-wrap gap-2">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-teal-900 flex items-center gap-2">
+                            <i class="fas fa-boxes-stacked text-teal-600"></i> Tests Included in this Package
+                        </h3>
+                        <p class="text-[11px] text-teal-700 mt-0.5">
+                            Select which tests are part of this package. Their parameters (Hemoglobin, Cholesterol etc.) will auto-populate for customers.
+                        </p>
+                    </div>
+                    <span id="selectedTestCount" class="text-xs font-bold text-teal-700 bg-white px-2.5 py-1 rounded-full border border-teal-200">
+                        0 Tests Selected
+                    </span>
                 </div>
-                <button type="button" id="add-parameter" class="mt-3 text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-                    <i class="fas fa-plus-circle"></i> Add Another Parameter
-                </button>
+
+                @php
+                    // Existing package parameters are "TestName: ParamName" or "TestName"
+                    // Extract selected test names from the stored parameters
+                    $existingParams = old('parameters', $package->parameters ?? []);
+                    $preSelectedTests = [];
+                    foreach ($existingParams as $entry) {
+                        if (str_contains($entry, ':')) {
+                            $testName = trim(explode(':', $entry, 2)[0]);
+                        } else {
+                            $testName = trim($entry);
+                        }
+                        if (!empty($testName)) {
+                            $preSelectedTests[$testName] = true;
+                        }
+                    }
+                @endphp
+
+                <!-- Hidden inputs will be generated by JS on form submit -->
+                <div id="packageParamsHiddenContainer"></div>
+
+                <!-- Search filter -->
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fas fa-search text-xs"></i>
+                    </div>
+                    <input type="text" id="testSearchInput" placeholder="Search tests by name or code..."
+                        class="w-full pl-9 pr-4 py-2 text-sm rounded-xl bg-white border border-teal-200 focus:outline-none focus:ring-2 focus:ring-teal-400 transition">
+                </div>
+
+                <!-- Tests list -->
+                <div class="max-h-72 overflow-y-auto space-y-1.5 pr-1" id="testCheckboxList">
+                    @foreach($tests as $t)
+                    @php
+                        $testParamNames = is_array($t->parameters) ? array_filter($t->parameters) : [];
+                        $isSelected = isset($preSelectedTests[$t->name]);
+                    @endphp
+                    <label
+                        class="test-checkbox-row flex items-start gap-3 p-3 rounded-xl cursor-pointer border transition-all {{ $isSelected ? 'bg-teal-50 border-teal-300' : 'bg-white border-gray-200 hover:bg-teal-50/50 hover:border-teal-200' }}"
+                        data-test-name="{{ $t->name }}"
+                        data-test-code="{{ $t->test_code ?? '' }}"
+                        data-test-dept="{{ $t->category->name ?? 'Uncategorized' }}"
+                        data-test-params="{{ implode('|', $testParamNames) }}"
+                    >
+                        <input type="checkbox" class="test-include-check mt-0.5 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                            value="{{ $t->name }}"
+                            {{ $isSelected ? 'checked' : '' }}>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-semibold text-gray-800 truncate">{{ $t->name }}</span>
+                                @if($t->test_code)
+                                    <span class="font-mono text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded border">{{ $t->test_code }}</span>
+                                @endif
+                                <span class="text-[10px] text-gray-400">{{ $t->category->name ?? 'Uncategorized' }}</span>
+                            </div>
+                            @if(count($testParamNames) > 0)
+                                <p class="text-[10px] text-teal-700 mt-0.5">
+                                    {{ count($testParamNames) }} param{{ count($testParamNames) > 1 ? 's' : '' }}:
+                                    {{ implode(', ', array_slice($testParamNames, 0, 4)) }}{{ count($testParamNames) > 4 ? '...' : '' }}
+                                </p>
+                            @else
+                                <p class="text-[10px] text-gray-400 mt-0.5">Single-marker test</p>
+                            @endif
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
+
+                <p class="text-[11px] text-teal-600">
+                    <i class="fas fa-info-circle"></i>
+                    Parameters are automatically built from each selected test's biomarker list{{ config('pathology.admin_sync_enabled', false) ? ' (synced from LIS)' : '' }}.
+                </p>
             </div>
+
             
             <!-- Toggles -->
             <div class="md:col-span-2 bg-gray-50 rounded-xl p-4 border border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_active" class="sr-only peer" {{ old('is_active', isset($package) ? $package->is_active : true) ? 'checked' : '' }}>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="is_active" value="1" class="sr-only peer" {{ old('is_active', isset($package) ? $package->is_active : true) ? 'checked' : '' }}>
                     <div class="relative w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                     <span class="ms-3 text-sm font-medium text-gray-700">Active (Visible)</span>
                 </label>
                 
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_featured" class="sr-only peer" {{ old('is_featured', $package->is_featured ?? false) ? 'checked' : '' }}>
+                <label class="relative inline-flex items-center cursor-pointer select-none">
+                    <input type="checkbox" name="is_featured" value="1" class="sr-only peer" {{ old('is_featured', $package->is_featured ?? false) ? 'checked' : '' }}>
                     <div class="relative w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     <span class="ms-3 text-sm font-medium text-gray-700">Featured Package</span>
                 </label>
@@ -252,30 +383,75 @@
         typeSelect.addEventListener('change', updateSubcategory);
         updateSubcategory(); // Initial load
 
-        // --- Parameters Logic ---
-        const container = document.getElementById('parameters-container');
-        const addButton = document.getElementById('add-parameter');
+        // --- Package Tests Checkbox Builder ---
+        const testList = document.getElementById('testCheckboxList');
+        const hiddenContainer = document.getElementById('packageParamsHiddenContainer');
+        const countBadge = document.getElementById('selectedTestCount');
+        const searchInput = document.getElementById('testSearchInput');
 
-        // Add new parameter row
-        addButton.addEventListener('click', function() {
-            const firstRow = container.querySelector('.parameter-row');
-            const newRow = firstRow.cloneNode(true);
-            newRow.querySelector('select').value = '';
-            container.appendChild(newRow);
-        });
+        function updateSelectedCount() {
+            const checked = testList.querySelectorAll('.test-include-check:checked').length;
+            countBadge.textContent = checked + ' Test' + (checked !== 1 ? 's' : '') + ' Selected';
+        }
 
-        // Remove parameter row
-        container.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-parameter')) {
-                const rows = container.querySelectorAll('.parameter-row');
-                if (rows.length > 1) {
-                    e.target.closest('.parameter-row').remove();
+        function buildHiddenInputs() {
+            hiddenContainer.innerHTML = '';
+            testList.querySelectorAll('.test-include-check:checked').forEach(function(cb) {
+                const row = cb.closest('.test-checkbox-row');
+                const testName = row.dataset.testName;
+                const rawParams = row.dataset.testParams; // pipe-separated param names
+
+                if (rawParams && rawParams.trim().length > 0) {
+                    rawParams.split('|').forEach(function(paramName) {
+                        paramName = paramName.trim();
+                        if (paramName.length > 0) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'parameters[]';
+                            input.value = testName + ': ' + paramName;
+                            hiddenContainer.appendChild(input);
+                        }
+                    });
                 } else {
-                    // Clear the value if it's the last row instead of removing
-                    e.target.closest('.parameter-row').querySelector('select').value = '';
+                    // Single-marker test: just store test name
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'parameters[]';
+                    input.value = testName;
+                    hiddenContainer.appendChild(input);
                 }
+            });
+        }
+
+        testList.addEventListener('change', function(e) {
+            const cb = e.target.closest('.test-include-check');
+            if (!cb) return;
+            const row = cb.closest('.test-checkbox-row');
+            if (cb.checked) {
+                row.classList.remove('bg-white', 'border-gray-200');
+                row.classList.add('bg-teal-50', 'border-teal-300');
+            } else {
+                row.classList.remove('bg-teal-50', 'border-teal-300');
+                row.classList.add('bg-white', 'border-gray-200');
             }
+            updateSelectedCount();
         });
+
+        // Build hidden inputs on form submit
+        document.querySelector('form').addEventListener('submit', function () {
+            buildHiddenInputs();
+        });
+
+        // Search filter
+        searchInput.addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            testList.querySelectorAll('.test-checkbox-row').forEach(function (row) {
+                const name = (row.dataset.testName + ' ' + row.dataset.testCode + ' ' + row.dataset.testDept).toLowerCase();
+                row.style.display = name.includes(q) ? '' : 'none';
+            });
+        });
+
+        updateSelectedCount();
     });
 </script>
 @endsection

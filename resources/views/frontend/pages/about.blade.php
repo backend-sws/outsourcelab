@@ -38,7 +38,7 @@
 
             <div class="flex flex-wrap gap-4 text-xs font-semibold">
                 <div class="px-3.5 py-2 rounded-xl bg-white/10 border border-white/10 flex items-center gap-2 text-teal-100">
-                    <i class="fas fa-certificate text-amber-400"></i> NABL Aligned Protocol
+                    <i class="fas fa-certificate text-amber-400"></i> Quality Certified Protocol
                 </div>
                 <div class="px-3.5 py-2 rounded-xl bg-white/10 border border-white/10 flex items-center gap-2 text-teal-100">
                     <i class="fas fa-robot text-teal-300"></i> AI-Assisted Clinical QC
@@ -167,19 +167,17 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach($featuredPackages as $pkg)
-            @php
-                $mrp = round($pkg->price * 1.45);
-                $discountPct = round((($mrp - $pkg->price) / $mrp) * 100);
-            @endphp
             <div class="bg-white rounded-3xl p-6 border border-gray-100 hover:border-teal-300 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
                 <div>
                     <div class="flex justify-between items-center mb-3">
                         <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-full uppercase border border-teal-100">
                             {{ $pkg->subcategory ?? 'Full Body' }}
                         </span>
+                        @if($pkg->hasDiscount())
                         <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                            {{ $discountPct }}% OFF
+                            {{ $pkg->effective_discount_percentage }}% OFF
                         </span>
+                        @endif
                     </div>
 
                     <h4 class="font-extrabold text-gray-900 text-base leading-snug mb-2 group-hover:text-teal-700 transition-colors">
@@ -191,7 +189,9 @@
                 <div class="border-t border-gray-100 pt-4 mt-auto">
                     <div class="flex items-baseline gap-2 mb-3">
                         <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($pkg->price) }}</span>
-                        <span class="text-xs text-gray-400 line-through">₹{{ number_format($mrp) }}</span>
+                        @if($pkg->hasDiscount())
+                            <span class="text-xs text-gray-400 line-through">₹{{ number_format($pkg->effective_mrp) }}</span>
+                        @endif
                     </div>
                     <button type="button" 
                         onclick="addToCart(this)" 
@@ -199,7 +199,7 @@
                         data-type="package"
                         data-name="{{ $pkg->name }}"
                         data-price="{{ $pkg->price }}" 
-                        data-mrp="{{ $mrp }}" 
+                        data-mrp="{{ $pkg->effective_mrp ?? $pkg->price }}" 
                         data-params="Includes {{ $pkg->total_parameters_count }} Parameters"
                         class="w-full bg-brand-secondary hover:bg-yellow-500 text-brand-dark font-extrabold py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm text-xs active:scale-98 cursor-pointer">
                         <i class="fas fa-cart-plus"></i> Add to Cart

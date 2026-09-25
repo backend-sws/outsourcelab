@@ -57,7 +57,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::get('/download-report', [PageController::class, 'downloadReport'])->name('download.report');
+Route::post('/download-report/track', [PageController::class, 'fetchReportTrack'])->name('download.report.track');
 Route::get('/lis-login', [PageController::class, 'lisLogin'])->name('lis.login');
+Route::post('/lis-login/authenticate', [PageController::class, 'authenticateLisSso'])->name('lis.login.authenticate');
 Route::get('/login', [PageController::class, 'loginRedirect'])->name('login');
 
 // Corporate, Info, Legal & SEO Pages
@@ -67,6 +69,7 @@ Route::get('/partner-with-us', [PageController::class, 'partner'])->name('partne
 Route::get('/franchise', [PageController::class, 'franchise'])->name('franchise');
 Route::get('/faqs', [PageController::class, 'faqs'])->name('faqs');
 Route::get('/careers', [PageController::class, 'careers'])->name('careers');
+Route::get('/pharmacy', [PageController::class, 'pharmacy'])->name('pharmacy');
 Route::get('/statutory-compliance', [PageController::class, 'compliance'])->name('compliance');
 Route::get('/membership', [PageController::class, 'membership'])->name('membership');
 Route::get('/privacy-policy', [PageController::class, 'privacy'])->name('privacy');
@@ -111,6 +114,8 @@ Route::prefix('patient')->name('patient.')->group(function () {
     // Authentication & Password Recovery
     Route::post('/login', [PatientAuthController::class, 'login'])->name('login');
     Route::post('/register', [PatientAuthController::class, 'register'])->name('register');
+    Route::post('/register/verify-otp', [PatientAuthController::class, 'verifyRegisterOtp'])->name('register.verify_otp');
+    Route::post('/register/resend-otp', [PatientAuthController::class, 'resendRegisterOtp'])->name('register.resend_otp');
     Route::post('/forgot-password', [PatientAuthController::class, 'forgotPassword'])->name('forgot_password');
     Route::post('/reset-password', [PatientAuthController::class, 'resetPassword'])->name('reset_password');
     Route::get('/logout', [PatientAuthController::class, 'logout'])->name('logout');
@@ -119,6 +124,7 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::get('/dashboard', [PatientProfileController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile/edit', [PatientProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/edit', [PatientProfileController::class, 'store'])->name('profile.store');
+    Route::post('/profile/update-name', [PatientAuthController::class, 'updateName'])->name('update_name');
     Route::get('/reports', [PatientProfileController::class, 'reports'])->name('reports');
 
     // Family Members
@@ -152,6 +158,10 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::get('/bookings', [PatientBookingController::class, 'index'])->name('bookings');
     Route::post('/bookings', [PatientBookingController::class, 'placeBooking'])->name('place_booking');
     Route::post('/cart/sync', [PatientBookingController::class, 'syncCart'])->name('cart.sync');
+    Route::get('/bookings/{id}/details', [PatientBookingController::class, 'getBookingModifyData'])->name('bookings.details');
+    Route::post('/bookings/{id}/modify', [PatientBookingController::class, 'modifyBooking'])->name('bookings.modify');
+    Route::post('/bookings/{id}/modify/create-order', [RazorpayController::class, 'createModifyOrder'])->name('bookings.modify.create_order');
+    Route::post('/bookings/{id}/modify/verify-payment', [RazorpayController::class, 'verifyModifyPayment'])->name('bookings.modify.verify_payment');
 
     // Payment History & Invoices
     Route::get('/transactions', [PatientPaymentController::class, 'index'])->name('transactions');
@@ -212,6 +222,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/bookings/{id}/print', [AdminBookingController::class, 'print'])->name('bookings.print');
         Route::post('/bookings/{id}/report', [AdminBookingController::class, 'uploadReport'])->name('bookings.report.upload');
         Route::delete('/bookings/{id}/report', [AdminBookingController::class, 'deleteReport'])->name('bookings.report.delete');
+        Route::post('/bookings/{id}/modify', [AdminBookingController::class, 'modifyBooking'])->name('bookings.modify');
 
         // Test Catalog
         Route::resource('tests', AdminTestController::class);
@@ -263,5 +274,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Site Settings / CMS
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+
+        // Pathology SaaS / LIS Integration Actions
+        Route::post('/pathology/test-connection', [AdminSettingController::class, 'testPathologyConnection'])->name('pathology.testConnection');
+        Route::post('/pathology/sync-catalog', [AdminSettingController::class, 'syncPathologyCatalog'])->name('pathology.sync');
+        Route::post('/bookings/{id}/push-lis', [AdminBookingController::class, 'pushToLis'])->name('bookings.push_lis');
     });
 });

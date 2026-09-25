@@ -77,7 +77,7 @@ class PatientProfileController extends Controller
             return redirect('/');
         }
 
-        return redirect()->route('patient.dashboard');
+        return redirect()->to(route('patient.dashboard').'#profile-form');
     }
 
     /**
@@ -93,6 +93,7 @@ class PatientProfileController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:patients,email,'.$patientId,
+            'mobile' => 'nullable|string|min:10|max:15|unique:patients,mobile,'.$patientId,
             'age' => 'nullable|integer|min:1|max:120',
             'gender' => 'nullable|string|in:Male,Female,Other,male,female,other',
             'dob' => 'nullable|date',
@@ -104,8 +105,19 @@ class PatientProfileController extends Controller
         if ($patient) {
             $gender = $request->filled('gender') ? ucfirst(strtolower((string) $request->input('gender'))) : null;
 
+            $mobile = $request->input('mobile');
+            if ($mobile) {
+                $mobile = preg_replace('/[^0-9]/', '', $mobile);
+                if (strlen($mobile) > 10 && str_starts_with($mobile, '91')) {
+                    $mobile = substr($mobile, 2);
+                }
+            } else {
+                $mobile = $patient->mobile;
+            }
+
             $patient->update([
                 'name' => $request->input('name'),
+                'mobile' => $mobile,
                 'gender' => $gender,
                 'age' => $request->input('age'),
                 'dob' => $request->input('dob'),

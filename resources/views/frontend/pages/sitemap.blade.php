@@ -109,11 +109,13 @@
                         <i class="fas fa-motorcycle text-[9px]"></i> Phlebotomist / Agent Portal
                     </a>
                 </li>
+                @if(config('pathology.sso_enabled', true))
                 <li>
                     <a href="{{ route('lis.login') }}" class="hover:text-teal-700 font-semibold flex items-center gap-2 transition">
                         <i class="fas fa-microchip text-[9px] text-teal-600"></i> Laboratory LIS Access Portal
                     </a>
                 </li>
+                @endif
             </ul>
         </div>
 

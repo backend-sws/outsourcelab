@@ -18,6 +18,7 @@
     @include('patient.modals.add-member')
     @include('patient.modals.change-address')
     @include('patient.modals.add-address')
+    @include('patient.modals.modify-booking')
     
     @include('frontend.partials.floating-welcome-ticket')
 

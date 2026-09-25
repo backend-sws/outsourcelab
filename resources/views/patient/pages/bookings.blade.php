@@ -376,12 +376,21 @@
                                         @else
                                             <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-500 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl">
                                                 <i class="fas fa-shield-alt text-teal-600"></i>
-                                                <span>Under NABL Protocol & Tracking</span>
+                                                <span>Under Quality Protocol & Tracking</span>
                                             </span>
                                         @endif
                                     </div>
 
                                     <div class="flex items-center gap-3">
+                                        @php
+                                            $canModify = !in_array($booking->status, ['Sample Collected', 'In Process', 'Processing', 'Report Ready', 'Completed', 'Cancelled']) && $booking->sample_status !== 'Sample Collected';
+                                        @endphp
+                                        @if($canModify)
+                                            <button type="button" onclick="openModifyBookingModal({{ $booking->id }})" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-black transition shadow-2xs hover:shadow-xs cursor-pointer">
+                                                <i class="fas fa-edit text-[11px] text-teal-700"></i>
+                                                <span>Modify Booking</span>
+                                            </button>
+                                        @endif
                                         <a href="{{ route('patient.reports') }}" class="text-xs font-bold text-teal-700 hover:text-brand-dark transition flex items-center gap-1">
                                             <span>All Reports</span>
                                             <i class="fas fa-chevron-right text-[10px]"></i>

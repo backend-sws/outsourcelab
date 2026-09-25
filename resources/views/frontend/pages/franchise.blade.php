@@ -90,7 +90,7 @@
                 Everything You Need to Run a Thriving Diagnostic Hub
             </h2>
             <p class="text-xs sm:text-sm text-gray-500 mt-2">
-                We handle the heavy laboratory processing, NABL compliance, pathologist reporting, and logistics, letting you focus on local customer care.
+                We handle the heavy laboratory processing, quality diagnostic compliance, pathologist reporting, and logistics, letting you focus on local customer care.
             </p>
         </div>
 

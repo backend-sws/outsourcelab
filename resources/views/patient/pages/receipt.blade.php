@@ -51,7 +51,7 @@
                         </div>
                         <div>
                             <h1 class="text-xl font-black tracking-tight text-white">Av Wellcare Diagnostics</h1>
-                            <p class="text-[11px] text-teal-300 font-medium">NABL Accredited & ICMR Approved Medical Laboratory</p>
+                            <p class="text-[11px] text-teal-300 font-medium">Certified & Approved Medical Diagnostic Laboratory</p>
                         </div>
                     </div>
                 </div>

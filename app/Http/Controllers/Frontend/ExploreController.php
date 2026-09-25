@@ -166,6 +166,7 @@ class ExploreController extends Controller
                     'id' => $pkg->id,
                     'name' => $pkg->name,
                     'price' => $pkg->price,
+                    'tests_count' => $pkg->included_tests_count,
                     'total_params' => $pkg->total_parameters_count,
                     'parameters_count' => $pkg->total_parameters_count,
                     'subcategory' => $pkg->subcategory ?: 'Full Body Checkup',
@@ -188,6 +189,7 @@ class ExploreController extends Controller
                     'name' => $t->name,
                     'price' => $t->price,
                     'department' => $t->category ? $t->category->name : 'Pathology Test',
+                    'parameters_count' => is_array($t->parameters) ? count($t->parameters) : 1,
                     'tat' => $t->report_delivery_time ?? 'Within 6 Hours',
                     'url' => route('test.show', $t->id),
                     'type' => 'test',
@@ -223,6 +225,6 @@ class ExploreController extends Controller
             'status' => 'Unread',
         ]);
 
-        return back()->with('prescription_success', 'Prescription received successfully! Our senior medical team will call you at '.$request->mobile_number.' within 15 minutes to confirm required tests and time slot.');
+        return back()->with('prescription_success', 'Prescription received successfully! Our senior medical team will contact you soon at '.$request->mobile_number.' to confirm required tests and time slot.');
     }
 }

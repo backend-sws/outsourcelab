@@ -143,12 +143,18 @@
 
                 <!-- Desktop Only Options -->
                 <div class="hidden lg:flex items-center space-x-3">
+                    <a href="{{ route('pharmacy') }}" class="flex items-center font-medium text-brand-dark hover:text-brand-primary transition px-3 py-2 text-sm rounded-lg hover:bg-gray-50 group">
+                        <i class="fas fa-prescription-bottle-alt text-emerald-600 mr-2 text-lg group-hover:scale-110 transition-transform"></i> Pharmacy
+                        <span class="ml-1.5 px-1.5 py-0.2 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">Soon</span>
+                    </a>
                     <a href="{{ route('download.report') }}" class="flex items-center font-medium text-brand-dark hover:text-brand-primary transition px-3 py-2 text-sm rounded-lg hover:bg-gray-50">
                         <i class="fas fa-file-download text-brand-secondary mr-2 text-lg"></i> Download Report
                     </a>
+                    @if(config('pathology.sso_enabled', true))
                     <a href="{{ route('lis.login') }}" class="flex items-center font-medium text-brand-dark hover:text-brand-primary transition px-3 py-2 text-sm rounded-lg hover:bg-gray-50">
                         <i class="fas fa-sign-in-alt text-brand-secondary mr-2 text-lg"></i> Login (LIS)
                     </a>
+                    @endif
                     <div class="w-px h-6 bg-gray-200 mx-1"></div>
                 </div>
 
@@ -243,6 +249,10 @@
                         <i class="far fa-file-alt mr-2 text-brand-secondary group-hover:scale-110 transition-transform"></i> My Reports
                     </button>
                 @endif
+                <a href="{{ route('pharmacy') }}" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition group">
+                    <i class="fas fa-prescription-bottle-alt mr-2 text-emerald-600 group-hover:scale-110 transition-transform"></i> Pharmacy
+                    <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 shadow-2xs">Coming Soon</span>
+                </a>
                 <a href="{{ route('home') }}#reviews" class="text-brand-dark font-extrabold flex items-center text-base hover:text-brand-secondary transition group">
                     <i class="fas fa-star mr-2 text-amber-400 group-hover:scale-110 transition-transform"></i> Reviews
                 </a>
@@ -310,18 +320,29 @@
                 <!-- New Header Options -->
                 <div class="flex flex-col gap-2 pb-5 border-b border-gray-100">
                     <p class="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider px-2">Services</p>
+                    <a href="{{ route('pharmacy') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition justify-between">
+                        <div class="flex items-center">
+                            <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-emerald-600">
+                                <i class="fas fa-prescription-bottle-alt"></i>
+                            </div>
+                            <span>Pharmacy</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800">Coming Soon</span>
+                    </a>
                     <a href="{{ route('download.report') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition">
                         <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-brand-secondary">
                             <i class="fas fa-file-download"></i>
                         </div>
                         Download Report
                     </a>
+                    @if(config('pathology.sso_enabled', true))
                     <a href="{{ route('lis.login') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition">
                         <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-brand-secondary">
                             <i class="fas fa-sign-in-alt"></i>
                         </div>
                         Login (LIS)
                     </a>
+                    @endif
                 </div>
 
                 <!-- Navigation Links -->

@@ -45,17 +45,22 @@
                                 @endphp
                                 <div class="flex items-center gap-1 flex-wrap max-w-[80%]">
                                     @if($testCats->count() > 0)
-                                        @foreach($testCats->take(2) as $tc)
+                                        @foreach($testCats->take(1) as $tc)
                                             <span class="bg-teal-50 text-teal-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-teal-200/60 uppercase tracking-wider truncate max-w-[120px]">
                                                 {{ $tc->name }}
                                             </span>
                                         @endforeach
-                                        @if($testCats->count() > 2)
-                                            <span class="text-[9px] text-teal-600 font-bold">+{{ $testCats->count() - 2 }}</span>
-                                        @endif
                                     @else
                                         <span class="bg-teal-50 text-teal-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-teal-200/60 uppercase tracking-wider">
-                                            Single Test
+                                            Diagnostic Test
+                                        </span>
+                                    @endif
+                                    @php
+                                        $paramCount = is_array($test->parameters) ? count($test->parameters) : 0;
+                                    @endphp
+                                    @if($paramCount > 1)
+                                        <span class="bg-indigo-50 text-indigo-700 text-[9px] font-bold px-2 py-0.5 rounded-full border border-indigo-200/60 uppercase tracking-wider">
+                                            {{ $paramCount }} Parameters
                                         </span>
                                     @endif
                                 </div>
@@ -101,20 +106,19 @@
 
                         <!-- Price & Action Buttons -->
                         <div class="border-t border-gray-100 pt-3 mt-auto">
-                            @php
-                                $mrp = round($test->price * 1.35);
-                            @endphp
                             <div class="flex items-baseline justify-between mb-3">
                                 <div>
+                                    @if($test->hasDiscount())
                                     <div class="flex items-center gap-1.5 mb-0.5">
-                                        <span class="text-xs text-gray-400 line-through">₹{{ $mrp }}</span>
-                                        <span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.2 rounded">25% OFF</span>
+                                        <span class="text-xs text-gray-400 line-through">₹{{ number_format($test->effective_mrp, 0) }}</span>
+                                        <span class="bg-emerald-100 text-emerald-700 text-[9px] font-bold px-1.5 py-0.2 rounded">{{ $test->discount_percentage }}% OFF</span>
                                     </div>
+                                    @endif
                                     <div class="text-2xl font-black text-gray-900 tracking-tight">
                                         ₹{{ number_format($test->price, 0) }}
                                     </div>
                                 </div>
-                                <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">NABL Lab</span>
+                                <span class="text-[9px] text-gray-400 font-semibold uppercase tracking-wider">Certified Lab</span>
                             </div>
 
                             <div class="grid grid-cols-2 gap-2">
@@ -126,8 +130,8 @@
                                     data-type="test"
                                     data-name="{{ $test->name }}"
                                     data-price="{{ $test->price }}"
-                                    data-mrp="{{ $mrp }}"
-                                    data-params="{{ $test->preparation_instructions ?? 'Single Diagnostic Test' }}"
+                                    data-mrp="{{ $test->effective_mrp ?? $test->price }}"
+                                    data-params="{{ (is_array($test->parameters) && count($test->parameters) > 1) ? 'Includes ' . count($test->parameters) . ' Parameters' : ($test->preparation_instructions ?? 'Single Diagnostic Test') }}"
                                     class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2 rounded-xl transition-all duration-300 flex items-center justify-center group/btn text-xs shadow-sm cursor-pointer">
                                     <i class="fas fa-cart-plus mr-1 group-hover/btn:scale-110 transition-transform"></i> Add
                                 </button>

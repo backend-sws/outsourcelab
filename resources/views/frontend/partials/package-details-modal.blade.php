@@ -61,7 +61,7 @@
 
         document.getElementById('modalPackageName').textContent = pkg.name;
         document.getElementById('modalPackageDesc').textContent = pkg.description || 'Comprehensive pathology health checkup covering essential vital organs.';
-        document.getElementById('modalPackageParamsCount').textContent = `${pkg.total_parameters} Clinical Parameters Included`;
+        document.getElementById('modalPackageParamsCount').textContent = `${deptNames.length} Tests Included • ${pkg.total_parameters} Parameters`;
         document.getElementById('modalPackagePrice').textContent = `₹${Number(pkg.price).toLocaleString('en-IN')}`;
 
         const container = document.getElementById('modalDepartmentsContainer');
@@ -92,8 +92,8 @@
                             </div>
                             <span class="font-bold text-gray-900 text-sm">${dept}</span>
                         </div>
-                        <span class="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold">
-                            ${params.length} Tests
+                        <span class="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold border border-teal-200/60">
+                            ${params.length} ${params.length === 1 ? 'Parameter' : 'Parameters'}
                         </span>
                     </div>
                     <div class="flex flex-wrap gap-1.5 pt-1">
@@ -120,7 +120,7 @@
                         name: pkg.name,
                         price: pkg.price,
                         mrp: pkg.price,
-                        params: `Includes ${pkg.total_parameters} Parameters`
+                        params: `Includes ${deptNames.length} Tests & ${pkg.total_parameters} Parameters`
                     }
                 });
             }

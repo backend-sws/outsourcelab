@@ -29,7 +29,7 @@
         <div class="relative z-10 max-w-3xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-teal-200 text-xs font-bold uppercase tracking-wider mb-4 border border-white/15">
                 <i class="fas fa-shield-halved text-amber-400"></i>
-                <span>NABL Quality Accredited Lab Partners</span>
+                <span>Certified Quality Lab Partners</span>
             </div>
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight mb-4">
                 {{ $category->name }} <span class="text-transparent bg-clip-text bg-gradient-to-r from-teal-200 to-amber-300">Checkups & Tests</span>
@@ -145,9 +145,9 @@
                             </p>
                         </div>
                         <div class="text-center w-1/2 pl-2">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Parameters</p>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Tests &amp; Biomarkers</p>
                             <p class="text-sm font-bold text-teal-700 mt-0.5">
-                                {{ $package->total_parameters_count }} Tests
+                                {{ $package->included_tests_count }} Tests ({{ $package->total_parameters_count }} Params)
                             </p>
                         </div>
                     </div>
@@ -164,7 +164,7 @@
                         </span>
                         @endforeach
                         @if(count($grouped) > 3)
-                        <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+{{ count($grouped) - 3 }} More Organs</span>
+                        <span class="text-[10px] text-teal-700 font-bold self-center ml-1">+{{ count($grouped) - 3 }} More Tests</span>
                         @endif
                     </div>
                     @endif
@@ -189,7 +189,7 @@
                     <!-- Quick View Tests Modal Trigger -->
                     <button type="button" onclick="openPackageDetails({{ $package->id }})" class="w-full mb-2 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
                         <i class="fas fa-file-waveform text-teal-600 text-[11px]"></i>
-                        <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                        <span>View {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters</span>
                     </button>
 
                     <!-- Add to Cart / Book Button -->
@@ -201,7 +201,7 @@
                             data-id="{{ $package->id }}"
                             data-type="package"
                             data-name="{{ $package->name }}"
-                            data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                            data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters"
                             class="bg-teal-700 hover:bg-teal-800 text-white font-bold py-2.5 rounded-xl transition shadow-md shadow-teal-700/20 text-xs flex items-center justify-center gap-1 cursor-pointer">
                             <i class="fas fa-cart-plus text-[11px]"></i> Add to Cart
                         </button>
@@ -373,6 +373,7 @@
             'name' => $p->name,
             'price' => $p->price,
             'description' => $p->description,
+            'tests_count' => $p->included_tests_count,
             'total_parameters' => $p->total_parameters_count,
             'grouped' => $p->getGroupedParameters(),
         ];

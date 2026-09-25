@@ -219,8 +219,8 @@
                             @forelse($suggestedTests ?? [] as $st)
                                 @php
                                     $categoryName = $st->category?->name ?? 'Clinical Pathology';
-                                    $mrpPrice = round($st->price * 1.6);
-                                    $discountPercent = round((($mrpPrice - $st->price) / $mrpPrice) * 100);
+                                    $hasDiscount = $st->hasDiscount();
+                                    $mrpPrice = $hasDiscount ? $st->effective_mrp : $st->price;
                                 @endphp
                                 <div class="suggested-test-card bg-white rounded-2xl p-4 border border-slate-200/90 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between group" data-test-name="{{ $st->name }}">
                                     <div>
@@ -236,7 +236,7 @@
                                             {{ $st->name }}
                                         </h4>
                                         <p class="text-[11px] text-slate-500 font-medium line-clamp-1 mb-3">
-                                            {{ $st->preparation_instructions ?: 'Home collection available. Fast NABL reporting.' }}
+                                            {{ $st->preparation_instructions ?: 'Home collection available. Fast verified reporting.' }}
                                         </p>
                                     </div>
 
@@ -244,9 +244,13 @@
                                         <div>
                                             <div class="flex items-baseline gap-1.5">
                                                 <span class="text-base font-black text-slate-900">₹{{ number_format($st->price) }}</span>
-                                                <span class="text-xs text-slate-400 line-through font-bold">₹{{ number_format($mrpPrice) }}</span>
+                                                @if($hasDiscount)
+                                                    <span class="text-xs text-slate-400 line-through font-bold">₹{{ number_format($mrpPrice) }}</span>
+                                                @endif
                                             </div>
-                                            <span class="text-[10px] font-black text-emerald-600 block">{{ $discountPercent }}% OFF</span>
+                                            @if($hasDiscount)
+                                                <span class="text-[10px] font-black text-emerald-600 block">{{ $st->discount_percentage }}% OFF</span>
+                                            @endif
                                         </div>
                                         <button type="button" 
                                                 onclick="addSuggestedToCart('{{ addslashes($st->name) }}', {{ $st->price }}, {{ $mrpPrice }}, '1 Parameter', this)"
@@ -318,11 +322,28 @@
                             <div class="flex-1">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h3 class="font-bold text-gray-900 text-lg flex items-center">{{ $patient->name ?? 'Self' }} <span class="text-[10px] bg-brand-light/30 text-brand-dark px-2 py-0.5 rounded ml-2 uppercase font-extrabold">Self</span></h3>
+                                        <h3 class="font-bold text-gray-900 text-lg flex items-center"><span id="primaryPatientDisplayName">{{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : 'Self' }}</span> <span class="text-[10px] bg-brand-light/30 text-brand-dark px-2 py-0.5 rounded ml-2 uppercase font-extrabold">Self</span></h3>
                                         <p class="text-xs text-gray-500 font-semibold mt-1">{{ $patient->age ?? '25' }} Years | {{ ucfirst($patient->gender ?? 'Not Specified') }}</p>
                                     </div>
                                     <span class="text-xs font-bold text-brand-secondary">Primary Patient</span>
                                 </div>
+
+                                <!-- Inline Name Required Input if Name is missing or 'Self' -->
+                                <div class="mt-3 pt-3 border-t border-slate-100 {{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? 'hidden' : '' }}" id="patientNamePromptBox" onclick="event.stopPropagation()">
+                                    <label class="block text-xs font-black text-rose-700 mb-1 flex items-center gap-1.5">
+                                        <i class="fas fa-id-card text-rose-600"></i>
+                                        <span>Full Name Required for Diagnostic Report <span class="text-rose-600">*</span></span>
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="checkoutPatientNameInput" value="{{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : '' }}" placeholder="Enter Patient Full Name (e.g. Ramesh Kumar)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:bg-white focus:ring-2 focus:ring-teal-600">
+                                        <button type="button" onclick="saveCheckoutPatientName()" class="px-3.5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shadow-sm cursor-pointer">
+                                            <i class="fas fa-check text-[10px]"></i>
+                                            <span>Save Name</span>
+                                        </button>
+                                    </div>
+                                    <p id="checkoutNameSavedMsg" class="text-[11px] text-emerald-700 font-bold mt-1.5 hidden flex items-center gap-1"><i class="fas fa-circle-check text-emerald-600"></i> Name saved successfully!</p>
+                                </div>
+
                                 <div class="mt-3 pt-3 border-t border-gray-100">
                                     <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
                                     <div class="member-cart-summary text-sm font-semibold text-gray-700">All tests in cart</div>
@@ -363,7 +384,7 @@
 
                     <!-- Pincode Check (Custom Logic) -->
                     <div id="pincodeCheckSection" class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6 transition-all">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Check Service Availability</label>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Area Pincode</label>
                         <div class="flex gap-4">
                             <input type="text" id="pincodeInput" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 font-bold focus:ring-2 focus:ring-brand-secondary outline-none text-gray-800 tracking-wider" placeholder="Enter Pincode (e.g. 800001)" maxlength="6">
                             <button onclick="verifyPincode()" class="bg-brand-dark text-white font-bold px-6 py-2 rounded-lg hover:bg-brand-secondary transition">Verify</button>
@@ -377,6 +398,23 @@
                         @php
                             $defaultAddress = $patient->addresses->first();
                         @endphp
+                        @if($patient->addresses->isEmpty())
+                        <div id="noAddressAlertBox" class="border-2 border-dashed border-amber-300 rounded-2xl p-5 mb-8 bg-amber-50/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                                    <i class="fas fa-map-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-sm">Sample Collection Address Required</h4>
+                                    <p class="text-xs text-gray-600 mt-0.5">Please add your complete address for home sample collection before proceeding.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="window.openAddAddressModal()" class="w-full sm:w-auto px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm whitespace-nowrap cursor-pointer">
+                                <i class="fas fa-plus text-xs"></i>
+                                <span>Add Address Now</span>
+                            </button>
+                        </div>
+                        @else
                         <div class="border border-gray-200 rounded-xl p-4 flex justify-between items-center mb-8 bg-white shadow-sm">
                             <div class="flex items-start">
                                 <i class="fas fa-map-marker-alt text-brand-secondary mt-1 mr-3 text-lg"></i>
@@ -387,6 +425,7 @@
                             </div>
                             <button onclick="window.openChangeAddressModal()" class="text-brand-dark font-bold text-xs border-b border-brand-dark border-dashed hover:text-brand-secondary">Change</button>
                         </div>
+                        @endif
 
                         <h3 class="font-extrabold text-gray-800 text-lg mb-4">Collection Date</h3>
                         <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar" id="dateContainer">
@@ -911,7 +950,7 @@
                     <div class="mt-5 pt-4 border-t border-slate-200 space-y-2 text-[11px] font-semibold text-slate-500">
                         <div class="flex items-center gap-2">
                             <i class="fas fa-shield-halved text-teal-600 text-xs flex-shrink-0"></i>
-                            <span>100% NABL / ISO Certified Testing Laboratories</span>
+                            <span>100% Quality Certified Testing Laboratories</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <i class="fas fa-temperature-arrow-down text-teal-600 text-xs flex-shrink-0"></i>
@@ -1531,7 +1570,7 @@
                     <div class="pr-10 mb-3">
                         <div class="flex items-center gap-2 mb-1.5">
                             <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 text-[10px] font-black uppercase tracking-wider border border-teal-100">
-                                ${item.params && item.params.includes('Parameter') ? item.params : 'NABL Accredited Test'}
+                                ${item.params && (item.params.includes('Parameter') || item.params.includes('Test')) ? item.params : 'Diagnostic Test'}
                             </span>
                             <span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
                                 <i class="fas fa-shield-check text-[9px]"></i> Certified Lab
@@ -1793,6 +1832,28 @@
             return;
         }
 
+        // Validate Patient Full Name
+        if (!window.selectedMemberId) {
+            let nameVal = (window.currentPatientName || '').trim();
+            let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
+            if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
+                alert('Patient Full Name is required to place your booking.');
+                goToStep(2);
+                document.getElementById('checkoutPatientNameInput')?.focus();
+                return;
+            }
+        }
+
+        // Validate Address
+        if (!window.selectedAddressId) {
+            alert('Sample collection address is required to place your booking. Please add an address.');
+            goToStep(3);
+            if (typeof window.openAddAddressModal === 'function') {
+                window.openAddAddressModal();
+            }
+            return;
+        }
+
         // Get selected date
         let activeDateEl = document.querySelector('.date-item.active-date');
         let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10);
@@ -1855,6 +1916,28 @@
         let cart = getCheckoutCart();
         if (cart.length === 0) {
             alert('Your cart is empty!');
+            return;
+        }
+
+        // Validate Patient Full Name
+        if (!window.selectedMemberId) {
+            let nameVal = (window.currentPatientName || '').trim();
+            let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
+            if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
+                alert('Patient Full Name is required to place your booking.');
+                goToStep(2);
+                document.getElementById('checkoutPatientNameInput')?.focus();
+                return;
+            }
+        }
+
+        // Validate Address
+        if (!window.selectedAddressId) {
+            alert('Sample collection address is required to place your booking. Please add an address.');
+            goToStep(3);
+            if (typeof window.openAddAddressModal === 'function') {
+                window.openAddAddressModal();
+            }
             return;
         }
 
@@ -1980,7 +2063,69 @@
     const validPincodes = @json($pincodeArray);
     window.selectedAddressId = @json($defaultAddr?->id ?? null);
     window.selectedMemberId = null;
+    window.currentPatientName = @json($patient->name ?? '');
     let isPincodeVerified = false;
+
+    function saveCheckoutPatientName() {
+        const input = document.getElementById('checkoutPatientNameInput');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name || name.toLowerCase() === 'self') {
+            alert('Please enter a valid full name for the diagnostic report.');
+            input.focus();
+            return;
+        }
+
+        const btn = document.querySelector('#patientNamePromptBox button');
+        let oldHtml = '';
+        if (btn) {
+            oldHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        }
+
+        fetch("{{ route('patient.update_name') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ name: name })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.currentPatientName = name;
+                const primaryNameEl = document.getElementById('primaryPatientDisplayName');
+                if (primaryNameEl) primaryNameEl.innerText = name;
+                const msg = document.getElementById('checkoutNameSavedMsg');
+                if (msg) {
+                    msg.classList.remove('hidden');
+                    setTimeout(() => msg.classList.add('hidden'), 4000);
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-check"></i> Saved';
+                    setTimeout(() => { if (btn) btn.innerHTML = oldHtml; }, 2000);
+                }
+            } else {
+                alert(data.message || 'Could not update name. Please try again.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = oldHtml;
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        });
+    }
+    window.saveCheckoutPatientName = saveCheckoutPatientName;
 
     function selectMember(memberId, cardEl) {
         window.selectedMemberId = memberId;
@@ -2106,10 +2251,38 @@
     }
 
     function nextStep() {
-        if(currentStep === 3 && !isPincodeVerified) {
-            alert('Please verify a valid serviceable pincode first.');
-            return;
+        // Step 2 Validation: Check patient name if primary patient is selected
+        if (currentStep === 2) {
+            if (!window.selectedMemberId) {
+                let nameVal = (window.currentPatientName || '').trim();
+                let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
+                if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
+                    alert('Patient Full Name is required before proceeding to the next step.');
+                    document.getElementById('checkoutPatientNameInput')?.focus();
+                    return;
+                }
+                if ((!nameVal || nameVal.toLowerCase() === 'self') && inputVal && inputVal.toLowerCase() !== 'self') {
+                    // Automatically persist the typed name
+                    saveCheckoutPatientName();
+                }
+            }
         }
+
+        // Step 3 Validation: Pincode and Address
+        if (currentStep === 3) {
+            if (!isPincodeVerified) {
+                alert('Please verify a valid serviceable pincode first.');
+                return;
+            }
+            if (!window.selectedAddressId) {
+                alert('Sample collection address is required. Please add or select an address.');
+                if (typeof window.openAddAddressModal === 'function') {
+                    window.openAddAddressModal();
+                }
+                return;
+            }
+        }
+
         if (currentStep < 4) {
             currentStep++;
             updateUI();

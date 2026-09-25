@@ -38,7 +38,7 @@
                     </span>
                     @endforeach
                     <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold uppercase tracking-wider border border-emerald-200/60 flex items-center gap-1">
-                        <i class="fas fa-check-circle text-emerald-600 text-[10px]"></i> NABL Verified Lab
+                        <i class="fas fa-check-circle text-emerald-600 text-[10px]"></i> Verified Diagnostic Lab
                     </span>
                     @if($test->home_collection_available)
                     <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-800 text-xs font-bold uppercase tracking-wider border border-blue-200/60 flex items-center gap-1">
@@ -53,7 +53,7 @@
                 </h1>
 
                 <p class="text-sm text-gray-600 leading-relaxed mb-6 font-medium">
-                    {{ $test->preparation_instructions ? 'Clinical guidance: ' . $test->preparation_instructions : 'Standard diagnostic blood investigation verified by MD Pathologists according to ICMR & NABL laboratory protocols.' }}
+                    {{ $test->preparation_instructions ? 'Clinical guidance: ' . $test->preparation_instructions : 'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.' }}
                 </p>
 
                 <!-- Clinical Specs Grid -->
@@ -95,11 +95,16 @@
                     </h3>
                     <p class="text-xs text-gray-500 mt-0.5">Enter your 6-digit pincode to check early morning fasting slots.</p>
                 </div>
-                <div class="w-full sm:w-auto flex items-center gap-2">
-                    <input type="text" id="checkPincodeInput" maxlength="6" placeholder="Enter Pincode (e.g. 110001)" class="px-4 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-mono">
-                    <button type="button" onclick="verifyPincodeSlot()" class="px-4 py-2 bg-teal-800 text-white text-xs font-bold rounded-xl hover:bg-teal-900 transition whitespace-nowrap">
-                        Check Slot
-                    </button>
+                <div class="w-full sm:w-auto">
+                    <label for="checkPincodeInput" class="block text-[11px] font-bold text-teal-950 uppercase tracking-wider mb-1">
+                        Area Pincode
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="checkPincodeInput" maxlength="6" placeholder="Enter Pincode (e.g. 110001)" class="px-4 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-mono">
+                        <button type="button" onclick="verifyPincodeSlot()" class="px-4 py-2 bg-teal-800 text-white text-xs font-bold rounded-xl hover:bg-teal-900 transition whitespace-nowrap">
+                            Check Slot
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="pincodeResult" class="hidden text-xs font-semibold px-4 py-2 rounded-xl"></div>
@@ -110,6 +115,32 @@
                     <i class="fas fa-notes-medical text-teal-700"></i>
                     <span>Test Overview & Pre-Test Instructions</span>
                 </h2>
+
+                @php
+                    $testParams = is_array($test->parameters) ? array_filter($test->parameters) : [];
+                @endphp
+                @if(count($testParams) > 0)
+                <div class="bg-teal-50/60 rounded-2xl p-5 border border-teal-200/60">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-teal-900 flex items-center gap-2">
+                            <i class="fas fa-list-ul text-teal-700"></i>
+                            Parameters Included in This Test
+                        </h3>
+                        <span class="text-xs font-bold text-teal-700 bg-white px-2.5 py-1 rounded-full border border-teal-200">
+                            {{ count($testParams) }} {{ count($testParams) === 1 ? 'Parameter' : 'Parameters' }}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($testParams as $param)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-teal-800 border border-teal-200 shadow-xs">
+                            <i class="fas fa-check-circle text-teal-500 text-[10px]"></i>
+                            {{ $param }}
+                        </span>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/70">
@@ -188,7 +219,7 @@
                         <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 flex flex-col justify-between hover:bg-white/15 transition-all">
                             <div>
                                 <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-teal-400 text-teal-950 font-mono">
-                                    {{ $pkg->total_parameters_count }} TESTS
+                                    {{ $pkg->included_tests_count }} TESTS ({{ $pkg->total_parameters_count }} PARAMS)
                                 </span>
                                 <h4 class="font-bold text-white text-sm mt-3 mb-1 line-clamp-1">{{ $pkg->name }}</h4>
                                 <p class="text-xs text-slate-300 mb-3 line-clamp-2">Includes {{ $test->name }} + comprehensive screening.</p>
@@ -244,19 +275,16 @@
                 <div class="bg-white rounded-3xl p-6 border border-gray-200 shadow-lg relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-teal-700 to-indigo-700"></div>
 
-                    @php
-                        $mrp = round($test->price * 1.35);
-                        $discountPct = round((($mrp - $test->price) / $mrp) * 100);
-                    @endphp
-
                     <!-- Price Block -->
                     <div class="mb-6">
+                        @if($test->hasDiscount())
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-gray-400 line-through">₹{{ number_format($mrp) }}</span>
+                            <span class="text-sm text-gray-400 line-through">₹{{ number_format($test->effective_mrp) }}</span>
                             <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-black">
-                                {{ $discountPct }}% OFF
+                                {{ $test->discount_percentage }}% OFF
                             </span>
                         </div>
+                        @endif
                         <div class="flex items-baseline gap-2">
                             <span class="text-4xl font-black text-gray-900 tracking-tight">₹{{ number_format($test->price) }}</span>
                             <span class="text-xs font-semibold text-gray-500">per patient</span>
@@ -270,7 +298,7 @@
                     <div class="space-y-3 py-4 border-y border-gray-100 text-xs text-gray-700 mb-6">
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-check-circle text-teal-600 text-sm"></i>
-                            <span>NABL & CAP standard accredited testing</span>
+                            <span>Certified quality standard diagnostic testing</span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-check-circle text-teal-600 text-sm"></i>
@@ -293,7 +321,7 @@
                             data-type="test"
                             data-name="{{ $test->name }}"
                             data-price="{{ $test->price }}" 
-                            data-mrp="{{ $mrp }}" 
+                            data-mrp="{{ $test->effective_mrp ?? $test->price }}" 
                             data-params="{{ $test->preparation_instructions ?? 'Single Diagnostic Test' }}"
                             class="w-full bg-gradient-to-r from-teal-700 to-teal-800 hover:from-teal-800 hover:to-teal-900 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-sm group cursor-pointer">
                             <i class="fas fa-cart-plus group-hover:scale-110 transition-transform"></i>
@@ -377,7 +405,7 @@
                         </a>
                     </h4>
                     <p class="text-[11px] text-gray-500 line-clamp-2 mb-4">
-                        {{ $ot->preparation_instructions ?? 'Standard Blood Sample • NABL Lab' }}
+                        {{ $ot->preparation_instructions ?? 'Standard Blood Sample • Verified Lab' }}
                     </p>
                 </div>
                 <div class="pt-3 border-t border-gray-100 flex items-center justify-between">

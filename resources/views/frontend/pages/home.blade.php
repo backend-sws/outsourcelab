@@ -120,7 +120,7 @@
                                 <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-slate-800 text-[10px] font-extrabold shadow-sm">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        <span>NABL Lab</span>
+                                        <span>Verified Lab</span>
                                     </span>
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-amber-300 text-[10px] font-bold border border-white/10">
                                         <i class="fas fa-bolt text-[9px]"></i> Fast Report
@@ -147,7 +147,7 @@
                                     <div class="space-y-1.5 text-xs text-slate-600 font-medium">
                                         <div class="flex items-center gap-2">
                                             <i class="fas fa-check-circle text-teal-600 text-xs flex-shrink-0"></i>
-                                            <span class="truncate">NABL / ISO accredited sample testing</span>
+                                            <span class="truncate">Quality accredited sample testing</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <i class="fas fa-file-medical text-teal-600 text-xs flex-shrink-0"></i>
@@ -228,7 +228,7 @@
                             Comprehensive {{ $category->name }} Shield
                         </h4>
                         <p class="text-xs sm:text-sm text-slate-300 font-normal leading-relaxed mb-6">
-                            Every checkup is processed inside ISO/NABL accredited laboratories with barcoded collection and end-to-end cold chain integrity.
+                            Every checkup is processed inside certified quality laboratories with barcoded collection and end-to-end cold chain integrity.
                         </p>
 
                         <div class="space-y-3 text-xs font-semibold text-slate-200">
@@ -658,7 +658,7 @@
                 </div>
                 <div>
                     <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-400 text-amber-950 text-[10px] font-black uppercase tracking-wider mb-1.5">
-                        <i class="fas fa-bolt"></i> 15-Minute Callback Guarantee
+                        <i class="fas fa-phone-volume"></i> We'll Contact You Soon
                     </div>
                     <h3 class="text-xl sm:text-2xl font-black tracking-tight leading-snug">
                         Have a Doctor's Prescription?
@@ -703,8 +703,6 @@
     <div id="top-booked-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth {{ count($packages) == 1 ? 'justify-center' : '' }} {{ count($packages) == 2 ? 'md:justify-center' : '' }} {{ count($packages) == 3 ? 'lg:justify-center' : '' }}">
         @forelse($packages as $package)
         @php
-            $mrp = round($package->price * 1.45);
-            $discountPct = round((($mrp - $package->price) / $mrp) * 100);
             $pkgGrouped = $package->getGroupedParameters();
         @endphp
         <!-- Package Card -->
@@ -733,8 +731,8 @@
                     </div>
                     <div class="w-px h-7 bg-gray-200 mx-2"></div>
                     <div class="text-center w-full">
-                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                        <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->total_parameters_count }} Tests</p>
+                        <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Tests &amp; Biomarkers</p>
+                        <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->included_tests_count }} Tests ({{ $package->total_parameters_count }} Params)</p>
                     </div>
                 </div>
                 
@@ -759,13 +757,15 @@
             <div class="border-t border-gray-100 pt-4 mt-auto">
                 <div class="flex items-baseline gap-2 mb-3">
                     <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                    <span class="text-xs text-gray-400 line-through">₹{{ number_format($mrp) }}</span>
-                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">{{ $discountPct }}% OFF</span>
+                    @if($package->hasDiscount())
+                        <span class="text-xs text-gray-400 line-through">₹{{ number_format($package->effective_mrp) }}</span>
+                        <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">{{ $package->effective_discount_percentage }}% OFF</span>
+                    @endif
                 </div>
 
                 <a href="{{ route('package.show', $package->id) }}" class="w-full mb-2.5 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 active:scale-98">
                     <i class="fas fa-file-waveform text-teal-600 text-xs"></i>
-                    <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                    <span>View {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters</span>
                 </a>
 
                 <button type="button" 
@@ -774,8 +774,8 @@
                     data-type="package"
                     data-name="{{ $package->name }}"
                     data-price="{{ $package->price }}" 
-                    data-mrp="{{ $mrp }}" 
-                    data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                    data-mrp="{{ $package->effective_mrp ?? $package->price }}" 
+                    data-params="Includes {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters"
                     class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                     <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                 </button>
@@ -824,8 +824,6 @@
         <div id="habits-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
             @forelse($habitPackages as $package)
             @php
-                $mrp = round($package->price * 1.45);
-                $discountPct = round((($mrp - $package->price) / $mrp) * 100);
                 $pkgGrouped = $package->getGroupedParameters();
             @endphp
             <!-- Habit Package Card -->
@@ -855,8 +853,8 @@
                         </div>
                         <div class="w-px h-7 bg-gray-200 mx-2"></div>
                         <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->total_parameters_count }} Tests</p>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Tests &amp; Biomarkers</p>
+                            <p class="text-xs sm:text-sm font-black text-teal-700">{{ $package->included_tests_count }} Tests ({{ $package->total_parameters_count }} Params)</p>
                         </div>
                     </div>
 
@@ -881,18 +879,22 @@
                     <div class="flex items-baseline justify-between mb-3">
                         <div class="flex items-baseline gap-2">
                             <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                            <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($mrp) }}</span>
+                            @if($package->hasDiscount())
+                                <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($package->effective_mrp) }}</span>
+                            @endif
                         </div>
+                        @if($package->hasDiscount())
                         <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                            {{ $discountPct }}% OFF
+                            {{ $package->effective_discount_percentage }}% OFF
                         </span>
+                        @endif
                     </div>
                     
                     <button type="button" 
                         onclick="event.stopPropagation(); openPackageDetails({{ $package->id }})" 
                         class="w-full mb-2 py-2 px-3 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                         <i class="fas fa-file-waveform text-teal-600 text-xs"></i>
-                        <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                        <span>View {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters</span>
                     </button>
 
                     <button type="button" 
@@ -901,8 +903,8 @@
                         data-type="package"
                         data-name="{{ $package->name }}"
                         data-price="{{ $package->price }}" 
-                        data-mrp="{{ $mrp }}" 
-                        data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                        data-mrp="{{ $package->effective_mrp ?? $package->price }}" 
+                        data-params="Includes {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters"
                         class="w-full bg-white border-2 border-brand-secondary text-brand-secondary hover:bg-gradient-to-r hover:from-brand-dark hover:to-brand-secondary hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
@@ -968,8 +970,6 @@
         <div id="femcliffe-slider" class="flex space-x-5 overflow-x-auto pb-6 pt-2 hide-scroll-bar snap-x snap-mandatory scroll-smooth mt-4">
             @forelse($femcliffePackages as $package)
             @php
-                $mrp = round($package->price * 1.45);
-                $discountPct = round((($mrp - $package->price) / $mrp) * 100);
                 $pkgGrouped = $package->getGroupedParameters();
             @endphp
             <!-- Femcliffe Package Card -->
@@ -999,8 +999,8 @@
                         </div>
                         <div class="w-px h-7 bg-pink-200 mx-2"></div>
                         <div class="text-center w-full">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Parameters</p>
-                            <p class="text-xs sm:text-sm font-black text-pink-600">{{ $package->total_parameters_count }} Tests</p>
+                            <p class="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">Tests &amp; Biomarkers</p>
+                            <p class="text-xs sm:text-sm font-black text-pink-600">{{ $package->included_tests_count }} Tests ({{ $package->total_parameters_count }} Params)</p>
                         </div>
                     </div>
 
@@ -1025,18 +1025,22 @@
                     <div class="flex items-baseline justify-between mb-3">
                         <div class="flex items-baseline gap-2">
                             <span class="text-2xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                            <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($mrp) }}</span>
+                            @if($package->hasDiscount())
+                                <span class="text-xs text-gray-400 line-through font-semibold">₹{{ number_format($package->effective_mrp) }}</span>
+                            @endif
                         </div>
+                        @if($package->hasDiscount())
                         <span class="bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
-                            {{ $discountPct }}% OFF
+                            {{ $package->effective_discount_percentage }}% OFF
                         </span>
+                        @endif
                     </div>
                     
                     <button type="button" 
                         onclick="event.stopPropagation(); openPackageDetails({{ $package->id }})" 
                         class="w-full mb-2 py-2 px-3 bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                         <i class="fas fa-file-waveform text-pink-500 text-xs"></i>
-                        <span>View {{ $package->total_parameters_count }} Tests Included</span>
+                        <span>View {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters</span>
                     </button>
 
                     <button type="button" 
@@ -1045,8 +1049,8 @@
                         data-type="package"
                         data-name="{{ $package->name }}"
                         data-price="{{ $package->price }}" 
-                        data-mrp="{{ $mrp }}" 
-                        data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                        data-mrp="{{ $package->effective_mrp ?? $package->price }}" 
+                        data-params="Includes {{ $package->included_tests_count }} Tests &amp; {{ $package->total_parameters_count }} Parameters"
                         class="w-full bg-white border-2 border-pink-500 text-pink-600 hover:bg-gradient-to-r hover:from-pink-500 hover:to-purple-600 hover:border-transparent hover:text-white font-bold py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center group/btn shadow-xs active:scale-98 cursor-pointer">
                         <i class="fas fa-cart-plus mr-2 group-hover/btn:scale-110 transition-transform"></i> Add to Cart
                     </button>
@@ -1139,7 +1143,7 @@
                             <i class="fas fa-flask text-2xl text-blue-500 drop-shadow-sm"></i>
                         </div>
                         <h4 class="font-bold text-gray-800 text-lg mb-2">Certified Labs</h4>
-                        <p class="text-sm font-medium text-gray-500 leading-relaxed">Processed at self-owned, NABL & CAP certified laboratories.</p>
+                        <p class="text-sm font-medium text-gray-500 leading-relaxed">Processed at fully certified, state-of-the-art diagnostic laboratories.</p>
                     </div>
                 </div>
 
@@ -1172,7 +1176,7 @@
                                 <i class="fas fa-check-circle text-xl"></i>
                             </div>
                             <div>
-                                <p class="font-bold text-gray-900 text-sm">NABL & CAP Certified</p>
+                                <p class="font-bold text-gray-900 text-sm">100% Quality Certified</p>
                                 <p class="text-xs text-gray-500 font-medium">Guaranteeing 100% accuracy</p>
                             </div>
                         </div>
@@ -2018,6 +2022,7 @@
                 'name' => $p->name,
                 'price' => $p->price,
                 'description' => $p->description,
+                'tests_count' => $p->included_tests_count,
                 'total_parameters' => $p->total_parameters_count,
                 'grouped' => $p->getGroupedParameters(),
             ];

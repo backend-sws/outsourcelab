@@ -82,7 +82,7 @@
             <!-- Trust Points -->
             <div class="bg-gray-50 rounded-xl p-3 flex items-center justify-between text-[10px] text-gray-500 font-medium">
                 <span class="flex items-center gap-1.5"><i class="fas fa-lock text-teal-700"></i> 100% Confidential</span>
-                <span class="flex items-center gap-1.5"><i class="fas fa-bolt text-amber-500"></i> 15 Min Doctor Callback</span>
+                <span class="flex items-center gap-1.5"><i class="fas fa-phone-volume text-amber-500"></i> Contact You Soon</span>
                 <span class="flex items-center gap-1.5"><i class="fas fa-truck-medical text-emerald-600"></i> Doorstep Pickup</span>
             </div>
 

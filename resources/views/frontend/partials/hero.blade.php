@@ -18,8 +18,8 @@
         <div class="electricity-line" style="left: 70%; animation-duration: 1.5s; animation-delay: 1.5s; height: 100px;"></div>
     </div>
 
-    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between relative z-30">
-        <div class="md:w-3/5 space-y-6">
+    <div class="container mx-auto relative z-30">
+        <div class="w-full max-w-2xl space-y-6">
             <!-- Added a subtle text-shadow to make it readable against different backgrounds since overlay is removed -->
             <h1 id="typewriter-text" class="text-3xl md:text-4xl font-extrabold text-brand-dark mb-4 min-h-[40px] md:min-h-[48px]" style="text-shadow: 2px 2px 4px rgba(255,255,255,0.8), -2px -2px 4px rgba(255,255,255,0.8), 0px 0px 10px rgba(255,255,255,1);"></h1>
 
@@ -85,8 +85,8 @@
 
             <!-- Quick Search Tags -->
             <div class="flex flex-wrap items-center gap-2 text-xs text-gray-700 max-w-xl mb-6">
-                <span class="font-bold text-gray-500 text-[11px] uppercase tracking-wider flex items-center gap-1">
-                    <i class="fas fa-fire-flame-curved text-amber-500"></i> Popular:
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white font-extrabold text-[11px] uppercase tracking-wider border border-white/20 shadow-sm">
+                    <i class="fas fa-fire-flame-curved text-amber-400"></i> Popular:
                 </span>
                 <button type="button" onclick="triggerSearch('Full Body')" class="px-2.5 py-1 rounded-full bg-white/80 hover:bg-white text-gray-700 hover:text-teal-800 border border-gray-200/80 shadow-xs transition font-semibold">
                     Full Body
@@ -120,35 +120,6 @@
                     </div>
                     <span>Upload Prescription</span>
                 </button>
-            </div>
-        </div>
-
-        <div class="md:w-2/5 hidden md:block">
-            <!-- Right side hero card / Trust badge banner -->
-            <div class="bg-white/80 backdrop-blur-xl p-6 rounded-3xl border border-white/60 shadow-2xl space-y-4 max-w-sm ml-auto">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-800 flex items-center justify-center text-xl">
-                        <i class="fas fa-shield-virus"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-bold text-gray-900 text-sm">Quality Standards</h4>
-                        <p class="text-xs text-gray-500">NABL & ICMR Certified Protocols</p>
-                    </div>
-                </div>
-                <div class="space-y-2 text-xs text-gray-600">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-circle-check text-teal-600 text-xs"></i>
-                        <span>Automated Beckman & Roche Analyzers</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-circle-check text-teal-600 text-xs"></i>
-                        <span>Zero-contamination BD Vacutainer tubes</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-circle-check text-teal-600 text-xs"></i>
-                        <span>Free home pickup across 500+ pincodes</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -212,46 +183,8 @@
 
                 let html = '';
 
-                if (packages.length > 0) {
-                    html += `<div class="px-3 py-1.5 bg-gray-50 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 rounded-lg">Popular Health Packages (${packages.length})</div>`;
-                    packages.forEach(pkg => {
-                        const safeName = (pkg.name || '').replace(/"/g, '&quot;');
-                        html += `
-                            <div class="flex items-center justify-between p-3 rounded-xl hover:bg-teal-50/50 transition group cursor-pointer" onclick="window.location.href='${pkg.url}'">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                        <i class="fas fa-box-open"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="text-xs font-bold text-gray-900 group-hover:text-teal-800 transition">${pkg.name}</h5>
-                                        <p class="text-[10px] text-gray-500">${pkg.parameters_count || pkg.total_params || 0} Tests Included • ${pkg.subcategory || 'Full Body'}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right flex items-center gap-2.5 flex-shrink-0 ml-2">
-                                    <div>
-                                        <span class="text-xs font-extrabold text-teal-900 block">₹${Number(pkg.price).toLocaleString('en-IN')}</span>
-                                        <span class="text-[10px] text-teal-600 block font-bold">Details <i class="fas fa-chevron-right text-[8px]"></i></span>
-                                    </div>
-                                    <button type="button" 
-                                        onclick="event.stopPropagation(); addToCart(this)" 
-                                        data-id="${pkg.id}"
-                                        data-type="package"
-                                        data-name="${safeName}" 
-                                        data-price="${pkg.price}" 
-                                        data-mrp="${pkg.price}" 
-                                        data-params="Includes ${pkg.parameters_count || pkg.total_params || 0} Parameters"
-                                        class="px-3 py-1.5 bg-brand-secondary hover:bg-brand-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer">
-                                        <i class="fas fa-cart-plus text-[10px]"></i>
-                                        <span>Add</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
                 if (tests.length > 0) {
-                    html += `<div class="px-3 py-1.5 bg-gray-50 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 rounded-lg mt-2">Individual Lab Tests (${tests.length})</div>`;
+                    html += `<div class="px-3 py-1.5 bg-gray-50 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 rounded-lg">Individual Lab Tests (${tests.length})</div>`;
                     tests.forEach(t => {
                         const safeName = (t.name || '').replace(/"/g, '&quot;');
                         const safeDept = (t.department || 'Single Diagnostic Test').replace(/"/g, '&quot;');
@@ -264,7 +197,7 @@
                                     </div>
                                     <div>
                                         <h5 class="text-xs font-bold text-gray-900 group-hover:text-indigo-800 transition">${t.name}</h5>
-                                        <p class="text-[10px] text-gray-500">${t.department} • TAT: ${t.tat}</p>
+                                        <p class="text-[10px] text-gray-500">${t.department} • ${t.parameters_count > 1 ? t.parameters_count + ' Parameters • ' : ''}TAT: ${t.tat}</p>
                                     </div>
                                 </div>
                                 <div class="text-right flex items-center gap-2.5 flex-shrink-0 ml-2">
@@ -279,7 +212,45 @@
                                         data-name="${safeName}" 
                                         data-price="${t.price}" 
                                         data-mrp="${mrp}" 
-                                        data-params="${safeDept}"
+                                        data-params="${t.parameters_count > 1 ? 'Includes ' + t.parameters_count + ' Parameters' : safeDept}"
+                                        class="px-3 py-1.5 bg-brand-secondary hover:bg-brand-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer">
+                                        <i class="fas fa-cart-plus text-[10px]"></i>
+                                        <span>Add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                if (packages.length > 0) {
+                    html += `<div class="px-3 py-1.5 bg-gray-50 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 rounded-lg ${tests.length > 0 ? 'mt-2' : ''}">Popular Health Packages (${packages.length})</div>`;
+                    packages.forEach(pkg => {
+                        const safeName = (pkg.name || '').replace(/"/g, '&quot;');
+                        html += `
+                            <div class="flex items-center justify-between p-3 rounded-xl hover:bg-teal-50/50 transition group cursor-pointer" onclick="window.location.href='${pkg.url}'">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                        <i class="fas fa-box-open"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="text-xs font-bold text-gray-900 group-hover:text-teal-800 transition">${pkg.name}</h5>
+                                        <p class="text-[10px] text-gray-500">${pkg.tests_count ? pkg.tests_count + ' Tests • ' : ''}${pkg.total_params || pkg.parameters_count || 0} Parameters • ${pkg.subcategory || 'Full Body'}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right flex items-center gap-2.5 flex-shrink-0 ml-2">
+                                    <div>
+                                        <span class="text-xs font-extrabold text-teal-900 block">₹${Number(pkg.price).toLocaleString('en-IN')}</span>
+                                        <span class="text-[10px] text-teal-600 block font-bold">Details <i class="fas fa-chevron-right text-[8px]"></i></span>
+                                    </div>
+                                    <button type="button" 
+                                        onclick="event.stopPropagation(); addToCart(this)" 
+                                        data-id="${pkg.id}"
+                                        data-type="package"
+                                        data-name="${safeName}" 
+                                        data-price="${pkg.price}" 
+                                        data-mrp="${pkg.price}" 
+                                        data-params="Includes ${pkg.tests_count ? pkg.tests_count + ' Tests & ' : ''}${pkg.parameters_count || pkg.total_params || 0} Parameters"
                                         class="px-3 py-1.5 bg-brand-secondary hover:bg-brand-dark text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm active:scale-95 cursor-pointer">
                                         <i class="fas fa-cart-plus text-[10px]"></i>
                                         <span>Add</span>

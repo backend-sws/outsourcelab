@@ -187,21 +187,32 @@
 
                     <!-- Contact Details Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                        <!-- Primary Mobile (Locked & Verified) -->
+                        <!-- Primary Mobile Number -->
                         <div>
                             <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">
-                                Mobile Number (Primary)
+                                Mobile Number (Primary) <span class="text-rose-500">*</span>
                             </label>
-                            <div class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between">
-                                <div>
-                                    <span class="block text-xs font-bold text-gray-400 mb-0.5">Verified Primary Number</span>
-                                    <span class="font-black text-gray-800 text-base tracking-wide">+91 {{ $profile->mobile }}</span>
-                                </div>
-                                <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-black px-2.5 py-1 rounded-full">
-                                    <i class="fas fa-check-circle text-xs"></i> Verified
+                            <div class="relative">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm border-r pr-3 border-gray-200 flex items-center gap-1">
+                                    <span>+91</span>
+                                    <i class="fas fa-caret-down text-gray-400 text-xs"></i>
                                 </span>
+                                <input 
+                                    type="tel" 
+                                    name="mobile" 
+                                    value="{{ old('mobile', $profile->mobile) }}" 
+                                    maxlength="10" 
+                                    placeholder="Enter 10-digit Primary Mobile" 
+                                    required
+                                    class="w-full pl-24 {{ $profile->mobile ? 'pr-24' : 'pr-4' }} py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary font-bold text-gray-800 text-sm outline-none transition placeholder-gray-300"
+                                >
+                                @if($profile->mobile)
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-[11px] font-black px-2.5 py-1 rounded-full pointer-events-none">
+                                        <i class="fas fa-check-circle text-xs"></i> Saved
+                                    </span>
+                                @endif
                             </div>
-                            <input type="hidden" name="mobile" value="{{ $profile->mobile }}">
+                            @error('mobile')<p class="text-rose-500 text-xs mt-1 font-semibold">{{ $message }}</p>@enderror
                         </div>
 
                         <!-- Alternate Mobile -->

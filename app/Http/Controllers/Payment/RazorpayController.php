@@ -16,6 +16,7 @@ use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\Test;
 use App\Services\NotificationService;
+use App\Services\PathologyApiService;
 use App\Services\RazorpayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -196,6 +197,27 @@ class RazorpayController extends Controller
                 : (int) round($earnValue);
         }
 
+        // Validate beneficiary / patient name (User cannot book without name)
+        $beneficiaryName = null;
+        if ($familyMemberId) {
+            $member = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->first();
+            if (! $member) {
+                $familyMemberId = null;
+                $beneficiaryName = $patient->name;
+            } else {
+                $beneficiaryName = $member->name;
+            }
+        } else {
+            $beneficiaryName = $patient->name;
+        }
+
+        if (empty(trim((string) $beneficiaryName)) || strtolower(trim((string) $beneficiaryName)) === 'self') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient name is required. Please provide a valid patient name before booking.',
+            ], 422);
+        }
+
         // Validate address and family member
         if ($addressId && ! Address::where('id', $addressId)->where('patient_id', $patientId)->exists()) {
             $addressId = null;
@@ -204,8 +226,11 @@ class RazorpayController extends Controller
             $addressId = Address::where('patient_id', $patientId)->latest()->value('id');
         }
 
-        if ($familyMemberId && ! FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->exists()) {
-            $familyMemberId = null;
+        if (! $addressId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sample collection address is required. Please add or select an address before booking.',
+            ], 422);
         }
 
         // Create Pending Booking
@@ -452,7 +477,64 @@ class RazorpayController extends Controller
             }
         });
 
+        // Push verified booking to Pathology SaaS LIS API
+        try {
+            $apiService = app(PathologyApiService::class);
+            if ($apiService->isConfigured() && empty($booking->lis_booking_reference)) {
+                $lisItems = [];
+                if (is_array($booking->test_details)) {
+                    foreach ($booking->test_details as $cartItem) {
+                        $itemType = $cartItem['type'] ?? 'test';
+                        $localId = $cartItem['id'] ?? null;
+
+                        if ($itemType === 'test') {
+                            $testModel = Test::find($localId);
+                            $targetId = $testModel?->lis_test_id ?: $localId;
+                            $lisItems[] = ['type' => 'test', 'id' => (int) $targetId];
+                        } elseif ($itemType === 'package') {
+                            $pkgModel = Package::find($localId);
+                            $targetId = $pkgModel?->lis_package_id ?: $localId;
+                            $lisItems[] = ['type' => 'package', 'id' => (int) $targetId];
+                        }
+                    }
+                }
+
+                if (! empty($lisItems)) {
+                    $patient = $booking->patient;
+                    $targetMember = $booking->familyMember;
+                    $targetAddress = $booking->address;
+
+                    $lisPayload = [
+                        'patient_name' => $targetMember?->name ?: ($patient?->name ?? 'Patient'),
+                        'patient_phone' => $patient?->mobile ?? '',
+                        'patient_email' => $patient?->email,
+                        'patient_gender' => strtolower($targetMember?->gender ?: ($patient?->gender ?: 'other')),
+                        'patient_age' => (int) ($targetMember?->age ?: ($patient?->age ?: 30)),
+                        'patient_age_unit' => 'years',
+                        'collection_type' => str_contains(strtolower($booking->collection_type), 'home') ? 'home_collection' : 'lab_visit',
+                        'collection_address' => $targetAddress?->full_address ?? 'Not provided',
+                        'preferred_date' => $booking->booking_date ? $booking->booking_date->toDateString() : now()->toDateString(),
+                        'preferred_time_slot' => $booking->collection_slot ?: '08:00 AM - 10:00 AM',
+                        'branch_id' => (int) config('pathology.default_branch_id', 1),
+                        'notes' => "Website Order (Paid Online): #{$booking->booking_reference}",
+                        'items' => $lisItems,
+                    ];
+
+                    $lisResult = $apiService->createBooking($lisPayload);
+                    if ($lisResult && ! empty($lisResult['booking_reference'])) {
+                        $booking->lis_booking_reference = $lisResult['booking_reference'];
+                        $booking->lis_status = $lisResult['status'] ?? 'pending';
+                        $booking->lis_synced_at = now();
+                        $booking->save();
+                    }
+                }
+            }
+        } catch (\Throwable $lisErr) {
+            Log::warning('Pathology LIS push failed in Razorpay verify: '.$lisErr->getMessage());
+        }
+
         // Dispatch notifications
+
         try {
             $booking->load(['patient', 'address', 'familyMember']);
             app(NotificationService::class)->bookingPlaced($booking);
@@ -696,6 +778,217 @@ class RazorpayController extends Controller
                 'contact' => preg_replace('/[^0-9]/', '', $patient->mobile ?? ''),
             ],
             'theme' => ['color' => '#0d9488'],
+        ]);
+    }
+
+    /**
+     * Create a Razorpay order for additional tests on an already paid booking.
+     */
+    public function createModifyOrder(Request $request, int $id, RazorpayService $razorpay): JsonResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return response()->json(['success' => false, 'message' => 'Please login to proceed.'], 401);
+        }
+
+        $booking = Booking::where('id', $id)->where('patient_id', $patientId)->first();
+        if (! $booking) {
+            return response()->json(['success' => false, 'message' => 'Booking not found.'], 404);
+        }
+
+        $rawTests = $request->input('tests', []);
+        $originalTests = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);
+
+        $originalMap = [];
+        foreach ($originalTests as $t) {
+            $k = ($t['type'] ?? 'test').'_'.($t['id'] ?? 0);
+            $originalMap[$k] = $t;
+        }
+
+        // Calculate additional amount for newly added tests
+        $additionalAmount = 0.0;
+        foreach ($rawTests as $item) {
+            $k = ($item['type'] ?? 'test').'_'.($item['id'] ?? 0);
+            if (! isset($originalMap[$k])) {
+                $type = $item['type'] ?? 'test';
+                $itemId = $item['id'] ?? null;
+                if ($type === 'package') {
+                    $pkg = Package::find($itemId);
+                    if ($pkg && $pkg->is_active) {
+                        $additionalAmount += (float) $pkg->price;
+                    }
+                } else {
+                    $test = Test::find($itemId);
+                    if ($test && $test->is_active) {
+                        $additionalAmount += (float) $test->price;
+                    }
+                }
+            }
+        }
+
+        if ($additionalAmount <= 0) {
+            return response()->json(['success' => false, 'message' => 'No additional payment required.'], 400);
+        }
+
+        $txn = PaymentTransaction::create([
+            'transaction_reference' => PaymentTransaction::generateReference(),
+            'patient_id' => $patientId,
+            'booking_id' => $booking->id,
+            'type' => 'booking_addon',
+            'amount' => $additionalAmount,
+            'currency' => 'INR',
+            'gateway' => 'razorpay',
+            'status' => 'created',
+            'request_payload' => [
+                'addon_tests' => $rawTests,
+                'address_id' => $request->input('address_id'),
+                'booking_date' => $request->input('booking_date'),
+                'collection_slot' => $request->input('collection_slot'),
+                'family_member_id' => $request->input('family_member_id'),
+            ],
+        ]);
+
+        $razorpayOrder = $razorpay->createOrder($additionalAmount, $booking->booking_reference.'-ADD', [
+            'booking_id' => (string) $booking->id,
+            'patient_id' => (string) $patientId,
+            'type' => 'booking_addon',
+        ]);
+
+        if (! $razorpayOrder['success']) {
+            $txn->update(['status' => 'failed', 'error_code' => 'GATEWAY_ERROR']);
+
+            return response()->json(['success' => false, 'message' => $razorpayOrder['message'] ?? 'Could not initiate payment gateway.'], 500);
+        }
+
+        $orderId = $razorpayOrder['order_id'];
+        $txn->update(['razorpay_order_id' => $orderId]);
+
+        return response()->json([
+            'success' => true,
+            'key' => $razorpay->getKeyId(),
+            'order_id' => $orderId,
+            'amount' => $razorpayOrder['amount'],
+            'amount_in_rupees' => $additionalAmount,
+            'currency' => 'INR',
+            'name' => Setting::get('app_name', 'AV Wellcare Diagnostics'),
+            'description' => "Additional Tests for #{$booking->booking_reference}",
+            'booking_id' => $booking->id,
+            'booking_reference' => $booking->booking_reference,
+            'prefill' => [
+                'name' => $booking->patient->name ?? '',
+                'email' => $booking->patient->email ?? '',
+                'contact' => preg_replace('/[^0-9]/', '', $booking->patient->mobile ?? ''),
+            ],
+            'theme' => ['color' => '#0d9488'],
+        ]);
+    }
+
+    /**
+     * Verify payment for additional tests on an already paid booking and commit modifications.
+     */
+    public function verifyModifyPayment(Request $request, int $id, RazorpayService $razorpay): JsonResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return response()->json(['success' => false, 'message' => 'Please login.'], 401);
+        }
+
+        $booking = Booking::where('id', $id)->where('patient_id', $patientId)->first();
+        if (! $booking) {
+            return response()->json(['success' => false, 'message' => 'Booking not found.'], 404);
+        }
+
+        $orderId = $request->input('razorpay_order_id');
+        $paymentId = $request->input('razorpay_payment_id');
+        $signature = $request->input('razorpay_signature');
+        $rawTests = $request->input('tests', []);
+
+        if (empty($orderId) || empty($paymentId) || empty($signature)) {
+            return response()->json(['success' => false, 'message' => 'Missing payment parameters.'], 422);
+        }
+
+        $isValid = $razorpay->verifyPaymentSignature($orderId, $paymentId, $signature);
+        if (! $isValid) {
+            return response()->json(['success' => false, 'message' => 'Payment signature verification failed.'], 400);
+        }
+
+        $originalTests = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);
+        $originalMap = [];
+        foreach ($originalTests as $t) {
+            $k = ($t['type'] ?? 'test').'_'.($t['id'] ?? 0);
+            $originalMap[$k] = $t;
+        }
+
+        $newTestsToAdd = [];
+        $additionalAmount = 0.0;
+        foreach ($rawTests as $item) {
+            $k = ($item['type'] ?? 'test').'_'.($item['id'] ?? 0);
+            if (! isset($originalMap[$k])) {
+                $type = $item['type'] ?? 'test';
+                $itemId = $item['id'] ?? null;
+                if ($type === 'package') {
+                    $pkg = Package::find($itemId);
+                    if ($pkg && $pkg->is_active) {
+                        $price = (float) $pkg->price;
+                        $newTestsToAdd[] = [
+                            'id' => $pkg->id,
+                            'name' => $pkg->name,
+                            'title' => $pkg->name,
+                            'type' => 'package',
+                            'price' => $price,
+                            'parameters_count' => is_array($pkg->parameters) ? count($pkg->parameters) : 0,
+                        ];
+                        $additionalAmount += $price;
+                    }
+                } else {
+                    $test = Test::find($itemId);
+                    if ($test && $test->is_active) {
+                        $price = (float) $test->price;
+                        $newTestsToAdd[] = [
+                            'id' => $test->id,
+                            'name' => $test->name,
+                            'title' => $test->name,
+                            'type' => 'test',
+                            'price' => $price,
+                        ];
+                        $additionalAmount += $price;
+                    }
+                }
+            }
+        }
+
+        $allFinalTests = array_merge($originalTests, $newTestsToAdd);
+
+        $booking->test_details = $allFinalTests;
+        $booking->amount = (float) $booking->amount + $additionalAmount;
+        $booking->payment_status = 'Paid';
+
+        if ($request->filled('address_id')) {
+            $booking->address_id = $request->input('address_id');
+        }
+        if ($request->filled('booking_date')) {
+            $booking->booking_date = $request->input('booking_date');
+        }
+        if ($request->filled('collection_slot')) {
+            $booking->collection_slot = $request->input('collection_slot');
+        }
+        if ($request->has('family_member_id')) {
+            $booking->family_member_id = $request->input('family_member_id') ?: null;
+        }
+
+        $booking->save();
+
+        PaymentTransaction::where('razorpay_order_id', $orderId)->update([
+            'status' => 'captured',
+            'razorpay_payment_id' => $paymentId,
+            'razorpay_signature' => $signature,
+            'paid_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Additional tests added and payment of ₹'.number_format($additionalAmount, 0).' verified successfully!',
+            'redirect_url' => route('patient.bookings'),
         ]);
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Package;
-use App\Models\TestCategory;
+use App\Models\Test;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,10 +20,11 @@ class PackageController extends Controller
 
     public function create()
     {
-        $testParameters = TestCategory::orderBy('name')->get();
+        // Tests with their parameters for the package builder
+        $tests = Test::where('is_active', true)->with('category')->orderBy('name')->get();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.pages.packages.form', compact('testParameters', 'categories'));
+        return view('admin.pages.packages.form', compact('tests', 'categories'));
     }
 
     public function store(Request $request)
@@ -37,6 +38,11 @@ class PackageController extends Controller
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'integer|exists:categories,id',
             'price' => 'required|numeric|min:0|max:99999999',
+            'original_price' => 'nullable|numeric|min:0|max:99999999',
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'package_code' => 'nullable|string|max:50',
+            'sample_type' => 'nullable|string|max:100',
+            'tat_hours' => 'nullable|integer|min:1',
             'total_parameters' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:2048',
             'description' => 'nullable|string',
@@ -56,6 +62,7 @@ class PackageController extends Controller
         $package = new Package($validated);
         $package->is_featured = $request->has('is_featured');
         $package->is_active = $request->has('is_active');
+        $package->lock_pricing = $request->has('lock_pricing');
 
         if ($request->hasFile('image')) {
             $package->image = $request->file('image')->store('packages', 'public');
@@ -68,10 +75,10 @@ class PackageController extends Controller
 
     public function edit(Package $package)
     {
-        $testParameters = TestCategory::orderBy('name')->get();
+        $tests = Test::where('is_active', true)->with('category')->orderBy('name')->get();
         $categories = Category::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.pages.packages.form', compact('package', 'testParameters', 'categories'));
+        return view('admin.pages.packages.form', compact('package', 'tests', 'categories'));
     }
 
     public function update(Request $request, Package $package)
@@ -85,6 +92,11 @@ class PackageController extends Controller
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'integer|exists:categories,id',
             'price' => 'required|numeric|min:0|max:99999999',
+            'original_price' => 'nullable|numeric|min:0|max:99999999',
+            'discount_percentage' => 'nullable|integer|min:0|max:100',
+            'package_code' => 'nullable|string|max:50',
+            'sample_type' => 'nullable|string|max:100',
+            'tat_hours' => 'nullable|integer|min:1',
             'total_parameters' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:2048',
             'description' => 'nullable|string',
@@ -102,6 +114,7 @@ class PackageController extends Controller
         $package->fill($validated);
         $package->is_featured = $request->has('is_featured');
         $package->is_active = $request->has('is_active');
+        $package->lock_pricing = $request->has('lock_pricing');
 
         if ($request->hasFile('image')) {
             if ($package->image) {

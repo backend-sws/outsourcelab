@@ -32,10 +32,18 @@ class TestController extends Controller
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'integer|exists:test_categories,id',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|max:2048',
+            'original_price' => 'nullable|numeric|min:0',
+            'test_code' => 'nullable|string|max:50',
+            'sample_type' => 'nullable|string|max:100',
+            'tat_hours' => 'nullable|integer|min:1',
             'preparation_instructions' => 'nullable|string',
             'report_delivery_time' => 'nullable|string',
+            'parameters' => 'nullable|array',
+            'parameters.*' => 'nullable|string|max:255',
         ]);
+
+        // Filter out blank parameter entries
+        $validated['parameters'] = array_values(array_filter($request->input('parameters', []), fn ($p) => trim($p) !== ''));
 
         $categoryIds = $request->input('category_ids', []);
         if (! empty($validated['test_category_id']) && ! in_array($validated['test_category_id'], $categoryIds)) {
@@ -47,10 +55,8 @@ class TestController extends Controller
         $test->is_featured = $request->has('is_featured');
         $test->is_active = $request->has('is_active');
         $test->home_collection_available = $request->has('home_collection_available');
-
-        if ($request->hasFile('image')) {
-            $test->image = $request->file('image')->store('tests', 'public');
-        }
+        $test->fasting_required = $request->has('fasting_required');
+        $test->lock_pricing = $request->has('lock_pricing');
 
         $test->save();
 
@@ -72,10 +78,19 @@ class TestController extends Controller
             'category_ids' => 'nullable|array',
             'category_ids.*' => 'integer|exists:test_categories,id',
             'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
+            'test_code' => 'nullable|string|max:50',
+            'sample_type' => 'nullable|string|max:100',
+            'tat_hours' => 'nullable|integer|min:1',
             'image' => 'nullable|image|max:2048',
             'preparation_instructions' => 'nullable|string',
             'report_delivery_time' => 'nullable|string',
+            'parameters' => 'nullable|array',
+            'parameters.*' => 'nullable|string|max:255',
         ]);
+
+        // Filter out blank parameter entries
+        $validated['parameters'] = array_values(array_filter($request->input('parameters', []), fn ($p) => trim($p) !== ''));
 
         $categoryIds = $request->input('category_ids', []);
         if (! empty($validated['test_category_id']) && ! in_array($validated['test_category_id'], $categoryIds)) {
@@ -87,13 +102,8 @@ class TestController extends Controller
         $test->is_featured = $request->has('is_featured');
         $test->is_active = $request->has('is_active');
         $test->home_collection_available = $request->has('home_collection_available');
-
-        if ($request->hasFile('image')) {
-            if ($test->image) {
-                Storage::disk('public')->delete($test->image);
-            }
-            $test->image = $request->file('image')->store('tests', 'public');
-        }
+        $test->fasting_required = $request->has('fasting_required');
+        $test->lock_pricing = $request->has('lock_pricing');
 
         $test->save();
 

@@ -15,6 +15,7 @@ use App\Models\PatientMembership;
 use App\Models\Setting;
 use App\Models\Test;
 use App\Services\NotificationService;
+use App\Services\PathologyApiService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -224,6 +225,27 @@ class PatientBookingController extends Controller
             }
         }
 
+        // Validate beneficiary / patient name (User cannot book without name)
+        $beneficiaryName = null;
+        if ($familyMemberId) {
+            $member = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->first();
+            if (! $member) {
+                $familyMemberId = null;
+                $beneficiaryName = $patient->name;
+            } else {
+                $beneficiaryName = $member->name;
+            }
+        } else {
+            $beneficiaryName = $patient->name;
+        }
+
+        if (empty(trim((string) $beneficiaryName)) || strtolower(trim((string) $beneficiaryName)) === 'self') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient name is required. Please provide a valid patient name before booking.',
+            ], 422);
+        }
+
         // Address verification and fallback
         if ($addressId) {
             $addressExists = Address::where('id', $addressId)->where('patient_id', $patientId)->exists();
@@ -236,12 +258,11 @@ class PatientBookingController extends Controller
             $addressId = Address::where('patient_id', $patientId)->latest()->value('id');
         }
 
-        // Family member verification
-        if ($familyMemberId) {
-            $memberExists = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->exists();
-            if (! $memberExists) {
-                $familyMemberId = null;
-            }
+        if (! $addressId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sample collection address is required. Please add or select an address before booking.',
+            ], 422);
         }
 
         // Generate unique booking reference
@@ -309,6 +330,59 @@ class PatientBookingController extends Controller
         // Clear patient cart in DB
         $patient->update(['cart' => []]);
 
+        // Push order to Pathology SaaS LIS API
+        try {
+            $apiService = app(PathologyApiService::class);
+            if ($apiService->isConfigured()) {
+                $lisItems = [];
+                foreach ($sanitizedCart as $cartItem) {
+                    $itemType = $cartItem['type'] ?? 'test';
+                    $localId = $cartItem['id'] ?? null;
+
+                    if ($itemType === 'test') {
+                        $testModel = Test::find($localId);
+                        $targetId = $testModel?->lis_test_id ?: $localId;
+                        $lisItems[] = ['type' => 'test', 'id' => (int) $targetId];
+                    } elseif ($itemType === 'package') {
+                        $pkgModel = Package::find($localId);
+                        $targetId = $pkgModel?->lis_package_id ?: $localId;
+                        $lisItems[] = ['type' => 'package', 'id' => (int) $targetId];
+                    }
+                }
+
+                if (! empty($lisItems)) {
+                    $targetAddress = $addressId ? Address::find($addressId) : null;
+                    $targetMember = $familyMemberId ? FamilyMember::find($familyMemberId) : null;
+
+                    $lisPayload = [
+                        'patient_name' => $targetMember?->name ?: $patient->name,
+                        'patient_phone' => $patient->mobile,
+                        'patient_email' => $patient->email,
+                        'patient_gender' => strtolower($targetMember?->gender ?: ($patient->gender ?: 'other')),
+                        'patient_age' => (int) ($targetMember?->age ?: ($patient->age ?: 30)),
+                        'patient_age_unit' => 'years',
+                        'collection_type' => str_contains(strtolower($collectionType), 'home') ? 'home_collection' : 'lab_visit',
+                        'collection_address' => $targetAddress?->full_address ?? 'Not provided',
+                        'preferred_date' => date('Y-m-d', strtotime($bookingDate)),
+                        'preferred_time_slot' => $collectionSlot ?: '08:00 AM - 10:00 AM',
+                        'branch_id' => (int) config('pathology.default_branch_id', 1),
+                        'notes' => "Website Order: #{$booking->booking_reference}",
+                        'items' => $lisItems,
+                    ];
+
+                    $lisResult = $apiService->createBooking($lisPayload);
+                    if ($lisResult && ! empty($lisResult['booking_reference'])) {
+                        $booking->lis_booking_reference = $lisResult['booking_reference'];
+                        $booking->lis_status = $lisResult['status'] ?? 'pending';
+                        $booking->lis_synced_at = now();
+                        $booking->save();
+                    }
+                }
+            }
+        } catch (\Throwable $lisErr) {
+            Log::warning('Pathology LIS push failed for booking #'.$booking->id.': '.$lisErr->getMessage());
+        }
+
         // Dispatch notification (Email, SMS, WhatsApp)
         try {
             app(NotificationService::class)->bookingPlaced($booking);
@@ -323,6 +397,301 @@ class PatientBookingController extends Controller
             'final_amount' => $finalAmount,
             'coins_redeemed' => $coinsRedeemed,
             'coins_earned' => $coinsEarned,
+        ]);
+    }
+
+    /**
+     * Synchronize client cart items with the database.
+     */
+    /**
+     * Get booking details and options for modification.
+     */
+    public function getBookingModifyData(int $id): JsonResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return response()->json(['success' => false, 'message' => 'Please login to modify booking.'], 401);
+        }
+
+        $booking = Booking::with(['patient', 'familyMember', 'address'])
+            ->where('id', $id)
+            ->where('patient_id', $patientId)
+            ->first();
+
+        if (! $booking) {
+            return response()->json(['success' => false, 'message' => 'Booking not found.'], 404);
+        }
+
+        $isModifiable = ! in_array($booking->status, ['Sample Collected', 'In Process', 'Processing', 'Report Ready', 'Completed', 'Cancelled'])
+            && $booking->sample_status !== 'Sample Collected';
+
+        if (! $isModifiable) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This booking cannot be modified because sample has already been collected or processed.',
+            ], 422);
+        }
+
+        $patient = Patient::with(['addresses', 'familyMembers'])->find($patientId);
+
+        $availableTests = Test::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'price', 'original_price', 'sample_type'])
+            ->map(fn ($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'price' => (float) $t->price,
+                'original_price' => (float) ($t->original_price ?: $t->price),
+                'type' => 'test',
+            ]);
+
+        $availablePackages = Package::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'price', 'original_price', 'sample_type'])
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'price' => (float) $p->price,
+                'original_price' => (float) ($p->original_price ?: $p->price),
+                'type' => 'package',
+            ]);
+
+        $testDetails = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);
+
+        return response()->json([
+            'success' => true,
+            'is_paid' => $booking->payment_status === 'Paid',
+            'is_modifiable' => $isModifiable,
+            'booking' => [
+                'id' => $booking->id,
+                'reference' => $booking->booking_reference,
+                'amount' => (float) $booking->amount,
+                'payment_status' => $booking->payment_status,
+                'payment_method' => $booking->payment_method,
+                'status' => $booking->status,
+                'booking_date' => $booking->booking_date ? $booking->booking_date->format('Y-m-d') : now()->format('Y-m-d'),
+                'collection_slot' => $booking->collection_slot,
+                'collection_type' => $booking->collection_type,
+                'address_id' => $booking->address_id,
+                'family_member_id' => $booking->family_member_id,
+                'tests' => $testDetails,
+            ],
+            'addresses' => $patient ? $patient->addresses->map(fn ($a) => [
+                'id' => $a->id,
+                'title' => $a->title ?: 'Home',
+                'full_address' => $a->full_address,
+                'pincode' => $a->pincode,
+            ]) : [],
+            'family_members' => $patient ? $patient->familyMembers->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'relation' => $m->relation,
+            ]) : [],
+            'patient_name' => $patient?->name ?? 'Self',
+            'catalog' => [
+                'tests' => $availableTests,
+                'packages' => $availablePackages,
+            ],
+        ]);
+    }
+
+    /**
+     * Submit modifications for a booking (tests, details, address).
+     */
+    public function modifyBooking(Request $request, int $id): JsonResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return response()->json(['success' => false, 'message' => 'Please login.'], 401);
+        }
+
+        $booking = Booking::where('id', $id)->where('patient_id', $patientId)->first();
+        if (! $booking) {
+            return response()->json(['success' => false, 'message' => 'Booking not found.'], 404);
+        }
+
+        $isModifiable = ! in_array($booking->status, ['Sample Collected', 'In Process', 'Processing', 'Report Ready', 'Completed', 'Cancelled'])
+            && $booking->sample_status !== 'Sample Collected';
+
+        if (! $isModifiable) {
+            return response()->json(['success' => false, 'message' => 'This booking cannot be modified at this stage.'], 422);
+        }
+
+        $isPaid = ($booking->payment_status === 'Paid');
+        $rawTests = $request->input('tests', []);
+        $addressId = $request->input('address_id');
+        $bookingDate = $request->input('booking_date');
+        $collectionSlot = $request->input('collection_slot');
+        $familyMemberId = $request->input('family_member_id');
+        $paymentMethodForDiff = $request->input('payment_method_for_diff', 'Cash');
+
+        // Address validation
+        if ($addressId) {
+            $addrValid = Address::where('id', $addressId)->where('patient_id', $patientId)->exists();
+            if (! $addrValid) {
+                return response()->json(['success' => false, 'message' => 'Invalid collection address selected.'], 422);
+            }
+        }
+
+        // Family member validation
+        if ($familyMemberId) {
+            $memValid = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->exists();
+            if (! $memValid) {
+                $familyMemberId = null;
+            }
+        }
+
+        if (empty($rawTests) || ! is_array($rawTests)) {
+            return response()->json(['success' => false, 'message' => 'At least one diagnostic test is required.'], 422);
+        }
+
+        $originalTests = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);
+
+        // Build original test keys
+        $originalMap = [];
+        foreach ($originalTests as $t) {
+            $k = ($t['type'] ?? 'test').'_'.($t['id'] ?? 0);
+            $originalMap[$k] = $t;
+        }
+
+        if ($isPaid) {
+            // RULE: If already paid, ONLY ADD tests option. Existing tests cannot be removed!
+            $submittedKeys = [];
+            foreach ($rawTests as $st) {
+                $k = ($st['type'] ?? 'test').'_'.($st['id'] ?? 0);
+                $submittedKeys[$k] = true;
+            }
+
+            foreach ($originalMap as $origKey => $origItem) {
+                if (! isset($submittedKeys[$origKey])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'This booking is already paid. Existing paid tests cannot be removed; you can only add new tests.',
+                    ], 422);
+                }
+            }
+
+            // Identify newly added tests and verify prices from DB
+            $newTestsToAdd = [];
+            $additionalAmount = 0.0;
+            $allFinalTests = $originalTests;
+
+            foreach ($rawTests as $item) {
+                $k = ($item['type'] ?? 'test').'_'.($item['id'] ?? 0);
+                if (! isset($originalMap[$k])) {
+                    $type = $item['type'] ?? 'test';
+                    $itemId = $item['id'] ?? null;
+                    if ($type === 'package') {
+                        $pkg = Package::find($itemId);
+                        if ($pkg && $pkg->is_active) {
+                            $price = (float) $pkg->price;
+                            $newTestsToAdd[] = [
+                                'id' => $pkg->id,
+                                'name' => $pkg->name,
+                                'title' => $pkg->name,
+                                'type' => 'package',
+                                'price' => $price,
+                                'parameters_count' => is_array($pkg->parameters) ? count($pkg->parameters) : 0,
+                            ];
+                            $additionalAmount += $price;
+                        }
+                    } else {
+                        $test = Test::find($itemId);
+                        if ($test && $test->is_active) {
+                            $price = (float) $test->price;
+                            $newTestsToAdd[] = [
+                                'id' => $test->id,
+                                'name' => $test->name,
+                                'title' => $test->name,
+                                'type' => 'test',
+                                'price' => $price,
+                            ];
+                            $additionalAmount += $price;
+                        }
+                    }
+                }
+            }
+
+            $allFinalTests = array_merge($allFinalTests, $newTestsToAdd);
+
+            $booking->test_details = $allFinalTests;
+            if ($additionalAmount > 0) {
+                $booking->amount = (float) $booking->amount + $additionalAmount;
+                if ($paymentMethodForDiff === 'Cash') {
+                    $booking->payment_method = 'Partial Online / Cash on Collection';
+                }
+            }
+        } else {
+            // UNPAID BOOKING: Can add and remove tests freely
+            $sanitizedCart = [];
+            $subtotal = 0.0;
+
+            foreach ($rawTests as $item) {
+                $type = $item['type'] ?? 'test';
+                $id = $item['id'] ?? null;
+                if (! $id) {
+                    continue;
+                }
+
+                if ($type === 'package') {
+                    $pkg = Package::find($id);
+                    if ($pkg && $pkg->is_active) {
+                        $price = (float) $pkg->price;
+                        $sanitizedCart[] = [
+                            'id' => $pkg->id,
+                            'name' => $pkg->name,
+                            'title' => $pkg->name,
+                            'type' => 'package',
+                            'price' => $price,
+                            'parameters_count' => is_array($pkg->parameters) ? count($pkg->parameters) : 0,
+                        ];
+                        $subtotal += $price;
+                    }
+                } else {
+                    $test = Test::find($id);
+                    if ($test && $test->is_active) {
+                        $price = (float) $test->price;
+                        $sanitizedCart[] = [
+                            'id' => $test->id,
+                            'name' => $test->name,
+                            'title' => $test->name,
+                            'type' => 'test',
+                            'price' => $price,
+                        ];
+                        $subtotal += $price;
+                    }
+                }
+            }
+
+            if (empty($sanitizedCart)) {
+                return response()->json(['success' => false, 'message' => 'Please select at least one valid diagnostic test.'], 422);
+            }
+
+            $coinsDiscount = (float) ($booking->coins_discount ?? 0);
+            $existingDiscount = (float) ($booking->discount_amount ?? 0);
+            $finalAmount = max(0, $subtotal - $existingDiscount - $coinsDiscount);
+
+            $booking->test_details = $sanitizedCart;
+            $booking->amount = $finalAmount;
+        }
+
+        if ($addressId) {
+            $booking->address_id = $addressId;
+        }
+        if ($bookingDate) {
+            $booking->booking_date = $bookingDate;
+        }
+        if ($collectionSlot) {
+            $booking->collection_slot = $collectionSlot;
+        }
+        $booking->family_member_id = $familyMemberId ?: null;
+
+        $booking->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Booking #'.$booking->booking_reference.' has been modified successfully!',
+            'booking' => $booking,
         ]);
     }
 

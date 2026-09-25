@@ -16,7 +16,7 @@
                         <i class="far fa-file-alt text-brand-primary"></i>
                         <span>Medical Test Reports</span>
                     </h2>
-                    <p class="text-xs text-gray-500 font-medium mt-1">100% NABL Accredited & Digitally Signed Diagnostic Reports. Download or view anytime.</p>
+                    <p class="text-xs text-gray-500 font-medium mt-1">100% Verified & Digitally Signed Diagnostic Reports. Download or view anytime.</p>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
                     <a href="{{ route('patient.bookings') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-brand-dark hover:border-teal-300 font-extrabold text-xs transition shadow-2xs">
@@ -52,7 +52,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider block">Lab Accreditation</span>
-                        <span class="text-sm font-black text-teal-900">100% NABL Verified</span>
+                        <span class="text-sm font-black text-teal-900">100% Lab Verified</span>
                     </div>
                 </div>
 
@@ -67,14 +67,14 @@
                 </div>
             </div>
 
-            <!-- NABL Lab Quality Assurance Strip -->
+            <!-- Lab Quality Assurance Strip -->
             <div class="rounded-2xl bg-gradient-to-r from-teal-900 via-teal-950 to-slate-950 p-4 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center text-sm font-black flex-shrink-0">
                         <i class="fas fa-shield-alt"></i>
                     </div>
                     <div>
-                        <h4 class="text-xs font-black text-white">NABL & ISO 15189 Standard Diagnostic Quality</h4>
+                        <h4 class="text-xs font-black text-white">ISO 15189 Standard Diagnostic Quality</h4>
                         <p class="text-[11px] text-teal-200/90 font-medium">All reports are certified by MD Pathologists and securely preserved with lifetime digital access.</p>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                     </div>
                     <h3 class="font-black text-gray-900 text-xl mb-2">No Test Reports Available Yet</h3>
                     <p class="text-gray-500 font-medium text-xs md:text-sm max-w-lg mx-auto mb-8">
-                        Your diagnostic test reports will appear here automatically as soon as your samples are collected, analyzed at our NABL lab, and certified by our Senior Pathologist.
+                        Your diagnostic test reports will appear here automatically as soon as your samples are collected, analyzed at our certified lab, and certified by our Senior Pathologist.
                     </p>
 
                     <!-- Workflow Informational Steps -->
@@ -182,7 +182,7 @@
                                             <i class="fas fa-signature text-emerald-600"></i>
                                             <span>MD Pathologist Certified</span>
                                         </span>
-                                        <span class="text-[11px] text-gray-400 font-semibold mt-1">100% NABL Quality Assurance</span>
+                                        <span class="text-[11px] text-gray-400 font-semibold mt-1">100% Diagnostic Quality Assurance</span>
                                     </div>
                                 </div>
 

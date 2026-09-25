@@ -18,7 +18,47 @@
         
         <!-- Booking & Patient Details -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 border-b pb-3 mb-4">Patient & Appointment Details</h3>
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800">Patient & Appointment Details</h3>
+                <button type="button" onclick="document.getElementById('adminModifyBookingForm').classList.toggle('hidden')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-edit text-xs"></i>
+                    <span>Modify Details</span>
+                </button>
+            </div>
+
+            <!-- Admin Modify Form -->
+            <form id="adminModifyBookingForm" action="{{ route('admin.bookings.modify', $booking->id) }}" method="POST" class="hidden mb-6 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                @csrf
+                <h4 class="text-xs font-black uppercase text-indigo-900 mb-3 tracking-wider flex items-center gap-1.5">
+                    <i class="fas fa-sliders text-indigo-600"></i> Modify Booking Details
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Collection Date</label>
+                        <input type="date" name="booking_date" value="{{ $booking->booking_date ? $booking->booking_date->format('Y-m-d') : '' }}" class="w-full text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Time Slot Window</label>
+                        <input type="text" name="collection_slot" value="{{ $booking->collection_slot }}" placeholder="e.g. 07:00 AM - 08:00 AM" class="w-full text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Total Amount (₹)</label>
+                        <input type="number" step="0.01" name="amount" value="{{ $booking->amount }}" class="w-full text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Payment Status</label>
+                        <select name="payment_status" class="w-full text-xs font-bold border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                            <option value="Pending" {{ $booking->payment_status === 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Paid" {{ $booking->payment_status === 'Paid' ? 'selected' : '' }}>Paid</option>
+                            <option value="Partial Online / Cash on Collection" {{ $booking->payment_status === 'Partial Online / Cash on Collection' ? 'selected' : '' }}>Partial Online / Cash on Collection</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('adminModifyBookingForm').classList.add('hidden')" class="px-3 py-1.5 text-xs font-bold text-gray-600 hover:bg-gray-200 rounded-lg cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-1.5 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm cursor-pointer">Save Changes</button>
+                </div>
+            </form>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -251,6 +291,75 @@
                 </div>
             </div>
         </div>
+
+        @if(config('pathology.admin_sync_enabled', false))
+        <!-- ═══════════════ PATHOLOGY LIS INTEGRATION CARD ═══════════════ -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-microscope text-teal-600"></i>
+                    Pathology LIS Sync
+                </h3>
+                @if($booking->lis_booking_reference)
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        <i class="fas fa-check-circle text-xs"></i> Synced
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                        <i class="fas fa-cloud-upload-alt text-xs"></i> Unsynced
+                    </span>
+                @endif
+            </div>
+
+            <div class="space-y-3 mb-4 text-xs">
+                @if($booking->lis_booking_reference)
+                    <div class="p-3 bg-teal-50/60 rounded-xl border border-teal-100 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-teal-800 font-semibold">LIS Booking Ref:</span>
+                            <span class="font-mono font-bold text-teal-900 bg-white px-2 py-0.5 rounded border border-teal-200 select-all">
+                                {{ $booking->lis_booking_reference }}
+                            </span>
+                        </div>
+                        @if($booking->lis_bill_number)
+                        <div class="flex justify-between items-center">
+                            <span class="text-teal-800 font-semibold">LIS Bill Number:</span>
+                            <span class="font-mono font-bold text-teal-900 bg-white px-2 py-0.5 rounded border border-teal-200 select-all">
+                                {{ $booking->lis_bill_number }}
+                            </span>
+                        </div>
+                        @endif
+                        <div class="flex justify-between items-center">
+                            <span class="text-teal-800 font-semibold">LIS Processing Status:</span>
+                            <span class="font-bold uppercase tracking-wider text-[11px] px-2 py-0.5 rounded bg-teal-100 text-teal-800">
+                                {{ $booking->lis_status ?: 'In Queue' }}
+                            </span>
+                        </div>
+                        @if($booking->lis_synced_at)
+                        <div class="text-[11px] text-teal-700 pt-1 border-t border-teal-200/50 flex items-center justify-between">
+                            <span>Last Transmitted:</span>
+                            <span>{{ $booking->lis_synced_at->format('M d, Y h:i A') }}</span>
+                        </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-xs">
+                        <p class="font-bold flex items-center gap-1.5 mb-1">
+                            <i class="fas fa-info-circle text-amber-600"></i> Not Pushed to LIS
+                        </p>
+                        <p class="text-amber-700">This order has not been transmitted to your central laboratory software yet.</p>
+                    </div>
+                @endif
+            </div>
+
+            <form action="{{ route('admin.bookings.push_lis', $booking->id) }}" method="POST" onsubmit="return confirm('{{ $booking->lis_booking_reference ? 'Re-transmit this booking to Pathology LIS?' : 'Push this booking to Pathology LIS now?' }}')">
+                @csrf
+                <button type="submit" class="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold shadow-sm transition {{ $booking->lis_booking_reference ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300' : 'bg-teal-600 hover:bg-teal-700 text-white' }}">
+                    <i class="fas {{ $booking->lis_booking_reference ? 'fa-rotate' : 'fa-paper-plane' }}"></i>
+                    {{ $booking->lis_booking_reference ? 'Re-push / Resync to LIS' : 'Push Booking to LIS Now' }}
+                </button>
+            </form>
+        </div>
+        @endif
 
         <!-- ═══════════════ REPORT MANAGEMENT CARD ═══════════════ -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

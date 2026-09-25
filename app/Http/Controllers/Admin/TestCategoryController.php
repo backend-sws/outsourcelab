@@ -10,7 +10,7 @@ class TestCategoryController extends Controller
 {
     public function index()
     {
-        $categories = TestCategory::latest()->get();
+        $categories = TestCategory::withCount('tests')->latest()->get();
 
         return view('admin.pages.test_categories.index', compact('categories'));
     }
@@ -24,19 +24,13 @@ class TestCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:test_categories',
-            'parameters' => 'nullable|array',
-            'parameters.*' => 'nullable|string|max:255',
         ]);
-
-        // Filter out empty parameters
-        $parameters = collect($request->parameters)->filter()->values()->toArray();
 
         TestCategory::create([
             'name' => $request->name,
-            'parameters' => $parameters,
         ]);
 
-        return redirect()->route('admin.departments.index')->with('success', 'Test parameter created successfully.');
+        return redirect()->route('admin.departments.index')->with('success', 'Department created successfully.');
     }
 
     public function edit(TestCategory $department)
@@ -48,19 +42,13 @@ class TestCategoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:test_categories,name,'.$department->id,
-            'parameters' => 'nullable|array',
-            'parameters.*' => 'nullable|string|max:255',
         ]);
-
-        // Filter out empty parameters
-        $parameters = collect($request->parameters)->filter()->values()->toArray();
 
         $department->update([
             'name' => $request->name,
-            'parameters' => $parameters,
         ]);
 
-        return redirect()->route('admin.departments.index')->with('success', 'Test parameter updated successfully.');
+        return redirect()->route('admin.departments.index')->with('success', 'Department updated successfully.');
     }
 
     public function destroy(TestCategory $department)

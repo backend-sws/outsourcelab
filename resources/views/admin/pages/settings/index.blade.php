@@ -59,6 +59,11 @@
             <button type="button" onclick="switchSettingsTab('whatsapp')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="whatsapp">
                 <i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp API
             </button>
+            @if(config('pathology.admin_sync_enabled', false))
+            <button type="button" onclick="switchSettingsTab('pathology')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="pathology">
+                <i class="fas fa-microscope text-indigo-500"></i> Pathology LIS API
+            </button>
+            @endif
         </div>
 
         <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
@@ -323,6 +328,18 @@
                             <option value="1" {{ ($settings['email_notifications_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled (Send Real Emails)</option>
                             <option value="0" {{ ($settings['email_notifications_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled (Skip Sending)</option>
                         </select>
+                    </div>
+
+                    <!-- Patient Registration Email OTP Verification Toggle -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-shield-halved text-teal-500 mr-1"></i> Patient Registration Email OTP Verification
+                        </label>
+                        <select name="patient_email_otp_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" {{ ($settings['patient_email_otp_enabled'] ?? '0') == '1' ? 'selected' : '' }}>Enabled (Require Email OTP on Patient Registration)</option>
+                            <option value="0" {{ ($settings['patient_email_otp_enabled'] ?? '0') == '0' ? 'selected' : '' }}>Disabled (Direct Registration without OTP)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">When enabled, newly registering patients receive a 6-digit OTP on their email to verify before account activation.</p>
                     </div>
 
                     <!-- Mail Driver / Mailer -->
@@ -604,6 +621,109 @@
                 </div>
             </div>
 
+            @if(config('pathology.admin_sync_enabled', false))
+            <!-- TAB 10: Pathology SaaS / LIS API Integration -->
+            <div id="settings-panel-pathology" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="pathology">
+                
+                <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-xs text-indigo-800 dark:text-indigo-300 flex items-start gap-3">
+                    <i class="fas fa-info-circle text-base text-indigo-500 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="font-bold">Pathology SaaS REST API v1 Connection:</strong>
+                        <p class="mt-0.5 leading-relaxed">
+                            Connect your website with your central Pathology LIS software. Synchronize live tests and package catalogs, automatically push web bookings into the LIS, link doctor-approved signed PDF reports, and provide seamless SSO login to patients.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Base URL -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-globe text-indigo-500 mr-1"></i> API Base URL
+                        </label>
+                        <input type="url" name="pathology_api_base_url" value="{{ $settings['pathology_api_base_url'] ?? config('pathology.base_url') }}" 
+                            placeholder="https://your-pathology-domain.com/api/v1"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Must include protocol and <code>/api/v1</code> endpoint (e.g. <code>https://lab.domain.com/api/v1</code>).</p>
+                    </div>
+
+                    <!-- Default Branch ID -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-hospital text-indigo-500 mr-1"></i> Default Lab Branch ID
+                        </label>
+                        <input type="number" name="pathology_default_branch_id" value="{{ $settings['pathology_default_branch_id'] ?? config('pathology.default_branch_id', 1) }}" 
+                            placeholder="1" min="1"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Default branch assigned to incoming online website bookings.</p>
+                    </div>
+
+                    <!-- Secret API Key -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-key text-indigo-500 mr-1"></i> Lab API Key (<code>X-Lab-Api-Key</code>)
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="pathologyApiKeyInput" name="pathology_api_key" value="{{ $settings['pathology_api_key'] ?? config('pathology.api_key') }}" 
+                                placeholder="lab_xxxxxxxxxxxxxxxxxxxx"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('pathologyApiKeyInput', 'pathologyKeyEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="pathologyKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Generated from your Pathology LIS Superadmin Plan &amp; Lab Settings.</p>
+                    </div>
+                </div>
+
+                <!-- Handshake & Catalog Sync Actions -->
+                <div class="pt-4 border-t border-slate-200 dark:border-white/[0.08] grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Action Card 1: Test Handshake -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/[0.08] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fas fa-bolt text-amber-500"></i> Connection Test
+                            </h4>
+                            <span id="handshakeStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                Idle
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Verify connectivity and multi-tenant authentication with your Pathology SaaS server.
+                        </p>
+                        <button type="button" id="btnTestPathology" onclick="testPathologyHandshake()" 
+                            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm">
+                            <i class="fas fa-plug text-xs"></i>
+                            <span id="btnTestPathologyText">Test Handshake Now</span>
+                        </button>
+                        <div id="handshakeResultMsg" class="hidden text-xs p-2.5 rounded-lg"></div>
+                    </div>
+
+                    <!-- Action Card 2: Catalog Sync -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/[0.08] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fas fa-sync text-teal-500"></i> Catalog Synchronization
+                            </h4>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Sync all tests, health packages, turnaround times, and parameters from your LIS into OutsourceLab.
+                        </p>
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-600 dark:text-slate-300 font-medium">
+                            <input type="checkbox" id="overwritePricingCheck" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                            <span>Overwrite non-locked custom selling prices with LIS prices</span>
+                        </label>
+                        <button type="button" id="btnSyncPathology" onclick="triggerCatalogSync()" 
+                            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-sm">
+                            <i class="fas fa-arrows-rotate text-xs"></i>
+                            <span id="btnSyncPathologyText">Sync Catalog from LIS</span>
+                        </button>
+                        <div id="syncResultMsg" class="hidden text-xs p-2.5 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Submit Button (Always Visible at bottom) -->
             <div class="mt-8 pt-6 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
                 <div class="text-xs text-slate-400">
@@ -628,7 +748,12 @@
         document.querySelectorAll('.settings-tab-content').forEach(el => el.classList.add('hidden'));
         
         // Show selected tab panel
-        const targetPanel = document.getElementById('settings-panel-' + cleanKey);
+        let targetPanel = document.getElementById('settings-panel-' + cleanKey);
+        let resolvedKey = cleanKey;
+        if (!targetPanel) {
+            targetPanel = document.getElementById('settings-panel-general');
+            resolvedKey = 'general';
+        }
         if (targetPanel) {
             targetPanel.classList.remove('hidden');
         }
@@ -640,8 +765,8 @@
         });
 
         // Highlight active button (supports data-tab="email" or data-tab="tab-email")
-        const activeBtn = document.querySelector(`.settings-tab-btn[data-tab="${cleanKey}"]`)
-            || document.querySelector(`.settings-tab-btn[data-tab="tab-${cleanKey}"]`);
+        const activeBtn = document.querySelector(`.settings-tab-btn[data-tab="${resolvedKey}"]`)
+            || document.querySelector(`.settings-tab-btn[data-tab="tab-${resolvedKey}"]`);
         if (activeBtn) {
             activeBtn.classList.add('bg-teal-600', 'text-white', 'shadow-md');
             activeBtn.classList.remove('text-slate-600', 'dark:text-slate-400', 'bg-slate-100', 'dark:bg-white/[0.04]');
@@ -650,12 +775,12 @@
         // Remember active tab in hidden input for form submission
         const activeInput = document.getElementById('activeTabInput');
         if (activeInput) {
-            activeInput.value = cleanKey;
+            activeInput.value = resolvedKey;
         }
 
         // Keep clean hash without causing any browser viewport jump
         if (history.replaceState) {
-            history.replaceState(null, null, '#tab-' + cleanKey);
+            history.replaceState(null, null, '#tab-' + resolvedKey);
         }
 
         // Strictly keep header and layout scroll pinned to top
@@ -693,6 +818,105 @@
         const btnText = document.getElementById('copyWebhookBtnText');
         btnText.innerText = 'Copied!';
         setTimeout(() => { btnText.innerText = 'Copy URL'; }, 2000);
+    }
+
+    async function testPathologyHandshake() {
+        const btn = document.getElementById('btnTestPathology');
+        const btnText = document.getElementById('btnTestPathologyText');
+        const msgEl = document.getElementById('handshakeResultMsg');
+        const badge = document.getElementById('handshakeStatusBadge');
+
+        btn.disabled = true;
+        btnText.textContent = 'Pinging LIS API...';
+        msgEl.className = 'hidden';
+
+        try {
+            const baseUrlVal = document.querySelector('input[name="pathology_api_base_url"]')?.value || '';
+            const apiKeyVal = document.getElementById('pathologyApiKeyInput')?.value || '';
+
+            const res = await fetch('{{ route("admin.pathology.testConnection") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    base_url: baseUrlVal,
+                    api_key: apiKeyVal
+                })
+            });
+
+
+            const data = await res.json();
+            msgEl.classList.remove('hidden');
+
+            if (data.success) {
+                badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+                badge.textContent = 'Connected';
+                msgEl.className = 'text-xs p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-medium';
+                msgEl.textContent = '✅ ' + data.message;
+            } else {
+                badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
+                badge.textContent = 'Connection Failed';
+                msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+                msgEl.textContent = '❌ ' + (data.message || 'Handshake failed.');
+            }
+        } catch (err) {
+            msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+            msgEl.textContent = '❌ Server network error. Please verify the API Base URL.';
+            msgEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Test Handshake Now';
+        }
+    }
+
+    async function triggerCatalogSync() {
+        const btn = document.getElementById('btnSyncPathology');
+        const btnText = document.getElementById('btnSyncPathologyText');
+        const msgEl = document.getElementById('syncResultMsg');
+        const overwrite = document.getElementById('overwritePricingCheck').checked;
+
+        if (!confirm('Start syncing tests, health packages, and parameters from your Pathology LIS software?')) {
+            return;
+        }
+
+        btn.disabled = true;
+        btnText.textContent = 'Synchronizing Catalog...';
+        msgEl.className = 'hidden';
+
+        try {
+            const res = await fetch('{{ route("admin.pathology.sync") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    overwrite_pricing: overwrite
+                })
+            });
+
+            const data = await res.json();
+            msgEl.classList.remove('hidden');
+
+            if (data.success) {
+                msgEl.className = 'text-xs p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-800/40 font-medium';
+                msgEl.textContent = '🎉 ' + data.message;
+            } else {
+                msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+                msgEl.textContent = '❌ ' + (data.message || 'Sync failed.');
+            }
+        } catch (err) {
+            msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+            msgEl.textContent = '❌ Connection failed while running catalog sync.';
+            msgEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Sync Catalog from LIS';
+        }
     }
 
     // Auto-select tab based on hash or session on page load

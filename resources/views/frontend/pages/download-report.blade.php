@@ -123,16 +123,22 @@
                 </span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Download Report</h2>
                 <p class="text-slate-500 text-sm leading-relaxed">
-                    Enter your booking reference or medical ID and registered mobile number to fetch your report.
+                    Enter your booking reference or bill number and registered mobile number to fetch your report.
                 </p>
             </div>
 
-            <form action="{{ route('home') }}" method="GET" class="space-y-5">
-                
+            <!-- Error Banner -->
+            <div id="trackErrorBox" class="hidden mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-3">
+                <i class="fas fa-circle-exclamation text-base text-rose-500 flex-shrink-0"></i>
+                <span id="trackErrorMessage">No record found. Please verify details.</span>
+            </div>
+
+            <form id="trackReportForm" class="space-y-5">
+                @csrf
                 <!-- Booking ID / Medical ID -->
                 <div>
                     <label for="booking_ref" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                        Booking Reference / Medical ID
+                        Booking Reference / Bill No.
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -143,7 +149,7 @@
                             id="booking_ref" 
                             name="ref" 
                             class="block w-full pl-11 pr-4 py-3.5 bg-slate-50/90 border border-slate-200 rounded-2xl text-slate-900 text-sm font-medium placeholder:text-slate-400 focus:bg-white focus:border-teal-600 focus:ring-4 focus:ring-teal-600/15 transition-all outline-none shadow-sm uppercase tracking-wide" 
-                            placeholder="e.g. BK-7F9A1B or PAT0032" 
+                            placeholder="e.g. BK-7F9A1B or INV-2609-0012" 
                             required 
                             autofocus
                         >
@@ -174,24 +180,177 @@
                 <!-- Submit Button -->
                 <button 
                     type="submit" 
+                    id="trackSubmitBtn"
                     class="w-full mt-3 flex justify-center items-center gap-2 py-3.5 px-6 rounded-2xl shadow-lg shadow-teal-800/20 text-sm font-bold text-white bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 hover:shadow-teal-800/30 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-teal-600/30 transition-all cursor-pointer"
                 >
-                    <span>View & Download Report</span>
-                    <i class="fas fa-arrow-right text-xs"></i>
+                    <span id="trackBtnText">View & Download Report</span>
+                    <i class="fas fa-arrow-right text-xs" id="trackBtnIcon"></i>
                 </button>
             </form>
+
+            <!-- Live Report Results Container -->
+            <div id="reportResultContainer" class="hidden mt-6 pt-6 border-t border-slate-200 space-y-4">
+                <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider" id="resBillNo">REF #--</p>
+                            <h4 class="text-base font-extrabold text-slate-900" id="resPatientName">Patient Name</h4>
+                        </div>
+                        <span id="resStatusBadge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span id="resStatusText">Under Analysis</span>
+                        </span>
+                    </div>
+
+                    <!-- Tests List -->
+                    <div id="resTestsList" class="space-y-1.5 pt-2 border-t border-slate-200/60">
+                        <!-- Populated dynamically -->
+                    </div>
+
+                    <!-- Direct Download Button -->
+                    <div id="resDownloadArea" class="pt-2">
+                        <a 
+                            id="resDownloadLink" 
+                            href="#" 
+                            target="_blank" 
+                            class="w-full inline-flex justify-center items-center gap-2 py-3 px-4 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-700/20 transition-all"
+                        >
+                            <i class="fas fa-file-pdf text-sm"></i>
+                            <span>Download Signed PDF Report</span>
+                            <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
             
             <!-- Quick Assistance -->
             <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                 <a href="{{ route('home') }}#enquiry" class="hover:text-teal-700 transition flex items-center gap-1.5 font-semibold">
                     <i class="fas fa-headset text-teal-600"></i> Need Help with Reports?
                 </a>
+                @if(config('pathology.sso_enabled', true))
                 <a href="{{ route('lis.login') }}" class="hover:text-teal-700 transition flex items-center gap-1.5 font-semibold">
-                    <i class="fas fa-user-shield text-amber-600"></i> Staff LIS Login
+                    <i class="fas fa-user-shield text-amber-600"></i> Patient Portal LIS Login
                 </a>
+                @endif
             </div>
         </div>
     </div>
+
+    <!-- AJAX Script -->
+    <script>
+        const form = document.getElementById('trackReportForm');
+        const errBox = document.getElementById('trackErrorBox');
+        const errMsg = document.getElementById('trackErrorMessage');
+        const btn = document.getElementById('trackSubmitBtn');
+        const btnText = document.getElementById('trackBtnText');
+        const btnIcon = document.getElementById('trackBtnIcon');
+        const resultContainer = document.getElementById('reportResultContainer');
+        const resBillNo = document.getElementById('resBillNo');
+        const resPatientName = document.getElementById('resPatientName');
+        const resStatusBadge = document.getElementById('resStatusBadge');
+        const resStatusText = document.getElementById('resStatusText');
+        const resTestsList = document.getElementById('resTestsList');
+        const resDownloadArea = document.getElementById('resDownloadArea');
+        const resDownloadLink = document.getElementById('resDownloadLink');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errBox.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+
+            const ref = document.getElementById('booking_ref').value.trim();
+            const mobile = document.getElementById('mobile_number').value.trim();
+
+            if (!ref || !mobile) {
+                showError('Please provide both Reference / Bill Number and Registered Mobile.');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.textContent = 'Searching Records...';
+            btnIcon.className = 'fas fa-circle-notch fa-spin text-xs';
+
+            try {
+                const response = await fetch('{{ route("download.report.track") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ ref, mobile })
+                });
+
+                const json = await response.json();
+
+                if (json.success && json.data) {
+                    renderReportResult(json.data);
+                } else {
+                    showError(json.message || 'No diagnostic records found for the provided details.');
+                }
+            } catch (err) {
+                showError('Connection error. Please check your internet or try again later.');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'View & Download Report';
+                btnIcon.className = 'fas fa-arrow-right text-xs';
+            }
+        });
+
+        function showError(msg) {
+            errMsg.textContent = msg;
+            errBox.classList.remove('hidden');
+        }
+
+        function renderReportResult(data) {
+            resBillNo.textContent = 'REF: ' + (data.bill_number || 'N/A');
+            resPatientName.textContent = data.patient_name || 'Patient';
+
+            const isReady = !!data.is_ready;
+            const stage = data.current_stage || (isReady ? 'Report Ready' : 'Processing');
+
+            if (isReady) {
+                resStatusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5';
+                resStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Report Ready</span>';
+            } else {
+                resStatusBadge.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5';
+                resStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span><span>' + stage + '</span>';
+            }
+
+            // Render Tests
+            resTestsList.innerHTML = '';
+            if (Array.isArray(data.tests) && data.tests.length > 0) {
+                data.tests.forEach(t => {
+                    const testStatus = (t.status || 'pending').toLowerCase();
+                    const isApproved = testStatus === 'approved' || testStatus === 'ready';
+                    const pillClass = isApproved ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200';
+                    const pillIcon = isApproved ? 'fa-check' : 'fa-clock';
+                    
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between text-xs py-1';
+                    row.innerHTML = `
+                        <span class="font-medium text-slate-700">\${t.name || 'Diagnostic Test'}</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-semibold uppercase \${pillClass}">
+                            <i class="fas \${pillIcon}"></i> \${isApproved ? 'Approved' : 'In Progress'}
+                        </span>
+                    `;
+                    resTestsList.appendChild(row);
+                });
+            }
+
+            // Render download button
+            if (isReady && data.download_url) {
+                resDownloadLink.href = data.download_url;
+                resDownloadArea.classList.remove('hidden');
+            } else {
+                resDownloadArea.classList.add('hidden');
+            }
+
+            resultContainer.classList.remove('hidden');
+        }
+    </script>
+
 
 </body>
 </html>

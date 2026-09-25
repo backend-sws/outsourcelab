@@ -66,85 +66,108 @@
     <!-- Body: Register State -->
     <div id="loginStateRegister" class="flex-grow p-6 flex flex-col bg-gray-50/50 hidden">
         <!-- Tabs -->
-        <div class="flex bg-gray-200 rounded-lg p-1 mb-4">
+        <div class="flex bg-gray-200 rounded-lg p-1 mb-5">
             <button class="flex-1 py-2 text-sm font-bold text-gray-500 hover:text-gray-700 transition" type="button" id="switchToLoginTabBtn">Login</button>
             <button class="flex-1 py-2 text-sm font-bold bg-white text-teal-900 rounded-md shadow-sm" type="button">Register</button>
         </div>
-
-        <!-- Account Type Switcher: Patient vs Field Agent -->
-        <div class="bg-gray-200/80 p-1 rounded-xl flex mb-4 border border-gray-200">
-            <button type="button" id="regTypePatientBtn" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all bg-white text-teal-900 shadow-sm flex items-center justify-center gap-1.5">
-                <i class="fas fa-user text-teal-600"></i> Patient
-            </button>
-            <button type="button" id="regTypeAgentBtn" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg transition-all text-gray-500 hover:text-gray-800 flex items-center justify-center gap-1.5">
-                <i class="fas fa-id-badge text-teal-600"></i> Register as Agent
-            </button>
-        </div>
         
-        <div class="text-center mb-4">
+        <div class="text-center mb-5">
             <div id="regHeaderIcon" class="w-12 h-12 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-2 border border-teal-100">
                 <i class="fas fa-user-plus text-xl text-teal-700"></i>
             </div>
-            <h4 id="regHeaderTitle" class="text-base font-bold text-gray-800 mb-0.5">Create an Account</h4>
-            <p id="regHeaderSubtitle" class="text-xs text-gray-500">Join us to manage your health easily</p>
+            <h4 id="regHeaderTitle" class="text-base font-bold text-gray-800 mb-0.5">Create Patient Account</h4>
+            <p id="regHeaderSubtitle" class="text-xs text-gray-500">Join us to book tests and manage your health records</p>
         </div>
         
         <form id="registerForm" class="space-y-3.5 flex-grow flex flex-col">
-            <!-- Agent Specific Fields -->
-            <div id="agentExtraFields" class="space-y-3.5 hidden">
-                <div>
-                    <label for="regNameInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Full Name</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-user-tag text-sm"></i></span>
-                        <input type="text" id="regNameInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. Ramesh Kumar">
-                    </div>
-                </div>
-                <div>
-                    <label for="regPhoneInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Number</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-phone-alt text-sm"></i></span>
-                        <input type="tel" id="regPhoneInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. 9876543210">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-2.5">
-                    <div>
-                        <label for="regCityInput" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">City / Region</label>
-                        <input type="text" id="regCityInput" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-teal-600 outline-none" placeholder="e.g. Patna">
-                    </div>
-                    <div>
-                        <label for="regVehicleInput" class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Vehicle No.</label>
-                        <input type="text" id="regVehicleInput" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-teal-600 outline-none" placeholder="e.g. BR-01-AB-1234">
-                    </div>
+            <div>
+                <label for="regNameInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Full Name <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-user text-sm"></i></span>
+                    <input type="text" id="regNameInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. Ramesh Kumar" required>
                 </div>
             </div>
 
             <div>
-                <label for="regEmailInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Email Address</label>
+                <label for="regEmailInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Email Address <span class="text-rose-500">*</span></label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-envelope text-sm"></i></span>
                     <input type="email" id="regEmailInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. yourname@example.com" required>
                 </div>
             </div>
+
             <div>
-                <label for="regPasswordInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Password</label>
+                <label for="regMobileInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Number (Optional)</label>
                 <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-lock text-sm"></i></span>
-                    <input type="password" id="regPasswordInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="Create a password (min. 6 chars)" required>
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-phone-alt text-sm"></i></span>
+                    <input type="tel" id="regMobileInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. 9876543210" maxlength="15">
                 </div>
             </div>
+
             <div>
-                <label for="regPasswordConfirmInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Confirm Password</label>
+                <label for="regPasswordInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Password <span class="text-rose-500">*</span></label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-lock text-sm"></i></span>
+                    <input type="password" id="regPasswordInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="Create a password (min. 6 chars)" required minlength="6">
+                </div>
+            </div>
+
+            <div>
+                <label for="regPasswordConfirmInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Confirm Password <span class="text-rose-500">*</span></label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-check text-sm"></i></span>
-                    <input type="password" id="regPasswordConfirmInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="Confirm your password" required>
+                    <input type="password" id="regPasswordConfirmInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="Confirm your password" required minlength="6">
                 </div>
             </div>
             
             <div class="mt-auto pt-4">
-                <div id="registerError" class="text-red-500 text-xs hidden font-bold text-center mb-3"></div>
-                <button type="submit" id="regSubmitBtn" class="w-full bg-brand-secondary text-white font-bold py-3 px-4 rounded-xl hover:bg-opacity-90 transition shadow-lg flex items-center justify-center">
+                <div id="registerError" class="text-rose-500 text-xs hidden font-bold text-center mb-3"></div>
+                <button type="submit" id="regSubmitBtn" class="w-full bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-teal-800/20 active:scale-[0.99] transition flex items-center justify-center cursor-pointer">
                     <span id="regSubmitBtnText">Create Account</span>
                     <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Body: Register OTP Verification State -->
+    <div id="loginStateRegisterOtp" class="flex-grow p-6 flex flex-col justify-center bg-gray-50/50 hidden">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-teal-100 shadow-sm">
+                <i class="fas fa-envelope-circle-check text-2xl text-teal-700"></i>
+            </div>
+            <h4 class="text-lg font-extrabold text-gray-900 mb-1">Verify Your Email</h4>
+            <p class="text-xs text-gray-500 leading-relaxed">Enter the 6-digit OTP code sent to<br><span id="displayRegEmail" class="font-bold text-teal-800"></span></p>
+        </div>
+
+        <form id="registerOtpForm" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 text-center">6-Digit Verification Code</label>
+                <div class="flex justify-center gap-2" id="regOtpInputsContainer">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                    <input type="text" class="reg-otp-input w-10 h-12 text-center text-xl font-black border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-600 focus:border-teal-600 bg-white shadow-sm outline-none" maxlength="1" inputmode="numeric">
+                </div>
+            </div>
+
+            <div id="registerOtpError" class="text-rose-500 text-xs hidden font-bold text-center"></div>
+            <div id="registerOtpSuccess" class="text-emerald-600 text-xs hidden font-bold text-center"></div>
+            <div id="devRegisterOtpMessage" class="text-teal-700 text-xs hidden font-bold text-center bg-teal-50 p-2 rounded-lg border border-teal-200"></div>
+
+            <button type="submit" id="btnVerifyRegisterOtp" class="w-full bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-teal-800/20 active:scale-[0.99] transition flex items-center justify-center cursor-pointer">
+                <span>Verify & Activate Account</span>
+                <i class="fas fa-check-circle ml-2 text-xs"></i>
+            </button>
+
+            <div class="flex items-center justify-between text-xs pt-2">
+                <button type="button" id="backToRegisterBtn" class="text-slate-500 hover:text-teal-800 font-bold transition">
+                    <i class="fas fa-arrow-left mr-1"></i> Edit Details
+                </button>
+                <button type="button" id="resendRegisterOtpBtn" class="text-teal-700 hover:underline font-bold transition">
+                    Resend Code <span id="resendCountdown" class="text-slate-400 font-normal"></span>
                 </button>
             </div>
         </form>
@@ -221,11 +244,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const stateEmail = document.getElementById('loginStateEmail');
     const stateRegister = document.getElementById('loginStateRegister');
+    const stateRegisterOtp = document.getElementById('loginStateRegisterOtp');
     const stateForgot = document.getElementById('loginStateForgot');
     const stateReset = document.getElementById('loginStateReset');
     
     const emailForm = document.getElementById('emailForm');
     const registerForm = document.getElementById('registerForm');
+    const registerOtpForm = document.getElementById('registerOtpForm');
     const forgotForm = document.getElementById('forgotForm');
     const resetForm = document.getElementById('resetForm');
     
@@ -233,9 +258,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     
+    const regNameInput = document.getElementById('regNameInput');
     const regEmailInput = document.getElementById('regEmailInput');
+    const regMobileInput = document.getElementById('regMobileInput');
     const regPasswordInput = document.getElementById('regPasswordInput');
     const regPasswordConfirmInput = document.getElementById('regPasswordConfirmInput');
+    const displayRegEmail = document.getElementById('displayRegEmail');
     
     const forgotEmailInput = document.getElementById('forgotEmailInput');
     const newPasswordInput = document.getElementById('newPasswordInput');
@@ -246,15 +274,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const backToLoginBtn = document.getElementById('backToLoginBtn');
     const switchToRegisterTabBtn = document.getElementById('switchToRegisterTabBtn');
     const switchToLoginTabBtn = document.getElementById('switchToLoginTabBtn');
+    const backToRegisterBtn = document.getElementById('backToRegisterBtn');
+    const resendRegisterOtpBtn = document.getElementById('resendRegisterOtpBtn');
     
     // Errors
     const loginError = document.getElementById('loginError');
     const registerError = document.getElementById('registerError');
+    const registerOtpError = document.getElementById('registerOtpError');
+    const registerOtpSuccess = document.getElementById('registerOtpSuccess');
+    const devRegisterOtpMessage = document.getElementById('devRegisterOtpMessage');
     const forgotError = document.getElementById('forgotError');
     const resetError = document.getElementById('resetError');
     const devOtpMessage = document.getElementById('devOtpMessage');
     
-    // Auto-focus OTP inputs
+    // Auto-focus OTP inputs (Password reset)
     const otpInputs = document.querySelectorAll('.otp-input');
     otpInputs.forEach((input, index) => {
         input.addEventListener('keyup', (e) => {
@@ -262,6 +295,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 otpInputs[index + 1].focus();
             } else if (e.key === 'Backspace' && index > 0) {
                 otpInputs[index - 1].focus();
+            }
+        });
+    });
+
+    // Auto-focus OTP inputs (Register verification)
+    const regOtpInputs = document.querySelectorAll('.reg-otp-input');
+    regOtpInputs.forEach((input, index) => {
+        input.addEventListener('keyup', (e) => {
+            if (e.key >= 0 && e.key <= 9 && index < regOtpInputs.length - 1) {
+                regOtpInputs[index + 1].focus();
+            } else if (e.key === 'Backspace' && index > 0) {
+                regOtpInputs[index - 1].focus();
+            }
+        });
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text').trim();
+            if (/^\d{6}$/.test(text)) {
+                text.split('').forEach((digit, i) => {
+                    if (regOtpInputs[i]) regOtpInputs[i].value = digit;
+                });
+                regOtpInputs[regOtpInputs.length - 1].focus();
             }
         });
     });
@@ -277,6 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset states
         stateForgot.classList.add('hidden');
         stateReset.classList.add('hidden');
+        stateRegisterOtp.classList.add('hidden');
         
         if (isRegister) {
             stateEmail.classList.add('hidden');
@@ -301,16 +357,22 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clear all inputs
         emailInput.value = '';
         passwordInput.value = '';
+        if (regNameInput) regNameInput.value = '';
         regEmailInput.value = '';
+        if (regMobileInput) regMobileInput.value = '';
         regPasswordInput.value = '';
         regPasswordConfirmInput.value = '';
         forgotEmailInput.value = '';
         newPasswordInput.value = '';
         otpInputs.forEach(i => i.value = '');
+        regOtpInputs.forEach(i => i.value = '');
         
         // Clear all errors
         loginError.classList.add('hidden');
         registerError.classList.add('hidden');
+        registerOtpError.classList.add('hidden');
+        registerOtpSuccess.classList.add('hidden');
+        devRegisterOtpMessage.classList.add('hidden');
         forgotError.classList.add('hidden');
         resetError.classList.add('hidden');
         devOtpMessage.classList.add('hidden');
@@ -437,45 +499,70 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Account Type switcher
-    let currentRegRole = 'patient';
-    const regTypePatientBtn = document.getElementById('regTypePatientBtn');
-    const regTypeAgentBtn = document.getElementById('regTypeAgentBtn');
-    const agentExtraFields = document.getElementById('agentExtraFields');
-    const regNameInput = document.getElementById('regNameInput');
-    const regPhoneInput = document.getElementById('regPhoneInput');
-    const regCityInput = document.getElementById('regCityInput');
-    const regVehicleInput = document.getElementById('regVehicleInput');
-    const regHeaderTitle = document.getElementById('regHeaderTitle');
-    const regHeaderSubtitle = document.getElementById('regHeaderSubtitle');
-    const regSubmitBtnText = document.getElementById('regSubmitBtnText');
-
-    function setRegRole(role) {
-        currentRegRole = role;
-        if (role === 'agent') {
-            regTypeAgentBtn.classList.add('bg-white', 'text-brand-dark', 'shadow-sm');
-            regTypeAgentBtn.classList.remove('text-gray-500');
-            regTypePatientBtn.classList.remove('bg-white', 'text-brand-dark', 'shadow-sm');
-            regTypePatientBtn.classList.add('text-gray-500');
-            agentExtraFields.classList.remove('hidden');
-            regHeaderTitle.innerText = 'Register as Field Agent';
-            regHeaderSubtitle.innerText = 'Join our sample collection & phlebotomy network';
-            regSubmitBtnText.innerText = 'Register as Field Agent';
-        } else {
-            regTypePatientBtn.classList.add('bg-white', 'text-brand-dark', 'shadow-sm');
-            regTypePatientBtn.classList.remove('text-gray-500');
-            regTypeAgentBtn.classList.remove('bg-white', 'text-brand-dark', 'shadow-sm');
-            regTypeAgentBtn.classList.add('text-gray-500');
-            agentExtraFields.classList.add('hidden');
-            regHeaderTitle.innerText = 'Create an Account';
-            regHeaderSubtitle.innerText = 'Join us to manage your health easily';
-            regSubmitBtnText.innerText = 'Create Account';
-        }
+    let resendTimerInterval = null;
+    function startResendCountdown(seconds = 30) {
+        let remaining = seconds;
+        const countdownEl = document.getElementById('resendCountdown');
+        if (resendRegisterOtpBtn) resendRegisterOtpBtn.disabled = true;
+        if (countdownEl) countdownEl.innerText = `(${remaining}s)`;
+        
+        clearInterval(resendTimerInterval);
+        resendTimerInterval = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(resendTimerInterval);
+                if (countdownEl) countdownEl.innerText = '';
+                if (resendRegisterOtpBtn) resendRegisterOtpBtn.disabled = false;
+            } else {
+                if (countdownEl) countdownEl.innerText = `(${remaining}s)`;
+            }
+        }, 1000);
     }
 
-    if (regTypePatientBtn && regTypeAgentBtn) {
-        regTypePatientBtn.addEventListener('click', () => setRegRole('patient'));
-        regTypeAgentBtn.addEventListener('click', () => setRegRole('agent'));
+    if (backToRegisterBtn) {
+        backToRegisterBtn.addEventListener('click', function() {
+            stateRegisterOtp.classList.add('hidden');
+            stateRegister.classList.remove('hidden');
+        });
+    }
+
+    if (resendRegisterOtpBtn) {
+        resendRegisterOtpBtn.addEventListener('click', function() {
+            resendRegisterOtpBtn.disabled = true;
+            registerOtpError.classList.add('hidden');
+            registerOtpSuccess.innerText = 'Sending new code...';
+            registerOtpSuccess.classList.remove('hidden');
+
+            fetch('{{ route("patient.register.resend_otp") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    registerOtpSuccess.innerText = data.message || 'New code sent to your email!';
+                    if (data.debug_otp) {
+                        devRegisterOtpMessage.innerText = 'DEV OTP: ' + data.debug_otp;
+                        devRegisterOtpMessage.classList.remove('hidden');
+                    }
+                    startResendCountdown(30);
+                } else {
+                    registerOtpSuccess.classList.add('hidden');
+                    registerOtpError.innerText = data.message || 'Failed to resend code.';
+                    registerOtpError.classList.remove('hidden');
+                    resendRegisterOtpBtn.disabled = false;
+                }
+            })
+            .catch(() => {
+                registerOtpSuccess.classList.add('hidden');
+                registerOtpError.innerText = 'Network error while resending OTP.';
+                registerOtpError.classList.remove('hidden');
+                resendRegisterOtpBtn.disabled = false;
+            });
+        });
     }
 
     // Handle Register Submit
@@ -487,58 +574,24 @@ document.addEventListener('DOMContentLoaded', function() {
             registerError.classList.remove('hidden');
             return;
         }
+
+        if (regPasswordInput.value.length < 6) {
+            registerError.innerText = "Password must be at least 6 characters long.";
+            registerError.classList.remove('hidden');
+            return;
+        }
+
+        if (!regNameInput.value.trim()) {
+            registerError.innerText = "Please enter your Full Name.";
+            registerError.classList.remove('hidden');
+            return;
+        }
         
         const submitBtn = registerForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         submitBtn.disabled = true;
         registerError.classList.add('hidden');
-
-        if (currentRegRole === 'agent') {
-            if (!regNameInput.value.trim() || !regPhoneInput.value.trim()) {
-                registerError.innerText = "Please enter your Full Name and Mobile Number.";
-                registerError.classList.remove('hidden');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                return;
-            }
-
-            fetch('{{ route("agent.register") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ 
-                    name: regNameInput.value.trim(),
-                    phone: regPhoneInput.value.trim(),
-                    city: regCityInput.value.trim(),
-                    vehicle_number: regVehicleInput.value.trim(),
-                    email: regEmailInput.value.trim(),
-                    password: regPasswordInput.value
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    closeLoginModal();
-                    window.location.href = data.redirect || '{{ route("agent.dashboard") }}';
-                } else {
-                    submitBtn.innerHTML = originalText;
-                    submitBtn.disabled = false;
-                    registerError.innerText = data.message || 'Agent registration failed.';
-                    registerError.classList.remove('hidden');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                registerError.innerText = 'An error occurred. Please try again.';
-                registerError.classList.remove('hidden');
-            });
-            return;
-        }
 
         fetch('{{ route("patient.register") }}', {
             method: 'POST',
@@ -547,17 +600,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             body: JSON.stringify({ 
-                email: regEmailInput.value,
+                name: regNameInput.value.trim(),
+                email: regEmailInput.value.trim(),
+                mobile: regMobileInput ? regMobileInput.value.trim() : '',
                 password: regPasswordInput.value
             })
         })
         .then(response => response.json())
         .then(data => {
-            if(data.success) {
-                handlePostAuthSuccess(data);
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+
+            if (data.success) {
+                if (data.requires_otp) {
+                    // Switch to Register OTP view
+                    stateRegister.classList.add('hidden');
+                    stateRegisterOtp.classList.remove('hidden');
+                    if (displayRegEmail) displayRegEmail.innerText = data.email || regEmailInput.value;
+                    regOtpInputs.forEach(i => i.value = '');
+                    if (regOtpInputs[0]) regOtpInputs[0].focus();
+                    if (data.debug_otp) {
+                        devRegisterOtpMessage.innerText = 'DEV OTP: ' + data.debug_otp;
+                        devRegisterOtpMessage.classList.remove('hidden');
+                    } else {
+                        devRegisterOtpMessage.classList.add('hidden');
+                    }
+                    startResendCountdown(30);
+                } else {
+                    handlePostAuthSuccess(data);
+                }
             } else {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
                 registerError.innerText = data.message || 'Registration failed.';
                 registerError.classList.remove('hidden');
             }
@@ -568,6 +640,53 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = false;
             registerError.innerText = 'An error occurred. Please try again.';
             registerError.classList.remove('hidden');
+        });
+    });
+
+    // Handle Register OTP Verification Submit
+    registerOtpForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let otp = '';
+        regOtpInputs.forEach(i => otp += i.value);
+
+        if (otp.length !== 6) {
+            registerOtpError.innerText = 'Please enter the complete 6-digit OTP code.';
+            registerOtpError.classList.remove('hidden');
+            return;
+        }
+
+        const submitBtn = document.getElementById('btnVerifyRegisterOtp');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+        submitBtn.disabled = true;
+        registerOtpError.classList.add('hidden');
+
+        fetch('{{ route("patient.register.verify_otp") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ otp: otp })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                handlePostAuthSuccess(data);
+            } else {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                registerOtpError.innerText = data.message || 'Invalid verification code.';
+                registerOtpError.classList.remove('hidden');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            registerOtpError.innerText = 'An error occurred. Please try again.';
+            registerOtpError.classList.remove('hidden');
         });
     });
 

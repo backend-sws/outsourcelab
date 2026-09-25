@@ -33,7 +33,12 @@
                     <span class="px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-bold uppercase tracking-wider border border-teal-200/60">
                         {{ $package->subcategory ?: 'Full Body Health' }}
                     </span>
-                    <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-bold uppercase tracking-wider border border-indigo-200/60">
+                    <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold uppercase tracking-wider border border-emerald-200/60 flex items-center gap-1.5">
+                        <i class="fas fa-vials text-emerald-600"></i>
+                        {{ count($groupedParameters) }} Tests Included
+                    </span>
+                    <span class="px-3 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs font-bold uppercase tracking-wider border border-indigo-200/60 flex items-center gap-1.5">
+                        <i class="fas fa-microscope text-indigo-600"></i>
                         {{ $package->total_parameters_count }} Clinical Biomarkers
                     </span>
                     @if($package->is_featured)
@@ -92,11 +97,16 @@
                     </h3>
                     <p class="text-xs text-gray-500 mt-0.5">Enter your 6-digit area pincode to verify free home pickup slots.</p>
                 </div>
-                <div class="w-full sm:w-auto flex items-center gap-2">
-                    <input type="text" id="checkPincodeInput" maxlength="6" placeholder="Enter Pincode (e.g. 110001)" class="px-4 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-mono">
-                    <button type="button" onclick="verifyPincodeSlot()" class="px-4 py-2 bg-teal-800 text-white text-xs font-bold rounded-xl hover:bg-teal-900 transition whitespace-nowrap">
-                        Check
-                    </button>
+                <div class="w-full sm:w-auto">
+                    <label for="checkPincodeInput" class="block text-[11px] font-bold text-teal-950 uppercase tracking-wider mb-1">
+                        Area Pincode
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="checkPincodeInput" maxlength="6" placeholder="Enter Pincode (e.g. 110001)" class="px-4 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white font-mono">
+                        <button type="button" onclick="verifyPincodeSlot()" class="px-4 py-2 bg-teal-800 text-white text-xs font-bold rounded-xl hover:bg-teal-900 transition whitespace-nowrap">
+                            Check Slot
+                        </button>
+                    </div>
                 </div>
             </div>
             <div id="pincodeResultMsg" class="hidden text-xs font-semibold px-4 py-2.5 rounded-xl"></div>
@@ -105,11 +115,11 @@
             <div class="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm">
                 <div class="flex items-center justify-between mb-6">
                     <div>
-                        <h2 class="text-xl font-black text-gray-900 tracking-tight">Complete Tests & Biomarkers Included</h2>
-                        <p class="text-xs text-gray-500 mt-1">Organized clinical view of all {{ $package->total_parameters_count }} parameters</p>
+                        <h2 class="text-xl font-black text-gray-900 tracking-tight">Complete Tests &amp; Biomarkers Included</h2>
+                        <p class="text-xs text-gray-500 mt-1">Organized clinical breakdown of {{ count($groupedParameters) }} Tests and {{ $package->total_parameters_count }} Parameters</p>
                     </div>
                     <span class="text-xs font-black text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/60">
-                        {{ count($groupedParameters) }} Organs Covered
+                        {{ count($groupedParameters) }} Tests Included
                     </span>
                 </div>
 
@@ -123,11 +133,11 @@
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-gray-900 text-sm">{{ $deptName }}</h3>
-                                    <p class="text-[11px] text-gray-500">Includes vital physiological markers</p>
+                                    <p class="text-[11px] text-gray-500">Includes {{ count($parameters) }} {{ count($parameters) === 1 ? 'parameter' : 'parameters' }}</p>
                                 </div>
                             </div>
                             <span class="px-3 py-1 rounded-full bg-white text-gray-700 text-xs font-bold border border-gray-200 shadow-xs">
-                                {{ count($parameters) }} Tests
+                                {{ count($parameters) }} {{ count($parameters) === 1 ? 'Parameter' : 'Parameters' }}
                             </span>
                         </div>
                         <div class="p-4 bg-white flex flex-wrap gap-2">
@@ -237,10 +247,12 @@
                     <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Special Promotional Price</span>
                     <div class="flex items-baseline gap-3 mt-1">
                         <span class="text-3xl font-black text-gray-900 tracking-tight">₹{{ number_format($package->price) }}</span>
-                        <span class="text-sm font-semibold text-gray-400 line-through">₹{{ number_format($package->price * 2.5) }}</span>
-                        <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                            60% OFF
-                        </span>
+                        @if($package->hasDiscount())
+                            <span class="text-sm font-semibold text-gray-400 line-through">₹{{ number_format($package->effective_mrp) }}</span>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                {{ $package->effective_discount_percentage }}% OFF
+                            </span>
+                        @endif
                     </div>
                     <p class="text-[11px] text-gray-500 mt-1">Inclusive of all sample collection charges and digital reports.</p>
                 </div>
@@ -251,7 +263,7 @@
                         data-id="{{ $package->id }}"
                         data-type="package"
                         data-name="{{ $package->name }}"
-                        data-price="{{ $package->price }}" data-mrp="{{ $package->price }}" data-params="Includes {{ $package->total_parameters_count }} Parameters"
+                        data-price="{{ $package->price }}" data-mrp="{{ $package->effective_mrp ?? $package->price }}" data-params="Includes {{ count($groupedParameters) }} Tests &amp; {{ $package->total_parameters_count }} Parameters"
                         class="w-full py-3.5 px-6 bg-gradient-to-r from-teal-700 via-teal-800 to-indigo-900 hover:from-teal-800 hover:to-indigo-950 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-teal-800/25 transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fas fa-cart-plus"></i>
                         <span>Add Package to Cart</span>
@@ -273,7 +285,7 @@
                         <div class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[10px] flex-shrink-0">
                             <i class="fas fa-shield-halved"></i>
                         </div>
-                        <span>NABL & ISO Accredited Laboratory Partners</span>
+                        <span>100% Quality Accredited Laboratory Partners</span>
                     </div>
                     <div class="flex items-center gap-3">
                         <div class="w-6 h-6 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center text-[10px] flex-shrink-0">
