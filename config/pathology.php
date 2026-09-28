@@ -12,11 +12,11 @@ return [
     |
     */
 
-    'enabled' => (bool) env('PATHOLOGY_API_ENABLED', true),
+    'enabled' => (bool) env('PATHOLOGY_API_ENABLED', false),
 
     'sso_enabled' => (bool) env('PATHOLOGY_SSO_ENABLED', true),
 
-    'admin_sync_enabled' => (bool) env('PATHOLOGY_ADMIN_SYNC_ENABLED', false),
+    'admin_sync_enabled' => (bool) env('PATHOLOGY_API_ENABLED', false),
 
     'base_url' => env('PATHOLOGY_API_BASE_URL', 'https://your-pathology-domain.com/api/v1'),
 

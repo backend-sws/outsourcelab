@@ -42,8 +42,8 @@ class Coupon extends Model
     public function patients()
     {
         return $this->belongsToMany(Patient::class, 'patient_coupons')
-                    ->withPivot('is_used', 'used_at', 'booking_id')
-                    ->withTimestamps();
+            ->withPivot('is_used', 'used_at', 'booking_id')
+            ->withTimestamps();
     }
 
     /**
@@ -60,6 +60,7 @@ class Coupon extends Model
             if ($this->max_discount_amount && $discount > $this->max_discount_amount) {
                 $discount = $this->max_discount_amount;
             }
+
             return round($discount, 2);
         }
 

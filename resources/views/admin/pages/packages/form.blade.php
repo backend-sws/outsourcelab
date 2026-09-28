@@ -109,7 +109,7 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
                         <i class="fas fa-tag text-indigo-600"></i> Website Commercial & Offer Pricing
                     </h3>
-                    @if(config('pathology.admin_sync_enabled', false) && isset($package) && $package->lis_price)
+                    @if(config('pathology.enabled', false) && isset($package) && $package->lis_price)
                         <span class="text-[11px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200">
                             LIS Base Cost: <strong class="text-slate-800">₹{{ number_format($package->lis_price, 2) }}</strong>
                         </span>
@@ -145,7 +145,7 @@
                     </div>
                 </div>
 
-                @if(config('pathology.admin_sync_enabled', false))
+                @if(config('pathology.enabled', false))
                 <!-- Price Lock Protection Toggle -->
                 <div class="pt-2 flex items-center justify-between border-t border-indigo-200/40">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
@@ -160,9 +160,9 @@
             <div class="md:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-microscope text-indigo-600"></i> {{ config('pathology.admin_sync_enabled', false) ? 'LIS Specifications & Sample Info' : 'Sample & Package Specifications' }}
+                        <i class="fas fa-microscope text-indigo-600"></i> {{ config('pathology.enabled', false) ? 'LIS Specifications & Sample Info' : 'Sample & Package Specifications' }}
                     </h3>
-                    @if(config('pathology.admin_sync_enabled', false) && isset($package) && $package->lis_synced_at)
+                    @if(config('pathology.enabled', false) && isset($package) && $package->lis_synced_at)
                         <span class="text-[10px] text-slate-400">Synced: {{ $package->lis_synced_at->format('d M Y, h:i A') }}</span>
                     @endif
                 </div>
@@ -170,7 +170,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Package Code -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">{{ config('pathology.admin_sync_enabled', false) ? 'LIS Package Code' : 'Package Code' }}</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">{{ config('pathology.enabled', false) ? 'LIS Package Code' : 'Package Code' }}</label>
                         <input type="text" name="package_code" placeholder="e.g., EXEC-FULL" value="{{ old('package_code', $package->package_code ?? '') }}" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white font-mono uppercase">
                     </div>
 
@@ -300,7 +300,7 @@
 
                 <p class="text-[11px] text-teal-600">
                     <i class="fas fa-info-circle"></i>
-                    Parameters are automatically built from each selected test's biomarker list{{ config('pathology.admin_sync_enabled', false) ? ' (synced from LIS)' : '' }}.
+                    Parameters are automatically built from each selected test's biomarker list{{ config('pathology.enabled', false) ? ' (synced from LIS)' : '' }}.
                 </p>
             </div>
 

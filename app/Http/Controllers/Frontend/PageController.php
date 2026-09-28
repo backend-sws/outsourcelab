@@ -22,9 +22,13 @@ class PageController extends Controller
     /**
      * Display the download report page.
      */
-    public function downloadReport(): View
+    public function downloadReport(PathologyApiService $api): View
     {
-        return view('frontend.pages.download-report');
+        $softwareDomain = $api->getSoftwareDomain();
+        $apiKey = $api->getApiKey();
+        $directPortalLoginUrl = $api->getPatientDirectLoginUrl();
+
+        return view('frontend.pages.download-report', compact('softwareDomain', 'apiKey', 'directPortalLoginUrl'));
     }
 
     /**
@@ -123,14 +127,50 @@ class PageController extends Controller
     }
 
     /**
-     * Authenticate patient via Single Sign-On (SSO) to Pathology LIS Dashboard.
+     * Authenticate staff / doctor / partner via Single Sign-On (SSO) to Pathology LIS Dashboard.
      */
     public function authenticateLisSso(Request $request, PathologyApiService $api): JsonResponse
     {
-        if (! config('pathology.enabled', true) || ! config('pathology.sso_enabled', true)) {
+        if (! config('pathology.sso_enabled', true)) {
             return response()->json([
                 'success' => false,
-                'message' => 'SSO login is currently disabled.',
+                'message' => 'Laboratory LIS login is currently disabled.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'login' => 'required|string|max:190',
+            'password' => 'required|string',
+        ]);
+
+        $login = trim($validated['login']);
+        $password = $validated['password'];
+
+        $result = $api->staffLogin($login, $password);
+
+        if ($result['success'] && ! empty($result['data']['redirect_url'])) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'] ?? 'Login verified successfully. Redirecting to LIS dashboard...',
+                'data' => $result['data'],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'] ?? 'Invalid login credentials. Please verify your email/mobile and password.',
+        ], 401);
+    }
+
+    /**
+     * Authenticate patient via Single Sign-On (SSO) to Patient Portal Dashboard.
+     */
+    public function authenticatePatientSso(Request $request, PathologyApiService $api): JsonResponse
+    {
+        if (! config('pathology.sso_enabled', true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient Portal login is currently disabled.',
             ], 403);
         }
 
@@ -142,32 +182,36 @@ class PageController extends Controller
         $patientId = trim($validated['patient_id']);
         $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
 
-        $ssoResult = $api->patientLogin($patientId, $phone);
+        $result = $api->patientLogin($patientId, $phone);
 
-        if ($ssoResult && ! empty($ssoResult['redirect_url'])) {
+        if ($result['success'] && ! empty($result['data']['redirect_url'])) {
             return response()->json([
                 'success' => true,
-                'message' => 'Login verified successfully. Redirecting to your patient dashboard...',
-                'data' => $ssoResult,
+                'message' => $result['message'] ?? 'Login verified successfully. Redirecting to your patient dashboard...',
+                'data' => $result['data'],
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Invalid Patient ID / Bill Number or Mobile Number. Please verify and try again.',
+            'message' => $result['message'] ?? 'Invalid Patient ID / Bill Number or Mobile Number. Please verify and try again.',
         ], 401);
     }
 
     /**
      * Display the LIS laboratory login page.
      */
-    public function lisLogin(): View|RedirectResponse
+    public function lisLogin(PathologyApiService $api): View|RedirectResponse
     {
-        if (! config('pathology.enabled', true) || ! config('pathology.sso_enabled', true)) {
+        if (! config('pathology.sso_enabled', true)) {
             return redirect()->route('home');
         }
 
-        return view('frontend.pages.lis-login');
+        $softwareDomain = $api->getSoftwareDomain();
+        $apiKey = $api->getApiKey();
+        $directLoginUrl = $api->getStaffDirectLoginUrl();
+
+        return view('frontend.pages.lis-login', compact('softwareDomain', 'apiKey', 'directLoginUrl'));
     }
 
     /**

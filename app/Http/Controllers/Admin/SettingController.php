@@ -65,10 +65,10 @@ class SettingController extends Controller
      */
     public function testPathologyConnection(Request $request, PathologyApiService $api): JsonResponse
     {
-        if (! config('pathology.admin_sync_enabled', false)) {
+        if (! config('pathology.enabled', false)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pathology LIS sync is currently hidden/disabled.',
+                'message' => 'Pathology LIS integration is disabled in system configuration.',
             ], 403);
         }
 
@@ -89,10 +89,10 @@ class SettingController extends Controller
      */
     public function syncPathologyCatalog(Request $request, PathologyCatalogSyncService $syncService): JsonResponse
     {
-        if (! config('pathology.admin_sync_enabled', false)) {
+        if (! config('pathology.enabled', false)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pathology LIS sync is currently hidden/disabled.',
+                'message' => 'Pathology LIS integration is disabled in system configuration.',
             ], 403);
         }
 

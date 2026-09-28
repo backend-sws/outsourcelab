@@ -62,10 +62,6 @@ class PathologyApiService
      */
     public function isConfigured(): bool
     {
-        if (! config('pathology.enabled', true)) {
-            return false;
-        }
-
         return ! empty($this->baseUrl) && ! empty($this->apiKey);
     }
 
@@ -294,11 +290,17 @@ class PathologyApiService
 
     /**
      * Authenticate patient and obtain signed Single Sign-On (SSO) redirect URL.
+     *
+     * @return array{success: bool, message: string, data: array<string, mixed>}
      */
-    public function patientLogin(string $patientIdOrBill, string $phone): ?array
+    public function patientLogin(string $patientIdOrBill, string $phone): array
     {
         if (! $this->isConfigured()) {
-            return null;
+            return [
+                'success' => false,
+                'message' => 'Pathology Laboratory API is not configured.',
+                'data' => [],
+            ];
         }
 
         try {
@@ -307,14 +309,118 @@ class PathologyApiService
                 'phone' => $phone,
             ]);
 
-            if ($response->successful()) {
-                return (array) $response->json('data', []);
+            $json = (array) $response->json();
+
+            if ($response->successful() && ! empty($json['success'])) {
+                return [
+                    'success' => true,
+                    'message' => $json['message'] ?? 'Login verified successfully. Redirecting to patient dashboard...',
+                    'data' => (array) ($json['data'] ?? []),
+                ];
             }
-            Log::warning('Pathology API patientLogin rejected: '.$response->body());
+
+            return [
+                'success' => false,
+                'message' => $json['message'] ?? 'Patient record not found. Please verify your Bill / Patient ID and mobile number.',
+                'data' => [],
+            ];
         } catch (\Throwable $e) {
             Log::error('Pathology API patientLogin error: '.$e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Unable to connect to laboratory server: '.$e->getMessage(),
+                'data' => [],
+            ];
+        }
+    }
+
+    /**
+     * Authenticate staff / doctor / partner and obtain signed Single Sign-On (SSO) redirect URL.
+     *
+     * @return array{success: bool, message: string, data: array<string, mixed>}
+     */
+    public function staffLogin(string $login, string $password): array
+    {
+        if (! $this->isConfigured()) {
+            return [
+                'success' => false,
+                'message' => 'Pathology Laboratory API is not configured.',
+                'data' => [],
+            ];
         }
 
-        return null;
+        try {
+            $response = $this->client()->post('/staff/login', [
+                'login' => $login,
+                'password' => $password,
+            ]);
+
+            $json = (array) $response->json();
+
+            if ($response->successful() && ! empty($json['success'])) {
+                return [
+                    'success' => true,
+                    'message' => $json['message'] ?? 'Login verified successfully. Redirecting to LIS dashboard...',
+                    'data' => (array) ($json['data'] ?? []),
+                ];
+            }
+
+            return [
+                'success' => false,
+                'message' => $json['message'] ?? 'Invalid login credentials. Please verify your email/mobile and password.',
+                'data' => [],
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Pathology API staffLogin error: '.$e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Unable to connect to laboratory server: '.$e->getMessage(),
+                'data' => [],
+            ];
+        }
+    }
+
+    /**
+     * Get base domain of the remote software (without /api/v1).
+     */
+    public function getSoftwareDomain(): string
+    {
+        if (empty($this->baseUrl)) {
+            return '';
+        }
+
+        $clean = preg_replace('#/api/v1/?$#i', '', $this->baseUrl);
+
+        return rtrim((string) $clean, '/');
+    }
+
+    /**
+     * Get the configured Lab API key.
+     */
+    public function getApiKey(): string
+    {
+        return $this->apiKey;
+    }
+
+    /**
+     * Get direct HTML POST action URL for Staff login.
+     */
+    public function getStaffDirectLoginUrl(): string
+    {
+        $domain = $this->getSoftwareDomain();
+
+        return $domain ? "{$domain}/auth/direct-login" : '#';
+    }
+
+    /**
+     * Get direct HTML POST action URL for Patient login.
+     */
+    public function getPatientDirectLoginUrl(): string
+    {
+        $domain = $this->getSoftwareDomain();
+
+        return $domain ? "{$domain}/portal/auth/direct-login" : '#';
     }
 }

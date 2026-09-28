@@ -190,7 +190,7 @@ class BookingController extends Controller
     {
         $booking = Booking::with(['patient', 'familyMember', 'address'])->findOrFail($id);
 
-        if (! config('pathology.admin_sync_enabled', false) || ! $api->isConfigured()) {
+        if (! config('pathology.enabled', false) || ! $api->isConfigured()) {
             return back()->with('error', 'Pathology LIS API sync is currently disabled.');
         }
 

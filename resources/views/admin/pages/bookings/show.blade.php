@@ -292,7 +292,7 @@
             </div>
         </div>
 
-        @if(config('pathology.admin_sync_enabled', false))
+        @if(config('pathology.enabled', false))
         <!-- ═══════════════ PATHOLOGY LIS INTEGRATION CARD ═══════════════ -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div class="flex items-center justify-between border-b pb-3 mb-4">

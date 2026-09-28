@@ -7,10 +7,10 @@
 <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full mb-6 gap-3">
     <div>
         <h2 class="text-xl font-bold text-gray-800 dark:text-white">Packages Management</h2>
-        <p class="text-xs text-gray-500 mt-0.5">Manage health checkup packages, promotional offers{{ config('pathology.admin_sync_enabled', false) ? ', and LIS synchronization' : '' }}.</p>
+        <p class="text-xs text-gray-500 mt-0.5">Manage health checkup packages, promotional offers{{ config('pathology.enabled', false) ? ', and LIS synchronization' : '' }}.</p>
     </div>
     <div class="flex items-center gap-2.5">
-        @if(config('pathology.admin_sync_enabled', false))
+        @if(config('pathology.enabled', false))
         <button type="button" id="pkgSyncBtn" onclick="syncPackagesWithLis(this)" class="bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition-all shadow-sm flex items-center gap-2">
             <i class="fas fa-rotate text-xs"></i> <span>Sync from LIS</span>
         </button>
@@ -58,7 +58,7 @@
                             @if($package->is_featured)
                             <span class="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold">FEATURED</span>
                             @endif
-                            @if(config('pathology.admin_sync_enabled', false) && $package->lock_pricing)
+                            @if(config('pathology.enabled', false) && $package->lock_pricing)
                             <span class="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full font-bold" title="Price protected from LIS overwrites">PRICE LOCKED</span>
                             @endif
                             @if($package->hasDiscount())
@@ -85,7 +85,7 @@
                         @if($package->original_price && $package->original_price > $package->price)
                             <div class="text-[11px] text-gray-400 line-through">MRP: ₹{{ number_format($package->original_price, 2) }}</div>
                         @endif
-                        @if(config('pathology.admin_sync_enabled', false) && $package->lis_price)
+                        @if(config('pathology.enabled', false) && $package->lis_price)
                             <div class="text-[10px] text-teal-600 font-semibold">LIS Cost: ₹{{ number_format($package->lis_price, 2) }}</div>
                         @endif
                     </td>

@@ -58,6 +58,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::get('/download-report', [PageController::class, 'downloadReport'])->name('download.report');
 Route::post('/download-report/track', [PageController::class, 'fetchReportTrack'])->name('download.report.track');
+Route::post('/download-report/patient-login', [PageController::class, 'authenticatePatientSso'])->name('download.report.patient_login');
+Route::get('/patient-login', [PageController::class, 'downloadReport'])->name('patient.login.page');
 Route::get('/lis-login', [PageController::class, 'lisLogin'])->name('lis.login');
 Route::post('/lis-login/authenticate', [PageController::class, 'authenticateLisSso'])->name('lis.login.authenticate');
 Route::get('/login', [PageController::class, 'loginRedirect'])->name('login');

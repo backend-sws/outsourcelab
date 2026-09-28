@@ -62,7 +62,7 @@
                     <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
                         <i class="fas fa-tag text-indigo-600"></i> Website Commercial & Offer Pricing
                     </h3>
-                    @if(config('pathology.admin_sync_enabled', false) && isset($test) && $test->lis_price)
+                    @if(config('pathology.enabled', false) && isset($test) && $test->lis_price)
                         <span class="text-[11px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200">
                             LIS Base Cost: <strong class="text-slate-800">₹{{ number_format($test->lis_price, 2) }}</strong>
                         </span>
@@ -89,7 +89,7 @@
                     </div>
                 </div>
 
-                @if(config('pathology.admin_sync_enabled', false))
+                @if(config('pathology.enabled', false))
                 <!-- Price Lock Protection Toggle -->
                 <div class="pt-2 flex items-center justify-between border-t border-indigo-200/40">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
@@ -109,9 +109,9 @@
             <div class="md:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-200 pb-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
-                        <i class="fas fa-microscope text-indigo-600"></i> Technical Specifications{{ config('pathology.admin_sync_enabled', false) ? ' & LIS Integration' : '' }}
+                        <i class="fas fa-microscope text-indigo-600"></i> Technical Specifications{{ config('pathology.enabled', false) ? ' & LIS Integration' : '' }}
                     </h3>
-                    @if(config('pathology.admin_sync_enabled', false) && isset($test) && $test->lis_synced_at)
+                    @if(config('pathology.enabled', false) && isset($test) && $test->lis_synced_at)
                         <span class="text-[10px] text-slate-400">Synced: {{ $test->lis_synced_at->format('d M Y, h:i A') }}</span>
                     @endif
                 </div>
