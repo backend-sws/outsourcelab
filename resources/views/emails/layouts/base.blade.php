@@ -144,12 +144,17 @@
                         <!-- Footer -->
                         <div class="footer">
                             <p style="margin: 0 0 8px;">Need assistance? We're here to help.</p>
+                            @php
+                                $emailHelpline = \App\Models\Setting::get('helpline_primary', '898 898 8787');
+                                $emailSupport = \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
+                                $emailBrand = \App\Models\Setting::get('site_name', 'AV Wellcare Diagnostics');
+                            @endphp
                             <p style="margin: 0 0 8px;">
-                                <strong>Call:</strong> +91 98765 43210 &nbsp;|&nbsp;
-                                <strong>Email:</strong> <a href="mailto:support@avwellcare.com">support@avwellcare.com</a>
+                                <strong>Call:</strong> {{ $emailHelpline }} &nbsp;|&nbsp;
+                                <strong>Email:</strong> <a href="mailto:{{ $emailSupport }}">{{ $emailSupport }}</a>
                             </p>
                             <p style="margin: 12px 0 0; font-size: 11px; color: #cbd5e1;">
-                                &copy; {{ date('Y') }} AV Wellcare Diagnostics. All rights reserved.
+                                &copy; {{ date('Y') }} {{ $emailBrand }}. All rights reserved.
                             </p>
                         </div>
                     </div>

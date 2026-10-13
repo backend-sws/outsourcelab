@@ -132,7 +132,7 @@
                 <p class="font-bold text-gray-900">Grievance & Privacy Redressal Officer</p>
                 <p class="text-xs text-gray-600 mt-1"><strong>Company:</strong> {{ \App\Models\Setting::get('company_legal_name', 'Av Wellcare Lifetech Pvt. Ltd.') }}</p>
                 <p class="text-xs text-gray-600"><strong>Address:</strong> {{ \App\Models\Setting::get('registered_address', 'H-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301') }}</p>
-                <p class="text-xs text-gray-600"><strong>Email:</strong> <a href="mailto:{{ \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}" class="text-teal-700 font-bold underline">{{ \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}</a></p>
+                <p class="text-xs text-gray-600"><strong>Email:</strong> <a href="mailto:{{ \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}" class="text-teal-700 font-bold underline">{{ \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}</a></p>
                 <p class="text-xs text-gray-600"><strong>Response Window:</strong> All grievances are acknowledged within 24 hours and addressed within 15 business days.</p>
             </div>
         </section>

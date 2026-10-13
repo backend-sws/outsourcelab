@@ -355,7 +355,21 @@ class PatientAuthController extends Controller
      */
     public function logout(): RedirectResponse
     {
-        session()->forget('patient_id');
+        $wasImpersonating = session('impersonated_by_admin');
+        $patientName = session('impersonated_patient_name', 'Patient');
+
+        session()->forget([
+            'patient_id',
+            'impersonated_by_admin',
+            'impersonator_admin_id',
+            'impersonator_admin_name',
+            'impersonated_patient_name',
+        ]);
+
+        if ($wasImpersonating && Auth::check()) {
+            return redirect()->route('admin.users.index')
+                ->with('success', "Closed dashboard session for {$patientName}. Returned to Admin Panel.");
+        }
 
         return redirect('/');
     }

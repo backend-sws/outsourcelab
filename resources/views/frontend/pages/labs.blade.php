@@ -3,6 +3,9 @@
 @section('title', 'Our Labs & Diagnostic Centers | Av Wellcare Diagnostics')
 
 @section('content')
+@php
+    $serviceablePincodes = $serviceablePincodes ?? array_map('trim', explode(',', \App\Models\Setting::get('serviceable_pincodes', '800001, 800002, 110001, 201301, 201309, 400001, 560001')));
+@endphp
 <!-- Ambient Background Elements -->
 <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden bg-slate-50/60">
     <div class="absolute -top-32 -left-32 w-96 h-96 bg-teal-200/30 rounded-full blur-3xl"></div>
@@ -86,8 +89,11 @@
                             <i class="fas fa-envelope text-teal-600 mt-1 flex-shrink-0"></i>
                             <div>
                                 <strong class="text-gray-900 block text-sm font-bold">Laboratory Support Email</strong>
-                                <a href="mailto:{{ \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}" class="text-teal-700 font-bold hover:underline">
-                                    {{ \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}
+                                @php
+                                    $labsEmail = \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
+                                @endphp
+                                <a href="mailto:{{ $labsEmail }}" class="text-teal-700 font-bold hover:underline">
+                                    {{ $labsEmail }}
                                 </a>
                             </div>
                         </div>

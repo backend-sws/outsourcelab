@@ -137,4 +137,4 @@
         });
     <?php endif; ?>
 </script>
-<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/frontend/partials/modals/prescription.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\lab\lab\resources\views/frontend/partials/modals/prescription.blade.php ENDPATH**/ ?>

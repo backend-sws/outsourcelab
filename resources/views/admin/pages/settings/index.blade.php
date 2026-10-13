@@ -95,15 +95,17 @@
                     </div>
                 </div>
 
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Footer About / Brand Intro Description</label>
+                    <textarea name="footer_about" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">{{ $settings['footer_about'] ?? 'Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.' }}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on the website footer below the brand logo.</p>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Site Logo (Header & Branding)</label>
                         <div class="flex items-center gap-4">
-                            @if(!empty($settings['site_logo']))
-                                <img src="{{ $settings['site_logo'] }}" alt="Logo" class="h-12 w-auto object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10">
-                            @else
-                                <img src="{{ asset('logo.png') }}" alt="Default Logo" class="h-12 w-auto object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10">
-                            @endif
+                            <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="Site Logo" class="h-12 w-auto object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10">
                             <input type="file" name="site_logo" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 dark:file:bg-teal-500/20 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-teal-100 transition cursor-pointer">
                         </div>
                         <p class="text-[11px] text-slate-400 mt-1">Recommended format: Transparent PNG or SVG.</p>
@@ -112,14 +114,136 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Browser Tabbar Favicon</label>
                         <div class="flex items-center gap-4">
-                            @php
-                                $rawFavicon = $settings['site_favicon'] ?? null;
-                                $currentFavicon = $rawFavicon ? (str_starts_with($rawFavicon, 'http') ? $rawFavicon : asset($rawFavicon)) : asset('favicon.png');
-                            @endphp
-                            <img src="{{ $currentFavicon }}" alt="Favicon" class="h-12 w-12 object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 shadow-sm">
+                            <img src="{{ \App\Models\Setting::getFaviconUrl() }}" alt="Favicon" class="h-12 w-12 object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 shadow-sm">
                             <input type="file" name="site_favicon" accept="image/x-icon,image/png,image/svg+xml,image/jpeg" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 dark:file:bg-teal-500/20 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-teal-100 transition cursor-pointer">
                         </div>
                         <p class="text-[11px] text-slate-400 mt-1">Displays in browser tabs and bookmarks (ICO, PNG, or SVG).</p>
+                    </div>
+                </div>
+
+                <!-- HOMEPAGE HERO BANNER IMAGES (MULTIPLE SLIDER IMAGES) -->
+                <div class="pt-6 border-t border-slate-200 dark:border-white/[0.08]" id="bannerManagementSection">
+                    <input type="hidden" name="banner_section_submitted" value="1">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-images text-teal-500"></i> Homepage Hero Banner Images (Slider / Carousel)
+                            </h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">
+                                Manage background slider images. You can delete default banners or uploaded banners one-by-one, or add new ones.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="resetAllBanners()" title="Restore the 5 original default system hero banners" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-500/10 hover:bg-teal-100 transition border border-teal-200 dark:border-teal-500/20">
+                                <i class="fas fa-rotate-left text-[11px]"></i>
+                                <span>Restore 5 System Defaults</span>
+                            </button>
+                            <input type="hidden" name="reset_banners" id="resetBannersInput" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Upload Input Card -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-50/50 to-emerald-50/50 dark:from-teal-950/20 dark:to-emerald-950/20 border-2 border-dashed border-teal-200 dark:border-teal-800/60 mb-5">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fas fa-cloud-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-white">Choose Multiple Images to Upload</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Hold <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-[10px] font-mono">Ctrl</kbd> or <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-[10px] font-mono">Shift</kbd> to select multiple files at once (JPG, PNG, WEBP). Recommended size: 1920x800px.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md shadow-teal-600/20 cursor-pointer transition active:scale-95">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Select Banner Files</span>
+                                    <input type="file" name="banner_images[]" id="bannerImagesInput" multiple accept="image/*" class="hidden" onchange="handleBannerFilesSelected(this)">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Selected Files Counter / Preview List -->
+                        <div id="newBannersPreviewContainer" class="hidden mt-4 pt-4 border-t border-teal-200/60 dark:border-teal-800/40">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                                    <i class="fas fa-check-circle text-teal-500"></i>
+                                    <span id="selectedCountText">0 new images selected to upload:</span>
+                                </span>
+                                <button type="button" onclick="clearNewSelectedBanners()" class="text-[11px] text-rose-500 hover:underline font-semibold">
+                                    Clear Selection
+                                </button>
+                            </div>
+                            <div id="newBannersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Current Active Banners Grid -->
+                    @php
+                        $allActiveBanners = \App\Models\Setting::getRawBannerImages();
+                        $systemDefaults = \App\Models\Setting::getDefaultBannerImages();
+                    @endphp
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+                            <span>
+                                Active Hero Slider Banners 
+                                <span id="activeBannerCountBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold">{{ count($allActiveBanners) }} Active</span>
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-normal">Click the <i class="fas fa-trash-alt text-rose-500 text-[10px]"></i> trash button on any slide to remove it.</span>
+                        </div>
+
+                        <div id="activeBannersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            @forelse($allActiveBanners as $idx => $bPath)
+                                @php
+                                    $bUrl = str_starts_with($bPath, 'http') ? $bPath : asset(ltrim($bPath, '/'));
+                                    $isDefault = in_array(ltrim($bPath, '/'), array_map(fn($d) => ltrim($d, '/'), $systemDefaults));
+                                @endphp
+                                <div class="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 shadow-xs transition-all hover:shadow-md" id="bannerCard-{{ $idx }}">
+                                    <!-- Image thumbnail -->
+                                    <div class="aspect-video w-full overflow-hidden bg-slate-900/10">
+                                        <img src="{{ $bUrl }}" alt="Banner {{ $idx + 1 }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    </div>
+
+                                    <!-- Index Badge -->
+                                    <div class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-black backdrop-blur-xs">
+                                        Slide #{{ $idx + 1 }}
+                                    </div>
+
+                                    <!-- Type Badge -->
+                                    @if($isDefault)
+                                        <div class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/50 text-slate-200 text-[9px] font-semibold backdrop-blur-xs">
+                                            Default
+                                        </div>
+                                    @else
+                                        <div class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-teal-600/80 text-white text-[9px] font-bold backdrop-blur-xs">
+                                            Uploaded
+                                        </div>
+                                    @endif
+
+                                    <!-- Hidden input to keep this banner on standard form save -->
+                                    <input type="hidden" name="existing_banners[]" value="{{ $bPath }}" class="existing-banner-input">
+
+                                    <!-- Delete button (Works for both default and uploaded banners!) -->
+                                    <button type="button" 
+                                            onclick="removeBannerItem('{{ $bPath }}', 'bannerCard-{{ $idx }}')"
+                                            title="Delete this banner (Slide #{{ $idx + 1 }})"
+                                            class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center text-xs shadow-md transition active:scale-90 opacity-90 group-hover:opacity-100 cursor-pointer">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            @empty
+                                <div id="emptyBannersNotice" class="col-span-full py-8 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border-2 border-dashed border-slate-200 dark:border-white/10">
+                                    <i class="fas fa-images text-slate-400 text-3xl mb-2 block"></i>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">No Banners Active</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">All banners have been removed. Upload new images above or restore original defaults.</p>
+                                    <button type="button" onclick="resetAllBanners()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-teal-600 text-white text-xs font-bold hover:bg-teal-700 transition">
+                                        Restore All 5 Default Banners
+                                    </button>
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
@@ -144,28 +268,36 @@
                         <input type="text" name="whatsapp_number" value="{{ $settings['whatsapp_number'] ?? '8988988787' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Customer Support Email</label>
-                        <input type="email" name="support_email" value="{{ $settings['support_email'] ?? 'care@avwellcarediagnostics.com' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Customer Support / Contact Email</label>
+                        <input type="email" name="support_email" value="{{ $settings['support_email'] ?? $settings['contact_email'] ?? 'care@avwellcarediagnostics.com' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Home Sample Collection Operating Hours</label>
-                    <input type="text" name="collection_timing" value="{{ $settings['collection_timing'] ?? 'Daily 6:00 AM – 9:00 PM (Trained Phlebotomists)' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    <input type="text" name="collection_timing" value="{{ $settings['collection_timing'] ?? $settings['working_hours'] ?? 'Daily 6:00 AM – 9:00 PM (Trained Phlebotomists)' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
                 </div>
             </div>
 
-            <!-- TAB 3: Official Lab Addresses -->
+            <!-- TAB 3: Official Lab & Company Addresses -->
             <div id="settings-panel-addresses" class="settings-tab-content space-y-5 hidden">
                 <input type="hidden" name="settings_group" value="contact">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Company Registered Address</label>
-                    <textarea name="registered_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">{{ $settings['registered_address'] ?? '' }}</textarea>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Company Legal / Entity Name</label>
+                    <input type="text" name="company_legal_name" value="{{ $settings['company_legal_name'] ?? 'Av Wellcare Lifetech Pvt. Ltd.' }}" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    <p class="text-[11px] text-slate-400 mt-1">Displays in website footer above address, in Terms &amp; Conditions, and in Privacy Policy.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Company Registered Address (Footer &amp; Legal)</label>
+                    <textarea name="registered_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">{{ $settings['registered_address'] ?? 'H-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301' }}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on footer, contact cards, and compliance pages.</p>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">National Reference Lab Address</label>
-                    <textarea name="reference_lab_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">{{ $settings['reference_lab_address'] ?? '' }}</textarea>
+                    <textarea name="reference_lab_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">{{ $settings['reference_lab_address'] ?? 'H-21, 4th Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301' }}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on Our Labs and Compliance pages.</p>
                 </div>
             </div>
 
@@ -916,6 +1048,167 @@
         } finally {
             btn.disabled = false;
             btnText.textContent = 'Sync Catalog from LIS';
+        }
+    }
+
+    let selectedBannerFiles = [];
+
+    function handleBannerFilesSelected(input) {
+        if (!input.files || input.files.length === 0) return;
+
+        Array.from(input.files).forEach(f => {
+            selectedBannerFiles.push(f);
+        });
+
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function removeNewSelectedBanner(fileIndex) {
+        selectedBannerFiles.splice(fileIndex, 1);
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function syncBannerFilesInput() {
+        const input = document.getElementById('bannerImagesInput');
+        if (!input) return;
+
+        try {
+            const dt = new DataTransfer();
+            selectedBannerFiles.forEach(f => dt.items.add(f));
+            input.files = dt.files;
+        } catch (e) {
+            console.log('DataTransfer fallback', e);
+        }
+    }
+
+    function renderNewBannersPreview() {
+        const previewContainer = document.getElementById('newBannersPreviewContainer');
+        const grid = document.getElementById('newBannersGrid');
+        const countText = document.getElementById('selectedCountText');
+        if (!grid || !previewContainer) return;
+
+        grid.innerHTML = '';
+
+        if (selectedBannerFiles.length === 0) {
+            previewContainer.classList.add('hidden');
+            return;
+        }
+
+        countText.textContent = `${selectedBannerFiles.length} new image(s) ready to upload on save:`;
+        previewContainer.classList.remove('hidden');
+
+        selectedBannerFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-xl overflow-hidden border-2 border-teal-400 bg-slate-900/10 shadow-sm';
+            
+            reader.onload = function(e) {
+                card.innerHTML = `
+                    <div class="aspect-video w-full overflow-hidden">
+                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-1.5 bg-white dark:bg-slate-900 text-[10px] truncate font-medium text-slate-700 dark:text-slate-300">
+                        ${file.name}
+                    </div>
+                    <div class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-teal-600 text-white text-[9px] font-bold">
+                        New +${index + 1}
+                    </div>
+                    <button type="button" onclick="removeNewSelectedBanner(${index})" title="Remove this file from upload list" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[10px] flex items-center justify-center shadow transition cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            };
+            reader.readAsDataURL(file);
+            grid.appendChild(card);
+        });
+    }
+
+    function clearNewSelectedBanners() {
+        selectedBannerFiles = [];
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function resetAllBanners() {
+        if (!confirm('Restore all 5 original default system hero banners?')) {
+            return;
+        }
+        const resetInput = document.getElementById('resetBannersInput');
+        if (resetInput) resetInput.value = '1';
+        
+        // Remove existing banner inputs so none are sent
+        document.querySelectorAll('.existing-banner-input').forEach(el => el.remove());
+        
+        // Automatically submit the form to apply reset
+        const form = document.querySelector('form[action="{{ route("admin.settings.update") }}"]');
+        if (form) form.submit();
+    }
+
+    async function removeBannerItem(bannerPath, cardId) {
+        if (!confirm('Are you sure you want to delete this banner image?')) {
+            return;
+        }
+
+        const card = document.getElementById(cardId);
+        if (card) {
+            card.style.opacity = '0.4';
+            card.style.pointerEvents = 'none';
+        }
+
+        try {
+            const res = await fetch('{{ route("admin.settings.deleteBanner") }}', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ banner_path: bannerPath })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (card) {
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+
+                        // Update counter badge
+                        const countBadge = document.getElementById('activeBannerCountBadge');
+                        if (countBadge) {
+                            countBadge.textContent = `${data.remaining_count} Active`;
+                        }
+
+                        // If all banners deleted, show empty state notice
+                        const activeGrid = document.getElementById('activeBannersGrid');
+                        if (activeGrid && data.remaining_count === 0) {
+                            activeGrid.innerHTML = `
+                                <div id="emptyBannersNotice" class="col-span-full py-8 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border-2 border-dashed border-slate-200 dark:border-white/10">
+                                    <i class="fas fa-images text-slate-400 text-3xl mb-2 block"></i>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">No Banners Active</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">All banners have been removed. Upload new images above or restore original defaults.</p>
+                                    <button type="button" onclick="resetAllBanners()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-teal-600 text-white text-xs font-bold hover:bg-teal-700 transition">
+                                        Restore All 5 Default Banners
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }, 250);
+                }
+            } else {
+                alert(data.message || 'Failed to delete banner.');
+                if (card) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+            }
+        } catch (err) {
+            // Fallback for network issues: remove from DOM so saving form applies it
+            if (card) {
+                card.remove();
+            }
         }
     }
 

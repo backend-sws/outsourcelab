@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -98,4 +99,47 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', "User '{$name}' deleted successfully.");
     }
+
+    /**
+     * Impersonate patient/user and enter their dashboard with full administrator access.
+     */
+    public function impersonate($id)
+    {
+        $user = Patient::findOrFail($id);
+
+        session([
+            'patient_id' => $user->id,
+            'impersonated_by_admin' => true,
+            'impersonator_admin_id' => Auth::id(),
+            'impersonator_admin_name' => Auth::user()?->name ?? 'Admin',
+            'impersonated_patient_name' => $user->name ?: ($user->email ?: 'User #'.$user->id),
+        ]);
+
+        return redirect()->route('patient.dashboard')
+            ->with('success', "Logged into {$user->name}'s dashboard. You have full administrator access to view, update, and manage this account.");
+    }
+
+    /**
+     * Exit patient impersonation session and return to Admin Users panel.
+     */
+    public function leaveImpersonate()
+    {
+        $patientName = session('impersonated_patient_name', 'Patient');
+
+        session()->forget([
+            'patient_id',
+            'impersonated_by_admin',
+            'impersonator_admin_id',
+            'impersonator_admin_name',
+            'impersonated_patient_name',
+        ]);
+
+        if (Auth::check()) {
+            return redirect()->route('admin.users.index')
+                ->with('success', "Exited dashboard of {$patientName}. Successfully returned to Admin Panel.");
+        }
+
+        return redirect('/')->with('info', 'Exited patient dashboard.');
+    }
 }
+

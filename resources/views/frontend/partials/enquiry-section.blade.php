@@ -39,8 +39,8 @@
                 @php
                     $enquiryHelpline = \App\Models\Setting::get('helpline_primary', '898 898 8787');
                     $enquiryHelplineClean = preg_replace('/[^0-9]/', '', $enquiryHelpline);
-                    $enquiryEmail = \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
-                    $enquiryHours = \App\Models\Setting::get('working_hours', 'Daily 6:00 AM – 9:00 PM');
+                    $enquiryEmail = \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
+                    $enquiryHours = \App\Models\Setting::get('collection_timing') ?: \App\Models\Setting::get('working_hours', 'Daily 6:00 AM – 9:00 PM');
                 @endphp
                 <div class="space-y-3 pt-2">
                     <div class="flex items-center space-x-3.5 p-3.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">

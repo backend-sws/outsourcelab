@@ -71,6 +71,13 @@ class PatientBookingController extends Controller
             return response()->json(['success' => false, 'message' => 'Cart is empty'], 400);
         }
 
+        if (Booking::isSlotExpiredForDate($bookingDate, $collectionSlot)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
+            ], 422);
+        }
+
         // Server-side price recalculation to eliminate price tampering
         $sanitizedCart = [];
         $subtotal = 0;
@@ -243,6 +250,14 @@ class PatientBookingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Patient name is required. Please provide a valid patient name before booking.',
+            ], 422);
+        }
+
+        // Validate time slot expiration for today
+        if (Booking::isSlotExpiredForDate($bookingDate, $collectionSlot)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
             ], 422);
         }
 
@@ -543,6 +558,14 @@ class PatientBookingController extends Controller
 
         if (empty($rawTests) || ! is_array($rawTests)) {
             return response()->json(['success' => false, 'message' => 'At least one diagnostic test is required.'], 422);
+        }
+
+        // Validate time slot expiration for today
+        if ($bookingDate && $collectionSlot && Booking::isSlotExpiredForDate($bookingDate, $collectionSlot)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
+            ], 422);
         }
 
         $originalTests = is_array($booking->test_details) ? $booking->test_details : (json_decode($booking->test_details, true) ?: []);

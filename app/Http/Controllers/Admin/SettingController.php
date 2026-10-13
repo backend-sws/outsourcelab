@@ -26,17 +26,105 @@ class SettingController extends Controller
         $activeTab = $request->input('active_tab', 'general');
         $inputs = $request->except(['_token', 'settings_group', 'active_tab']);
 
+        // Explicitly remove file & banner keys from generic input array so they never overwrite existing values with null
+        unset(
+            $inputs['site_logo'], 
+            $inputs['site_favicon'], 
+            $inputs['banner_images'], 
+            $inputs['existing_banners'], 
+            $inputs['reset_banners'], 
+            $inputs['banner_section_submitted']
+        );
+
         // Handle File Uploads (Logo & Favicon)
         if ($request->hasFile('site_logo')) {
-            $path = $request->file('site_logo')->store('branding', 'public');
-            Setting::set('site_logo', Storage::url($path), 'general', 'image');
-            unset($inputs['site_logo']);
+            $file = $request->file('site_logo');
+            $extension = $file->getClientOriginalExtension() ?: 'png';
+            $filename = 'site_logo_' . time() . '.' . $extension;
+
+            // Store to public disk
+            $file->storeAs('branding', $filename, 'public');
+
+            // Guarantee direct physical copy in public/storage/branding for immediate HTTP serving
+            $publicBrandingDir = public_path('storage/branding');
+            if (!file_exists($publicBrandingDir)) {
+                @mkdir($publicBrandingDir, 0755, true);
+            }
+            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+
+            Setting::set('site_logo', 'storage/branding/' . $filename, 'general', 'image');
         }
 
         if ($request->hasFile('site_favicon')) {
-            $path = $request->file('site_favicon')->store('branding', 'public');
-            Setting::set('site_favicon', Storage::url($path), 'general', 'image');
-            unset($inputs['site_favicon']);
+            $file = $request->file('site_favicon');
+            $extension = $file->getClientOriginalExtension() ?: 'png';
+            $filename = 'site_favicon_' . time() . '.' . $extension;
+
+            // Store to public disk
+            $file->storeAs('branding', $filename, 'public');
+
+            // Guarantee direct physical copy in public/storage/branding for immediate HTTP serving
+            $publicBrandingDir = public_path('storage/branding');
+            if (!file_exists($publicBrandingDir)) {
+                @mkdir($publicBrandingDir, 0755, true);
+            }
+            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+
+            Setting::set('site_favicon', 'storage/branding/' . $filename, 'general', 'image');
+        }
+
+        // Handle Multiple Homepage Hero Banner Images
+        $newBanners = [];
+        if ($request->hasFile('banner_images')) {
+            $publicBannerDir = public_path('storage/banners');
+            if (!file_exists($publicBannerDir)) {
+                @mkdir($publicBannerDir, 0755, true);
+            }
+
+            foreach ($request->file('banner_images') as $idx => $bannerFile) {
+                if ($bannerFile && $bannerFile->isValid()) {
+                    $ext = $bannerFile->getClientOriginalExtension() ?: 'jpg';
+                    $filename = 'banner_' . time() . '_' . $idx . '_' . uniqid() . '.' . $ext;
+
+                    // Store to public disk
+                    $bannerFile->storeAs('banners', $filename, 'public');
+
+                    // Direct copy for immediate web serving
+                    @copy($bannerFile->getRealPath(), $publicBannerDir . DIRECTORY_SEPARATOR . $filename);
+
+                    $newBanners[] = 'storage/banners/' . $filename;
+                }
+            }
+        }
+
+        if ($request->has('banner_section_submitted')) {
+            if ($request->boolean('reset_banners')) {
+                Setting::set('banner_images', json_encode(Setting::getDefaultBannerImages()), 'general', 'json');
+            } else {
+                $existingBanners = $request->input('existing_banners', []);
+                if (!is_array($existingBanners)) {
+                    $existingBanners = [];
+                }
+                $finalBanners = array_values(array_unique(array_merge($existingBanners, $newBanners)));
+                Setting::set('banner_images', json_encode($finalBanners), 'general', 'json');
+            }
+        } elseif (count($newBanners) > 0) {
+            $currentBanners = Setting::getRawBannerImages();
+            $finalBanners = array_values(array_unique(array_merge($currentBanners, $newBanners)));
+            Setting::set('banner_images', json_encode($finalBanners), 'general', 'json');
+        }
+
+        // Auto-sync alias keys so that changes to one immediately update the other
+        if (array_key_exists('support_email', $inputs)) {
+            $inputs['contact_email'] = $inputs['support_email'];
+        } elseif (array_key_exists('contact_email', $inputs)) {
+            $inputs['support_email'] = $inputs['contact_email'];
+        }
+
+        if (array_key_exists('collection_timing', $inputs)) {
+            $inputs['working_hours'] = $inputs['collection_timing'];
+        } elseif (array_key_exists('working_hours', $inputs)) {
+            $inputs['collection_timing'] = $inputs['working_hours'];
         }
 
         foreach ($inputs as $key => $value) {
@@ -46,13 +134,28 @@ class SettingController extends Controller
                 str_starts_with($key, 'sms_') || str_starts_with($key, 'msg91_') || str_starts_with($key, 'twilio_') => 'sms',
                 str_starts_with($key, 'whatsapp_') || str_starts_with($key, 'interakt_') || str_starts_with($key, 'aisensy_') => 'whatsapp',
                 str_starts_with($key, 'pathology_') => 'pathology',
-                default => $group,
+                str_starts_with($key, 'social_') => 'social',
+                in_array($key, [
+                    'helpline_primary',
+                    'helpline_secondary',
+                    'whatsapp_number',
+                    'support_email',
+                    'contact_email',
+                    'collection_timing',
+                    'working_hours',
+                    'company_legal_name',
+                    'registered_address',
+                    'reference_lab_address'
+                ]) => 'contact',
+                $key === 'serviceable_pincodes' => 'service',
+                default => 'general',
             };
 
             Setting::set($key, is_string($value) ? trim($value) : $value, $keyGroup);
         }
 
         Setting::clearSettingCache();
+        \Illuminate\Support\Facades\Cache::flush();
         NotificationService::applyMailConfig();
 
         return back()
@@ -101,4 +204,44 @@ class SettingController extends Controller
 
         return response()->json($result, $result['success'] ? 200 : 422);
     }
+
+    /**
+     * Delete an individual banner image (works for both default system banners and custom uploaded banners).
+     */
+    public function deleteBannerImage(Request $request): JsonResponse
+    {
+        $pathToDelete = trim($request->input('banner_path', ''));
+        if (empty($pathToDelete)) {
+            return response()->json(['success' => false, 'message' => 'Banner path required.'], 400);
+        }
+
+        $cleanPathToDelete = ltrim($pathToDelete, '/');
+
+        $currentBanners = Setting::getRawBannerImages();
+        $updatedBanners = array_values(array_filter($currentBanners, function ($b) use ($cleanPathToDelete) {
+            return ltrim($b, '/') !== $cleanPathToDelete;
+        }));
+
+        // Delete physical file if within storage/banners
+        if (str_starts_with($cleanPathToDelete, 'storage/banners/')) {
+            $physicalFile = public_path($cleanPathToDelete);
+            if (file_exists($physicalFile)) {
+                @unlink($physicalFile);
+            }
+            $storageDiskPath = str_replace('storage/', '', $cleanPathToDelete);
+            Storage::disk('public')->delete($storageDiskPath);
+        }
+
+        Setting::set('banner_images', json_encode($updatedBanners), 'general', 'json');
+        Setting::clearSettingCache();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Banner removed successfully.',
+            'remaining_count' => count($updatedBanners),
+            'has_custom' => true,
+            'banners' => $updatedBanners,
+        ]);
+    }
 }
+

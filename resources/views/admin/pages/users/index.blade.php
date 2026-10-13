@@ -256,7 +256,15 @@
                         </td>
 
                         <!-- Actions -->
-                        <td class="px-6 py-4 text-right space-x-1">
+                        <td class="px-6 py-4 text-right space-x-1.5">
+                            <!-- Enter User Dashboard (Full Access Impersonation) -->
+                            <a href="{{ route('admin.users.impersonate', $user->id) }}" 
+                               title="Enter {{ $user->name ?: 'User' }}'s Dashboard (Full Access to Edit Profile, Bookings & Addresses)"
+                               class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 font-bold transition-all shadow-sm">
+                                <i class="fas fa-sign-in-alt text-xs mr-1 text-emerald-600 dark:text-emerald-400"></i>
+                                <span>Enter Dashboard</span>
+                            </a>
+
                             <!-- View User Profile -->
                             <a href="{{ route('admin.users.show', $user->id) }}" 
                                title="View Full Profile & Bookings"

@@ -2,13 +2,19 @@
     <footer class="bg-brand-dark text-white pt-16 pb-8 border-t-[8px] border-brand-secondary w-full">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+                <?php
+                    $footerLogoUrl = \App\Models\Setting::getLogoUrl();
+                    $siteName = \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics');
+                    $footerAbout = \App\Models\Setting::get('footer_about', 'Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.');
+                ?>
                 <!-- Brand Info -->
                 <div class="col-span-1 pr-2">
                     <div class="bg-white/95 px-3 py-2 rounded-xl inline-block mb-6 shadow-sm">
-                        <img src="<?php echo e(asset('logo.png')); ?>" alt="Av Wellcare Diagnostics" class="h-10 w-auto object-contain">
+                        <img src="<?php echo e($footerLogoUrl); ?>" alt="<?php echo e($siteName); ?>" class="h-10 w-auto object-contain">
                     </div>
                     <p class="text-xs text-gray-300 leading-relaxed mb-6">
-                        Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.
+                        <?php echo e($footerAbout); ?>
+
                     </p>
                     
                     <div class="flex items-center space-x-3 bg-white/5 p-3 rounded-xl border border-white/10 shadow-xs">
@@ -57,13 +63,15 @@
                 
                 <!-- Social & Contact -->
                 <?php
-                    $footerEmail = \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
+                    $footerEmail = \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
                     $footerPhone = \App\Models\Setting::get('helpline_primary', '898 898 8787');
                     $footerPhoneClean = preg_replace('/[^0-9]/', '', $footerPhone);
+                    $footerSecondaryPhone = \App\Models\Setting::get('helpline_secondary');
+                    $footerSecondaryPhoneClean = $footerSecondaryPhone ? preg_replace('/[^0-9]/', '', $footerSecondaryPhone) : null;
                     $registeredAddr = \App\Models\Setting::get('registered_address', 'H-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301');
                     $nationalRefLab = \App\Models\Setting::get('reference_lab_address', 'H-21, 4th Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301');
                     $companyName = \App\Models\Setting::get('company_legal_name', 'Av Wellcare Lifetech Pvt. Ltd.');
-                    $cinNumber = \App\Models\Setting::get('cin_number', 'U85190UP2021PTC149892');
+                    $cinNumber = \App\Models\Setting::get('cin_number', 'CIN: U85190UP2021PTC149892');
                     $copyrightText = \App\Models\Setting::get('copyright_text', 'Av Wellcare Diagnostics © ' . date('Y') . '. All rights reserved.');
                     $insta = \App\Models\Setting::get('social_instagram', '#');
                     $fb = \App\Models\Setting::get('social_facebook', '#');
@@ -82,7 +90,14 @@
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-phone-alt mt-1 mr-2.5 text-brand-secondary flex-shrink-0"></i>
-                            <a href="tel:<?php echo e($footerPhoneClean); ?>" class="hover:text-white transition font-bold text-white"><?php echo e($footerPhone); ?></a>
+                            <div>
+                                <a href="tel:<?php echo e($footerPhoneClean); ?>" class="hover:text-white transition font-bold text-white block"><?php echo e($footerPhone); ?></a>
+                                <?php if($footerSecondaryPhone && $footerSecondaryPhone !== $footerPhone): ?>
+                                    <span class="text-gray-400 text-[11px] block mt-0.5">
+                                        Alt: <a href="tel:<?php echo e($footerSecondaryPhoneClean); ?>" class="hover:text-white transition"><?php echo e($footerSecondaryPhone); ?></a>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </li>
                         <li class="flex items-start">
                             <i class="fas fa-map-marker-alt mt-1 mr-2.5 text-brand-secondary flex-shrink-0"></i>
@@ -114,7 +129,7 @@
             
             <div class="border-t border-gray-700 pt-6 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-400 gap-3">
                 <p><?php echo e($copyrightText); ?></p>
-                <p class="font-mono">CIN: <?php echo e($cinNumber); ?></p>
+                <p class="font-mono"><?php echo e(str_starts_with($cinNumber, 'CIN:') ? $cinNumber : 'CIN: ' . $cinNumber); ?></p>
                 <div class="flex flex-wrap items-center space-x-3 mt-2 md:mt-0">
                     <a href="<?php echo e(route('privacy')); ?>" class="hover:text-white border-b border-gray-500 pb-0.5 transition">Privacy Policy</a>
                     <span class="text-gray-600">|</span>

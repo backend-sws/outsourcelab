@@ -206,6 +206,67 @@
     let mbCatalogTests = [];
     let mbCatalogPackages = [];
 
+    function mbParseSlotTimeToMinutes(timeStr) {
+        if (!timeStr) return null;
+        timeStr = timeStr.trim().toUpperCase();
+        const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+        if (!match) return null;
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    }
+
+    function mbFilterSlots() {
+        const dateInput = document.getElementById('mbDateInput');
+        const slotSelect = document.getElementById('mbSlotSelect');
+        if (!dateInput || !slotSelect) return;
+
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const todayYmd = `${year}-${month}-${day}`;
+
+        const isToday = (dateInput.value === todayYmd);
+        const currentMinutes = d.getHours() * 60 + d.getMinutes();
+
+        let firstValidIndex = -1;
+
+        for (let i = 0; i < slotSelect.options.length; i++) {
+            const opt = slotSelect.options[i];
+            const startStr = opt.value.split('-')[0].trim();
+            const startMinutes = mbParseSlotTimeToMinutes(startStr);
+
+            if (isToday && startMinutes !== null && startMinutes <= currentMinutes) {
+                opt.disabled = true;
+                opt.hidden = true;
+            } else {
+                opt.disabled = false;
+                opt.hidden = false;
+                if (firstValidIndex === -1) {
+                    firstValidIndex = i;
+                }
+            }
+        }
+
+        // If current selected option is disabled/hidden, switch to first valid option
+        if (slotSelect.selectedIndex >= 0 && slotSelect.options[slotSelect.selectedIndex].disabled) {
+            if (firstValidIndex !== -1) {
+                slotSelect.selectedIndex = firstValidIndex;
+            }
+        }
+    }
+    window.mbFilterSlots = mbFilterSlots;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('mbDateInput')?.addEventListener('change', mbFilterSlots);
+    });
+
     function openModifyBookingModal(bookingId) {
         mbCurrentBookingId = bookingId;
         const modal = document.getElementById('modifyBookingModal');
@@ -299,6 +360,7 @@
                     slotSelect.add(opt);
                 }
             }
+            mbFilterSlots();
 
             // Beneficiary Member
             const memberSelect = document.getElementById('mbMemberSelect');
@@ -547,6 +609,11 @@
         }
         if (!bookingDate) {
             alert('Please select a collection date.');
+            return;
+        }
+        const slotSelect = document.getElementById('mbSlotSelect');
+        if (!collectionSlot || (slotSelect && slotSelect.selectedOptions.length > 0 && slotSelect.selectedOptions[0].disabled)) {
+            alert('Please select an upcoming available collection slot.');
             return;
         }
         if (mbSelectedTests.length === 0) {

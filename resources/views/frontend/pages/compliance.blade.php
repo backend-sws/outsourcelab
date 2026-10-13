@@ -179,8 +179,11 @@
             <p class="text-xs text-gray-400">For statutory inquiries, regulatory verification, or bio-waste audit logs, contact our legal secretariat.</p>
         </div>
         <div class="text-right flex-shrink-0">
-            <a href="mailto:{{ \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com') }}" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl inline-block transition">
-                <i class="fas fa-envelope mr-1.5"></i> legal@avwellcarediagnostics.com
+            @php
+                $compEmail = \App\Models\Setting::get('support_email') ?: \App\Models\Setting::get('contact_email', 'care@avwellcarediagnostics.com');
+            @endphp
+            <a href="mailto:{{ $compEmail }}" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl inline-block transition">
+                <i class="fas fa-envelope mr-1.5"></i> {{ $compEmail }}
             </a>
         </div>
     </div>

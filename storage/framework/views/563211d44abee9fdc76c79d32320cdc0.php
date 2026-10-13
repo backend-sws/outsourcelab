@@ -153,4 +153,4 @@
             window.location.href = "<?php echo e(route('checkout.index')); ?>";
         }
     </script>
-<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/frontend/partials/scripts.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\lab\lab\resources\views/frontend/partials/scripts.blade.php ENDPATH**/ ?>

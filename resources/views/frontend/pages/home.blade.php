@@ -2005,7 +2005,7 @@
 
             <!-- Modal Footer -->
             <div class="p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                <span class="text-xs text-gray-500">Need immediate help? Call 898 898 8787</span>
+                <span class="text-xs text-gray-500">Need immediate help? Call <a href="tel:{{ preg_replace('/[^0-9]/', '', \App\Models\Setting::get('helpline_primary', '898 898 8787')) }}" class="font-bold text-teal-700 hover:underline">{{ \App\Models\Setting::get('helpline_primary', '898 898 8787') }}</a></span>
                 <button type="button" onclick="closeFemcliffeModal(); document.getElementById('femcliffe-section').scrollIntoView({behavior: 'smooth'})" class="px-5 py-2.5 bg-gradient-to-r from-pink-600 to-purple-600 text-white rounded-xl text-xs font-extrabold shadow-md shadow-pink-500/20 hover:opacity-95 transition cursor-pointer">
                     Explore Packages
                 </button>

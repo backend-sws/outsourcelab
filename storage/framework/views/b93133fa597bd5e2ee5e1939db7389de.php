@@ -247,4 +247,4 @@
 
     window.openAddMemberModal = windowOpenAddMemberModal;
 </script>
-<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/patient/modals/add-member.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\lab\lab\resources\views/patient/modals/add-member.blade.php ENDPATH**/ ?>

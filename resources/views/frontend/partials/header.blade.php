@@ -117,11 +117,13 @@
         <div class="container mx-auto flex justify-between items-center text-sm">
             <!-- Brand Logo -->
             <div class="flex items-center space-x-2 md:space-x-4">
-                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-12 md:h-16">
-                <!-- <div class="flex flex-col sm:flex-row sm:items-center">
-                    <span class="text-brand-primary font-extrabold text-lg md:text-2xl tracking-tight leading-tight">Wellcare</span>
-                    <span class="text-brand-secondary font-extrabold text-lg md:text-2xl tracking-tight sm:ml-1 leading-tight">Diagnostics</span>
-                </div> -->
+                @php
+                    $headerLogoUrl = \App\Models\Setting::getLogoUrl();
+                    $siteName = \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics');
+                @endphp
+                <a href="{{ route('home') }}" class="block">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-12 md:h-16 w-auto object-contain">
+                </a>
             </div>
             
             @php

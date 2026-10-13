@@ -111,7 +111,7 @@
 
             <!-- Logo -->
             <div class="mb-8">
-                <img src="{{ asset('logo.png') }}" alt="AV Wellcare Diagnostics" class="h-12 w-auto object-contain">
+                <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="{{ \App\Models\Setting::get('site_name', 'AV Wellcare Diagnostics') }}" class="h-12 w-auto object-contain">
                 <div class="flex items-center gap-2 mt-3">
                     <div class="divider-line"></div>
                     <span class="text-[11px] font-bold uppercase tracking-widest text-teal-600 whitespace-nowrap px-1">Admin Portal</span>

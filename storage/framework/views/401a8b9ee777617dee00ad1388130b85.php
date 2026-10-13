@@ -266,4 +266,4 @@
     window.openAddAddressModal = windowOpenAddAddressModal;
     window.saveNewAddress = saveNewAddress;
 </script>
-<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/patient/modals/add-address.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\lab\lab\resources\views/patient/modals/add-address.blade.php ENDPATH**/ ?>

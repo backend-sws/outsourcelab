@@ -54,7 +54,7 @@
         <!-- Top Logo -->
         <div class="relative z-10 flex items-center gap-3">
             <a href="{{ route('home') }}" class="inline-flex items-center gap-3 group">
-                <img src="{{ asset('logo.png') }}" alt="Av Wellcare Logo" class="h-16 w-auto p-1 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105">
+                <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="{{ \App\Models\Setting::get('site_name', 'Av Wellcare Logo') }}" class="h-16 w-auto p-1 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-105">
             </a>
         </div>
 
@@ -118,7 +118,7 @@
 
         <!-- Mobile Logo -->
         <div class="md:hidden flex justify-center items-center gap-2 mb-8 mt-12">
-            <img src="{{ asset('logo.png') }}" alt="Logo" class="h-12 w-auto">
+            <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="{{ \App\Models\Setting::get('site_name', 'Logo') }}" class="h-12 w-auto">
         </div>
 
         <div class="max-w-md w-full mx-auto">

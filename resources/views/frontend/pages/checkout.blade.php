@@ -446,12 +446,12 @@
                         <h3 class="font-extrabold text-gray-800 text-lg mb-4 mt-6">Available Slots</h3>
                         
                         <!-- Morning Slots -->
-                        <div class="mb-6">
+                        <div class="mb-6 slot-section" data-section="morning">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-cloud-sun mr-2"></i> Morning</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">05:00 AM - 06:00 AM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">06:00 AM - 07:00 AM</div>
-                                <div class="slot-item border-2 border-brand-secondary bg-brand-light/10 rounded-lg py-2 text-center text-xs font-bold text-brand-dark cursor-pointer shadow-sm transition active-slot">07:00 AM - 08:00 AM</div>
+                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">07:00 AM - 08:00 AM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">08:00 AM - 09:00 AM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">09:00 AM - 10:00 AM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">10:00 AM - 11:00 AM</div>
@@ -460,24 +460,36 @@
                         </div>
 
                         <!-- Afternoon Slots -->
-                        <div class="mb-6">
+                        <div class="mb-6 slot-section" data-section="afternoon">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-sun mr-2"></i> Afternoon</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">12:00 PM - 01:00 PM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">01:00 PM - 02:00 PM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">02:00 PM - 03:00 PM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">03:00 PM - 04:00 PM</div>
+                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">04:00 PM - 05:00 PM</div>
                             </div>
                         </div>
 
                         <!-- Evening Slots -->
-                        <div class="mb-6">
+                        <div class="mb-6 slot-section" data-section="evening">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-moon mr-2"></i> Evening</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">05:00 PM - 06:00 PM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">06:00 PM - 07:00 PM</div>
                                 <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">07:00 PM - 08:00 PM</div>
                             </div>
+                        </div>
+
+                        <!-- Empty State Notice for Today if all slots have passed -->
+                        <div id="noSlotsAvailableNotice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-clock text-amber-600 text-base"></i>
+                                <span>No more collection slots available for today. Please select tomorrow or an upcoming date.</span>
+                            </div>
+                            <button type="button" onclick="selectTomorrowDate()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer flex-shrink-0">
+                                Select Tomorrow
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1856,11 +1868,16 @@
 
         // Get selected date
         let activeDateEl = document.querySelector('.date-item.active-date');
-        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10);
+        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || getTodayDateYmd()) : getTodayDateYmd();
 
         // Get selected slot
-        let activeSlotEl = document.querySelector('.slot-item.active-slot');
-        let selectedSlot = activeSlotEl ? activeSlotEl.innerText.trim() : '07:00 AM - 08:00 AM';
+        let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!activeSlotEl) {
+            alert('Please select an available collection time slot.');
+            goToStep(3);
+            return;
+        }
+        let selectedSlot = activeSlotEl.innerText.trim();
 
         // Parse slot start time for full datetime
         let slotStart = selectedSlot.split('-')[0].trim();
@@ -1943,11 +1960,16 @@
 
         // Get selected date
         let activeDateEl = document.querySelector('.date-item.active-date');
-        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || new Date().toISOString().slice(0, 10)) : new Date().toISOString().slice(0, 10);
+        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || getTodayDateYmd()) : getTodayDateYmd();
 
         // Get selected slot
-        let activeSlotEl = document.querySelector('.slot-item.active-slot');
-        let selectedSlot = activeSlotEl ? activeSlotEl.innerText.trim() : '07:00 AM - 08:00 AM';
+        let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!activeSlotEl) {
+            alert('Please select an available collection time slot.');
+            goToStep(3);
+            return;
+        }
+        let selectedSlot = activeSlotEl.innerText.trim();
 
         // Parse slot start time for full datetime
         let slotStart = selectedSlot.split('-')[0].trim();
@@ -2281,6 +2303,11 @@
                 }
                 return;
             }
+            const activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+            if (!activeSlotEl) {
+                alert('Please select an available collection time slot.');
+                return;
+            }
         }
 
         if (currentStep < 4) {
@@ -2383,6 +2410,130 @@
         .catch(() => alert('Network error adding member.'));
     }
 
+    // Helper: Parse slot start time (e.g. "07:00 AM") to total minutes from midnight
+    function parseSlotTimeToMinutes(timeStr) {
+        if (!timeStr) return null;
+        timeStr = timeStr.trim().toUpperCase();
+        const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+        if (!match) return null;
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    }
+    window.parseSlotTimeToMinutes = parseSlotTimeToMinutes;
+
+    // Helper: Get today's Y-m-d string based on client's local date
+    function getTodayDateYmd() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    window.getTodayDateYmd = getTodayDateYmd;
+
+    // Filter Slots dynamically for the currently selected collection date
+    function filterSlotsForSelectedDate() {
+        const activeDateEl = document.querySelector('.date-item.active-date');
+        const selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : getTodayDateYmd();
+        const todayYmd = getTodayDateYmd();
+        const isToday = (selectedDateYmd === todayYmd);
+
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const noSlotsNotice = document.getElementById('noSlotsAvailableNotice');
+        if (noSlotsNotice) noSlotsNotice.classList.add('hidden');
+
+        const slotItems = document.querySelectorAll('.slot-item');
+        let hasAnyVisibleSlot = false;
+
+        slotItems.forEach(item => {
+            const slotText = item.innerText.trim();
+            const startStr = slotText.split('-')[0].trim();
+            const startMinutes = parseSlotTimeToMinutes(startStr);
+
+            // If selected date is today and slot start time has already passed
+            if (isToday && startMinutes !== null && startMinutes <= currentMinutes) {
+                item.classList.add('hidden');
+                // Remove active styling if this slot was previously selected
+                item.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                item.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            } else {
+                item.classList.remove('hidden');
+                hasAnyVisibleSlot = true;
+            }
+        });
+
+        // Hide or show slot section headers (Morning, Afternoon, Evening) based on visible slots
+        document.querySelectorAll('.slot-section').forEach(section => {
+            const visibleCount = section.querySelectorAll('.slot-item:not(.hidden)').length;
+            if (visibleCount === 0) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+            }
+        });
+
+        // Ensure one visible slot is actively selected
+        const currentActiveVisible = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!currentActiveVisible && hasAnyVisibleSlot) {
+            const firstVisible = document.querySelector('.slot-item:not(.hidden)');
+            if (firstVisible) {
+                firstVisible.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                firstVisible.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            }
+        }
+
+        // If today has 0 remaining slots, display the empty notice
+        if (!hasAnyVisibleSlot && isToday) {
+            if (noSlotsNotice) noSlotsNotice.classList.remove('hidden');
+        }
+    }
+    window.filterSlotsForSelectedDate = filterSlotsForSelectedDate;
+
+    // Select a date card item
+    function selectDateItem(item) {
+        if (!item) return;
+
+        document.querySelectorAll('.date-item').forEach(d => {
+            d.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
+            d.classList.add('border', 'border-gray-200', 'bg-white');
+            const spans = d.querySelectorAll('span');
+            if (spans.length === 3) {
+                spans[0].className = 'text-xs font-semibold text-gray-500';
+                spans[1].className = 'text-lg font-black text-gray-800';
+                spans[2].className = 'text-xs font-semibold text-gray-500';
+            }
+        });
+
+        item.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
+        item.classList.remove('border', 'border-gray-200', 'bg-white');
+        const spans = item.querySelectorAll('span');
+        if (spans.length === 3) {
+            spans[0].className = 'text-xs font-bold text-brand-secondary';
+            spans[1].className = 'text-lg font-black text-brand-secondary';
+            spans[2].className = 'text-xs font-bold text-brand-secondary';
+        }
+
+        filterSlotsForSelectedDate();
+    }
+    window.selectDateItem = selectDateItem;
+
+    // Select tomorrow's date shortcut
+    function selectTomorrowDate() {
+        const dateItems = document.querySelectorAll('.date-item');
+        if (dateItems.length > 1) {
+            selectDateItem(dateItems[1]);
+        }
+    }
+    window.selectTomorrowDate = selectTomorrowDate;
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         updateUI();
@@ -2403,26 +2554,7 @@
             dateContainer.addEventListener('click', (e) => {
                 const item = e.target.closest('.date-item');
                 if (!item) return;
-
-                document.querySelectorAll('.date-item').forEach(d => {
-                    d.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
-                    d.classList.add('border', 'border-gray-200', 'bg-white');
-                    const spans = d.querySelectorAll('span');
-                    if (spans.length === 3) {
-                        spans[0].className = 'text-xs font-semibold text-gray-500';
-                        spans[1].className = 'text-lg font-black text-gray-800';
-                        spans[2].className = 'text-xs font-semibold text-gray-500';
-                    }
-                });
-
-                item.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
-                item.classList.remove('border', 'border-gray-200', 'bg-white');
-                const spans = item.querySelectorAll('span');
-                if (spans.length === 3) {
-                    spans[0].className = 'text-xs font-bold text-brand-secondary';
-                    spans[1].className = 'text-lg font-black text-brand-secondary';
-                    spans[2].className = 'text-xs font-bold text-brand-secondary';
-                }
+                selectDateItem(item);
             });
         }
 
@@ -2430,6 +2562,7 @@
         const slotItems = document.querySelectorAll('.slot-item');
         slotItems.forEach(item => {
             item.addEventListener('click', () => {
+                if (item.classList.contains('hidden')) return; // Ignore past slots
                 slotItems.forEach(s => {
                     s.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
                     s.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
@@ -2439,6 +2572,34 @@
                 item.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
             });
         });
+
+        // Initial slot filtering check
+        const todayYmd = getTodayDateYmd();
+        const firstDateItem = document.querySelector('.date-item');
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // Check if today has any upcoming slots remaining
+        let hasAnyFutureSlotToday = false;
+        slotItems.forEach(item => {
+            const startStr = item.innerText.trim().split('-')[0].trim();
+            const startM = parseSlotTimeToMinutes(startStr);
+            if (startM !== null && startM > currentMinutes) {
+                hasAnyFutureSlotToday = true;
+            }
+        });
+
+        // If today has 0 slots left (e.g. late evening), automatically select tomorrow
+        if (!hasAnyFutureSlotToday && firstDateItem && firstDateItem.getAttribute('data-date') === todayYmd) {
+            const dateItems = document.querySelectorAll('.date-item');
+            if (dateItems.length > 1) {
+                selectDateItem(dateItems[1]);
+            } else {
+                filterSlotsForSelectedDate();
+            }
+        } else {
+            filterSlotsForSelectedDate();
+        }
     });
 </script>
 @endsection

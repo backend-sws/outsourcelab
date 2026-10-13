@@ -199,4 +199,4 @@
     // Expose globally
     window.openChangeAddressModal = windowOpenChangeAddressModal;
 </script>
-<?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/patient/modals/change-address.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\lab\lab\resources\views/patient/modals/change-address.blade.php ENDPATH**/ ?>

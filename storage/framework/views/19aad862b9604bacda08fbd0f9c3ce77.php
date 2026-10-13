@@ -1,10 +1,5 @@
 <?php
-    $siteFavicon = \App\Models\Setting::get('site_favicon');
-    if ($siteFavicon) {
-        $siteFavicon = str_starts_with($siteFavicon, 'http') ? $siteFavicon : asset($siteFavicon);
-    } else {
-        $siteFavicon = asset('favicon.png');
-    }
+    $siteFavicon = \App\Models\Setting::getFaviconUrl();
 ?>
 <!-- Browser Tabbar Favicon -->
 <link rel="icon" href="<?php echo e($siteFavicon); ?>">
