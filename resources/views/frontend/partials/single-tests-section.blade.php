@@ -96,11 +96,17 @@
                             </div>
 
                             <!-- Preparation / Fasting note -->
-                            <div class="text-[11px] text-gray-500 mb-4 flex items-center gap-1.5">
-                                <i class="fas fa-circle-info text-teal-500 text-xs flex-shrink-0"></i>
-                                <span class="truncate" title="{{ $test->preparation_instructions ?? 'Standard Blood Sample' }}">
-                                    {{ $test->preparation_instructions ?? 'Standard Sample • Certified Lab' }}
+                            <div class="text-[11px] mb-4 flex items-center gap-1.5 overflow-hidden">
+                                <i class="fas {{ $test->requires_fasting ? 'fa-moon text-amber-500' : 'fa-circle-check text-emerald-500' }} text-xs flex-shrink-0"></i>
+                                <span class="font-bold {{ $test->requires_fasting ? 'text-amber-800' : 'text-emerald-700' }} shrink-0">
+                                    {{ $test->fasting_label }}
                                 </span>
+                                @if(!empty($test->preparation_points))
+                                <span class="text-gray-300">•</span>
+                                <span class="truncate text-gray-500 text-[11px]" title="{{ $test->preparation_points[0] }}">
+                                    {{ $test->preparation_points[0] }}
+                                </span>
+                                @endif
                             </div>
                         </div>
 

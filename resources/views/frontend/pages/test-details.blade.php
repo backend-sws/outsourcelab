@@ -53,7 +53,7 @@
                 </h1>
 
                 <p class="text-sm text-gray-600 leading-relaxed mb-6 font-medium">
-                    {{ $test->preparation_instructions ? 'Clinical guidance: ' . $test->preparation_instructions : 'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.' }}
+                    {{ $test->preparation_points[0] ?? 'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.' }}
                 </p>
 
                 <!-- Clinical Specs Grid -->
@@ -61,14 +61,14 @@
                     <div class="text-center p-2">
                         <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Turnaround</span>
                         <span class="text-xs font-bold text-gray-800 mt-1 flex items-center justify-center gap-1">
-                            <i class="fas fa-clock text-amber-500"></i> {{ $test->report_delivery_time ?? 'Same Day' }}
+                            <i class="fas fa-clock text-amber-500"></i> {{ $test->display_tat }}
                         </span>
                     </div>
                     <div class="text-center p-2 border-l border-slate-200">
                         <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Fasting Needed</span>
-                        <span class="text-xs font-bold text-gray-800 mt-1 flex items-center justify-center gap-1">
-                            <i class="fas fa-utensils text-teal-600"></i>
-                            {{ stripos($test->preparation_instructions ?? '', 'fasting') !== false ? '8-10 Hrs Fasting' : 'No Fasting Req.' }}
+                        <span class="text-xs font-bold {{ $test->requires_fasting ? 'text-amber-700' : 'text-emerald-700' }} mt-1 flex items-center justify-center gap-1">
+                            <i class="fas {{ $test->requires_fasting ? 'fa-moon text-amber-500' : 'fa-circle-check text-emerald-500' }}"></i>
+                            {{ $test->fasting_label }}
                         </span>
                     </div>
                     <div class="text-center p-2 border-l border-slate-200">
@@ -142,35 +142,95 @@
                 @endif
 
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/70">
-                        <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-bold mb-3">
-                            <i class="fas fa-mug-saucer"></i>
+                <!-- Pre-Test Preparation & Fasting Guidelines (Clear View with Bullet Points) -->
+                <div class="rounded-3xl p-6 sm:p-7 {{ $test->requires_fasting ? 'bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-amber-50/70 border border-amber-200/90' : 'bg-gradient-to-br from-teal-50/70 via-emerald-50/30 to-teal-50/50 border border-teal-200/80' }} shadow-sm space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b {{ $test->requires_fasting ? 'border-amber-200/70' : 'border-teal-200/60' }} pb-3.5">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-10 rounded-2xl {{ $test->requires_fasting ? 'bg-amber-500/15 text-amber-700' : 'bg-teal-500/15 text-teal-700' }} flex items-center justify-center text-lg flex-shrink-0">
+                                <i class="fas {{ $test->requires_fasting ? 'fa-utensils' : 'fa-circle-check' }}"></i>
+                            </span>
+                            <div>
+                                <h3 class="text-base sm:text-lg font-black text-gray-900 flex items-center gap-2">
+                                    <span>Patient Preparation & Fasting Guidelines</span>
+                                </h3>
+                                <p class="text-xs text-gray-500 mt-0.5">
+                                    Please follow these clinical protocols carefully for verified diagnostic accuracy.
+                                </p>
+                            </div>
                         </div>
-                        <h4 class="text-xs font-bold text-amber-950 uppercase tracking-wider mb-1">Fasting Instructions</h4>
-                        <p class="text-xs text-amber-900 leading-relaxed">
-                            {{ $test->preparation_instructions ?? 'You may drink regular water. Avoid high-sugar or heavy meals prior to early morning sample collection.' }}
-                        </p>
+
+                        <!-- Fasting Badge -->
+                        <div>
+                            @if($test->requires_fasting)
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500 text-white shadow-xs">
+                                <i class="fas fa-moon text-[11px]"></i>
+                                <span>{{ $test->fasting_label }}</span>
+                            </span>
+                            @else
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs">
+                                <i class="fas fa-sun text-[11px]"></i>
+                                <span>No Fasting Required (Random Sample)</span>
+                            </span>
+                            @endif
+                        </div>
                     </div>
 
-                    <div class="p-5 rounded-2xl bg-teal-50/70 border border-teal-200/70">
-                        <div class="w-8 h-8 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold mb-3">
+                    <!-- Bullet Points Grid -->
+                    @php
+                        $prepPoints = $test->preparation_points;
+                    @endphp
+                    <div class="grid grid-cols-1 {{ count($prepPoints) > 1 ? 'sm:grid-cols-2' : '' }} gap-3 pt-1">
+                        @foreach($prepPoints as $point)
+                        <div class="flex items-start gap-3 p-3.5 rounded-2xl bg-white/95 border {{ $test->requires_fasting ? 'border-amber-200/70' : 'border-teal-200/70' }} shadow-xs hover:shadow-sm transition">
+                            <span class="w-6 h-6 rounded-full {{ $test->requires_fasting ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }} flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <span class="text-xs sm:text-sm font-semibold text-gray-800 leading-relaxed">{{ $point }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Fasting Quick Advisory Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-[11px] font-semibold text-gray-600 border-t {{ $test->requires_fasting ? 'border-amber-200/60' : 'border-teal-200/50' }}">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-droplet text-cyan-600 text-xs"></i>
+                            <span>Drinking regular water is allowed</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-pills text-indigo-600 text-xs"></i>
+                            <span>Continue daily meds unless doctor advises</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-clock text-amber-600 text-xs"></i>
+                            <span>Early morning sample collection advised</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Safety & Report Delivery Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-5 rounded-2xl bg-teal-50/70 border border-teal-200/70 flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center text-sm font-bold flex-shrink-0">
                             <i class="fas fa-temperature-low"></i>
                         </div>
-                        <h4 class="text-xs font-bold text-teal-950 uppercase tracking-wider mb-1">Sample Safety</h4>
-                        <p class="text-xs text-teal-900 leading-relaxed">
-                            Collected using sterile vacuum evacuated tubes (BD Vacutainer) and transported under strict 2°C–8°C cold chain conditions.
-                        </p>
+                        <div>
+                            <h4 class="text-xs font-bold text-teal-950 uppercase tracking-wider mb-1">Cold Chain Sample Safety</h4>
+                            <p class="text-xs text-teal-900 leading-relaxed">
+                                Collected using sterile vacuum evacuated tubes (BD Vacutainer) and transported under strict 2°C–8°C temperature-controlled cool bags.
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-200/70">
-                        <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-xs font-bold mb-3">
+                    <div class="p-5 rounded-2xl bg-indigo-50/70 border border-indigo-200/70 flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center text-sm font-bold flex-shrink-0">
                             <i class="fas fa-file-shield"></i>
                         </div>
-                        <h4 class="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-1">Report Delivery</h4>
-                        <p class="text-xs text-indigo-900 leading-relaxed">
-                            Digitally signed smart report delivered directly via WhatsApp and PDF download within {{ $test->report_delivery_time ?? 'same day' }}.
-                        </p>
+                        <div>
+                            <h4 class="text-xs font-bold text-indigo-950 uppercase tracking-wider mb-1">Fast & Verified Report Delivery</h4>
+                            <p class="text-xs text-indigo-900 leading-relaxed">
+                                Digitally signed smart report delivered directly via WhatsApp and PDF download within {{ $test->display_tat }}.
+                            </p>
+                        </div>
                     </div>
                 </div>
 

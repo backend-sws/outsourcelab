@@ -89,4 +89,88 @@ class Test extends Model
 
         return TestCategory::whereIn('id', $ids)->get();
     }
+
+    /**
+     * Determine if test requires fasting based on flag or instruction content.
+     */
+    public function getRequiresFastingAttribute(): bool
+    {
+        if ($this->fasting_required) {
+            return true;
+        }
+
+        $text = strtolower($this->preparation_instructions ?? '');
+        return str_contains($text, 'fasting') && !str_contains($text, 'no fasting') && !str_contains($text, 'non-fasting');
+    }
+
+    /**
+     * Get a user-friendly label for fasting requirements.
+     */
+    public function getFastingLabelAttribute(): string
+    {
+        $text = strtolower($this->preparation_instructions ?? '');
+
+        if ($this->fasting_required || (str_contains($text, 'fasting') && !str_contains($text, 'no fasting') && !str_contains($text, 'non-fasting'))) {
+            if (preg_match('/(10[\s\-–to]+12|12[\s\-–to]+14|8[\s\-–to]+10|\d+\s*(?:hrs?|hours?))/i', $this->preparation_instructions ?? '', $matches)) {
+                return "Overnight Fasting ({$matches[0]})";
+            }
+            return 'Overnight Fasting (8-10 Hrs)';
+        }
+
+        return 'No Fasting Req.';
+    }
+
+    /**
+     * Parse preparation instructions into a clean array of bullet points.
+     */
+    public function getPreparationPointsAttribute(): array
+    {
+        if (empty($this->preparation_instructions)) {
+            if ($this->requires_fasting) {
+                return [
+                    'Overnight fasting of 8 to 10 hours is required prior to sample collection.',
+                    'Only plain drinking water is permitted during the fasting period.',
+                    'Strictly avoid tea, coffee, milk, breakfast, smoking, and alcohol.',
+                    'Morning sample collection between 7:00 AM and 10:00 AM is recommended.',
+                ];
+            }
+            return [
+                'No special fasting required. Can be done at any convenient time of the day.',
+                'Maintain normal hydration and diet prior to sample collection.',
+            ];
+        }
+
+        $raw = trim($this->preparation_instructions);
+        $lines = preg_split('/[\r\n]+/', $raw);
+        $points = [];
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            // Strip leading bullet characters or numbers: •, -, *, 1., 1), etc.
+            $cleaned = preg_replace('/^([•\-\*■►✔✓]|\d+[\.\)])\s*/u', '', $line);
+            $cleaned = trim($cleaned);
+            if (!empty($cleaned)) {
+                $points[] = $cleaned;
+            }
+        }
+
+        // If it was stored as a single unbroken paragraph with multiple sentences, split on punctuation
+        if (count($points) === 1 && strlen($points[0]) > 40) {
+            $parts = preg_split('/(?<=[.!?])\s+/', $points[0]);
+            $splitPoints = [];
+            foreach ($parts as $p) {
+                $p = trim($p);
+                if (!empty($p)) {
+                    $splitPoints[] = $p;
+                }
+            }
+            if (count($splitPoints) > 1) {
+                return $splitPoints;
+            }
+        }
+
+        return !empty($points) ? $points : [
+            'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.'
+        ];
+    }
 }

@@ -136,9 +136,18 @@
         .dark .divide-gray-100 { border-color: rgba(45,212,191,0.10) !important; }
         .dark tr:hover { background-color: rgba(45,212,191,0.04) !important; }
         .dark input:not([type="checkbox"]):not([type="radio"]), .dark select, .dark textarea {
-            background-color: rgba(255,255,255,0.04) !important;
-            border-color: rgba(45,212,191,0.15) !important;
+            background-color: rgba(6, 25, 23, 0.95) !important;
+            border-color: rgba(45,212,191,0.25) !important;
             color: #f8fafc !important;
+        }
+        .dark input::placeholder, .dark textarea::placeholder {
+            color: #64748b !important;
+            opacity: 1 !important;
+        }
+        .dark input:focus, .dark select:focus, .dark textarea:focus {
+            background-color: rgba(8, 32, 29, 0.98) !important;
+            border-color: #14b8a6 !important;
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.25) !important;
         }
 
         /* ── Micro Animations ── */

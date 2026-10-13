@@ -103,15 +103,18 @@
                 </div>
             </div>
             
-            <!-- Commercial Pricing & Offers Box -->
-            <div class="md:col-span-2 p-5 rounded-2xl bg-gradient-to-br from-indigo-50/60 to-purple-50/40 border border-indigo-100 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b border-indigo-200/50 pb-3">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-2">
-                        <i class="fas fa-tag text-indigo-600"></i> Website Commercial & Offer Pricing
+            <!-- Commercial Pricing & Offers Box (High Contrast for Light & Dark Mode) -->
+            <div class="md:col-span-2 p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-teal-50/80 via-emerald-50/40 to-teal-50/60 dark:from-[#0a2623] dark:to-[#081e1c] border border-teal-200 dark:border-teal-500/35 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-teal-200/60 dark:border-teal-500/20 pb-3">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-teal-950 dark:text-teal-300 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg bg-teal-500/10 dark:bg-teal-400/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xs">
+                            <i class="fas fa-tag"></i>
+                        </span>
+                        <span>Website Commercial & Offer Pricing</span>
                     </h3>
                     @if(config('pathology.enabled', false) && isset($package) && $package->lis_price)
-                        <span class="text-[11px] font-semibold text-slate-500 bg-white/80 px-2.5 py-1 rounded-md border border-slate-200">
-                            LIS Base Cost: <strong class="text-slate-800">₹{{ number_format($package->lis_price, 2) }}</strong>
+                        <span class="text-[11px] font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-[#041412] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-teal-900/50">
+                            LIS Base Cost: <strong class="text-slate-900 dark:text-white">₹{{ number_format($package->lis_price, 2) }}</strong>
                         </span>
                     @endif
                 </div>
@@ -119,38 +122,46 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <!-- Market MRP -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                            Market MRP (Strike-through ~₹~)
+                        <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Market MRP (Strike-through ~₹~)</span>
                         </label>
-                        <input type="number" step="0.01" name="original_price" id="pkg_original_price" value="{{ old('original_price', $package->original_price ?? '') }}" placeholder="e.g., 2999" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
-                        <p class="text-[11px] text-gray-400 mt-1">Crossed-out price on website card.</p>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 font-bold text-sm">₹</span>
+                            <input type="number" step="0.01" name="original_price" id="pkg_original_price" value="{{ old('original_price', $package->original_price ?? '') }}" placeholder="e.g. 2999" class="w-full rounded-xl pl-8 pr-4 py-2.5 border border-slate-300 dark:border-teal-500/30 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 shadow-xs bg-white dark:bg-[#041412] text-slate-900 dark:text-white font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm transition">
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 font-medium">Crossed-out price on website card.</p>
                     </div>
 
                     <!-- Selling Price -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                            Website Selling Price (₹) <span class="text-red-500">*</span>
+                        <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <span>Website Selling Price (₹)</span> <span class="text-rose-500 font-black">*</span>
                         </label>
-                        <input type="number" step="0.01" name="price" id="pkg_selling_price" value="{{ old('price', $package->price ?? '') }}" required placeholder="e.g., 1499" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white font-bold text-indigo-700">
-                        @error('price')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-teal-600 dark:text-teal-400 font-black text-sm">₹</span>
+                            <input type="number" step="0.01" name="price" id="pkg_selling_price" value="{{ old('price', $package->price ?? '') }}" required placeholder="e.g. 1499" class="w-full rounded-xl pl-8 pr-4 py-2.5 border border-teal-300 dark:border-teal-500/50 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 shadow-xs bg-white dark:bg-[#041412] font-black text-teal-700 dark:text-teal-300 text-base placeholder:text-slate-400 dark:placeholder:text-slate-500 transition">
+                        </div>
+                        @error('price')<p class="text-rose-500 text-xs mt-1.5 font-bold">{{ $message }}</p>@enderror
                     </div>
 
                     <!-- Discount Percentage Badge -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                        <label class="block text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-1.5">
                             Offer Badge / Discount %
                         </label>
-                        <input type="number" name="discount_percentage" id="pkg_discount_percentage" value="{{ old('discount_percentage', $package->discount_percentage ?? '') }}" placeholder="e.g., 50" min="0" max="100" class="w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 shadow-sm px-4 py-2 border bg-white">
-                        <p class="text-[11px] text-gray-400 mt-1">Leave empty to auto-calculate from MRP & Selling Price.</p>
+                        <div class="relative">
+                            <input type="number" name="discount_percentage" id="pkg_discount_percentage" value="{{ old('discount_percentage', $package->discount_percentage ?? '') }}" placeholder="e.g. 50" min="0" max="100" class="w-full rounded-xl px-4 py-2.5 border border-slate-300 dark:border-teal-500/30 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 shadow-xs bg-white dark:bg-[#041412] text-slate-900 dark:text-white font-bold placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm transition">
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 font-medium">Leave empty to auto-calculate from MRP & Selling Price.</p>
                     </div>
                 </div>
 
                 @if(config('pathology.enabled', false))
                 <!-- Price Lock Protection Toggle -->
-                <div class="pt-2 flex items-center justify-between border-t border-indigo-200/40">
+                <div class="pt-2 flex items-center justify-between border-t border-teal-200/40 dark:border-teal-500/20">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="lock_pricing" value="1" {{ old('lock_pricing', $package->lock_pricing ?? false) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-xs font-bold text-indigo-950">Lock Custom Price (Protect from LIS auto-sync overwrites)</span>
+                        <input type="checkbox" name="lock_pricing" value="1" {{ old('lock_pricing', $package->lock_pricing ?? false) ? 'checked' : '' }} class="rounded border-slate-300 dark:border-teal-900/60 text-teal-600 focus:ring-teal-500">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Lock Custom Price (Protect from LIS auto-sync overwrites)</span>
                     </label>
                 </div>
                 @endif
