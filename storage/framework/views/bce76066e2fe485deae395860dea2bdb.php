@@ -1,0 +1,1244 @@
+<?php $__env->startSection('title', 'Site Settings & Credentials'); ?>
+<?php $__env->startSection('header', 'Site Settings'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-sliders text-teal-500"></i>
+                <span>System Configuration & Gateway Credentials</span>
+            </h1>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Configure payment gateways, email SMTP, SMS & WhatsApp notification APIs, frontend branding, and operational settings.
+            </p>
+        </div>
+    </div>
+
+    <?php if(session('success')): ?>
+        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-sm font-semibold flex items-center gap-2 shadow-sm">
+            <i class="fas fa-check-circle text-emerald-500 text-lg"></i>
+            <span><?php echo e(session('success')); ?></span>
+        </div>
+    <?php endif; ?>
+
+    <!-- Settings Container with Tabs -->
+    <div class="glass-card rounded-2xl overflow-hidden p-6">
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap gap-2 border-b border-slate-200 dark:border-white/[0.08] pb-4 mb-6" id="settingsTabs">
+            <!-- General & Content -->
+            <button type="button" onclick="switchSettingsTab('general')" class="settings-tab-btn active px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 bg-teal-600 text-white shadow-md" data-tab="general">
+                <i class="fas fa-gem"></i> General & Branding
+            </button>
+            <button type="button" onclick="switchSettingsTab('contact')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="contact">
+                <i class="fas fa-phone-alt"></i> Helpline & Contact
+            </button>
+            <button type="button" onclick="switchSettingsTab('addresses')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="addresses">
+                <i class="fas fa-map-marker-alt"></i> Lab Addresses
+            </button>
+            <button type="button" onclick="switchSettingsTab('social')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="social">
+                <i class="fas fa-share-nodes"></i> Social Links
+            </button>
+            <button type="button" onclick="switchSettingsTab('pincodes')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="pincodes">
+                <i class="fas fa-truck-medical"></i> Pincodes
+            </button>
+
+            <!-- Gateways & API Credentials -->
+            <button type="button" onclick="switchSettingsTab('razorpay')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="razorpay">
+                <i class="fas fa-credit-card text-emerald-500"></i> Razorpay Gateway
+            </button>
+            <button type="button" onclick="switchSettingsTab('email')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="email">
+                <i class="fas fa-envelope text-teal-500"></i> Email (SMTP)
+            </button>
+            <button type="button" onclick="switchSettingsTab('sms')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="sms">
+                <i class="fas fa-comment-sms text-sky-500"></i> SMS Gateway
+            </button>
+            <button type="button" onclick="switchSettingsTab('whatsapp')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="whatsapp">
+                <i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp API
+            </button>
+            <?php if(config('pathology.enabled', false)): ?>
+            <button type="button" onclick="switchSettingsTab('pathology')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="pathology">
+                <i class="fas fa-microscope text-indigo-500"></i> Pathology LIS API
+            </button>
+            <?php endif; ?>
+        </div>
+
+        <form action="<?php echo e(route('admin.settings.update')); ?>" method="POST" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="active_tab" id="activeTabInput" value="<?php echo e(session('active_tab', 'general')); ?>">
+
+            <!-- TAB 1: General & Branding -->
+            <div id="settings-panel-general" class="settings-tab-content space-y-5">
+                <input type="hidden" name="settings_group" value="general">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Website / Brand Name</label>
+                        <input type="text" name="site_name" value="<?php echo e($settings['site_name'] ?? 'Av Wellcare Diagnostics'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Tagline</label>
+                        <input type="text" name="site_tagline" value="<?php echo e($settings['site_tagline'] ?? 'Fast, Reliable Diagnostics'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Corporate CIN Number</label>
+                        <input type="text" name="cin_number" value="<?php echo e($settings['cin_number'] ?? 'CIN: U85190UP2021PTC149892'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Footer Copyright Notice</label>
+                        <input type="text" name="copyright_text" value="<?php echo e($settings['copyright_text'] ?? 'Av Wellcare Diagnostics © 2026. All rights reserved.'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Footer About / Brand Intro Description</label>
+                    <textarea name="footer_about" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition"><?php echo e($settings['footer_about'] ?? 'Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.'); ?></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on the website footer below the brand logo.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Site Logo (Header & Branding)</label>
+                        <div class="flex items-center gap-4">
+                            <img src="<?php echo e(\App\Models\Setting::getLogoUrl()); ?>" alt="Site Logo" class="h-12 w-auto object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10">
+                            <input type="file" name="site_logo" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 dark:file:bg-teal-500/20 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-teal-100 transition cursor-pointer">
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Recommended format: Transparent PNG or SVG.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Browser Tabbar Favicon</label>
+                        <div class="flex items-center gap-4">
+                            <img src="<?php echo e(\App\Models\Setting::getFaviconUrl()); ?>" alt="Favicon" class="h-12 w-12 object-contain p-2 rounded-xl bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 shadow-sm">
+                            <input type="file" name="site_favicon" accept="image/x-icon,image/png,image/svg+xml,image/jpeg" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 dark:file:bg-teal-500/20 file:text-teal-600 dark:file:text-teal-400 hover:file:bg-teal-100 transition cursor-pointer">
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Displays in browser tabs and bookmarks (ICO, PNG, or SVG).</p>
+                    </div>
+                </div>
+
+                <!-- HOMEPAGE HERO BANNER IMAGES (MULTIPLE SLIDER IMAGES) -->
+                <div class="pt-6 border-t border-slate-200 dark:border-white/[0.08]" id="bannerManagementSection">
+                    <input type="hidden" name="banner_section_submitted" value="1">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fas fa-images text-teal-500"></i> Homepage Hero Banner Images (Slider / Carousel)
+                            </h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">
+                                Manage background slider images. You can delete default banners or uploaded banners one-by-one, or add new ones.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="resetAllBanners()" title="Restore the 5 original default system hero banners" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-500/10 hover:bg-teal-100 transition border border-teal-200 dark:border-teal-500/20">
+                                <i class="fas fa-rotate-left text-[11px]"></i>
+                                <span>Restore 5 System Defaults</span>
+                            </button>
+                            <input type="hidden" name="reset_banners" id="resetBannersInput" value="0">
+                        </div>
+                    </div>
+
+                    <!-- Upload Input Card -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-r from-teal-50/50 to-emerald-50/50 dark:from-teal-950/20 dark:to-emerald-950/20 border-2 border-dashed border-teal-200 dark:border-teal-800/60 mb-5">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xl flex-shrink-0">
+                                    <i class="fas fa-cloud-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800 dark:text-white">Choose Multiple Images to Upload</span>
+                                    <span class="text-[11px] text-slate-500 dark:text-slate-400">Hold <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-[10px] font-mono">Ctrl</kbd> or <kbd class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-[10px] font-mono">Shift</kbd> to select multiple files at once (JPG, PNG, WEBP). Recommended size: 1920x800px.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md shadow-teal-600/20 cursor-pointer transition active:scale-95">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Select Banner Files</span>
+                                    <input type="file" name="banner_images[]" id="bannerImagesInput" multiple accept="image/*" class="hidden" onchange="handleBannerFilesSelected(this)">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Selected Files Counter / Preview List -->
+                        <div id="newBannersPreviewContainer" class="hidden mt-4 pt-4 border-t border-teal-200/60 dark:border-teal-800/40">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center gap-1.5">
+                                    <i class="fas fa-check-circle text-teal-500"></i>
+                                    <span id="selectedCountText">0 new images selected to upload:</span>
+                                </span>
+                                <button type="button" onclick="clearNewSelectedBanners()" class="text-[11px] text-rose-500 hover:underline font-semibold">
+                                    Clear Selection
+                                </button>
+                            </div>
+                            <div id="newBannersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Current Active Banners Grid -->
+                    <?php
+                        $allActiveBanners = \App\Models\Setting::getRawBannerImages();
+                        $systemDefaults = \App\Models\Setting::getDefaultBannerImages();
+                    ?>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-400">
+                            <span>
+                                Active Hero Slider Banners 
+                                <span id="activeBannerCountBadge" class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-extrabold"><?php echo e(count($allActiveBanners)); ?> Active</span>
+                            </span>
+                            <span class="text-[11px] text-slate-400 font-normal">Click the <i class="fas fa-trash-alt text-rose-500 text-[10px]"></i> trash button on any slide to remove it.</span>
+                        </div>
+
+                        <div id="activeBannersGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            <?php $__empty_1 = true; $__currentLoopData = $allActiveBanners; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $idx => $bPath): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php
+                                    $bUrl = str_starts_with($bPath, 'http') ? $bPath : asset(ltrim($bPath, '/'));
+                                    $isDefault = in_array(ltrim($bPath, '/'), array_map(fn($d) => ltrim($d, '/'), $systemDefaults));
+                                ?>
+                                <div class="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 shadow-xs transition-all hover:shadow-md" id="bannerCard-<?php echo e($idx); ?>">
+                                    <!-- Image thumbnail -->
+                                    <div class="aspect-video w-full overflow-hidden bg-slate-900/10">
+                                        <img src="<?php echo e($bUrl); ?>" alt="Banner <?php echo e($idx + 1); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    </div>
+
+                                    <!-- Index Badge -->
+                                    <div class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-black backdrop-blur-xs">
+                                        Slide #<?php echo e($idx + 1); ?>
+
+                                    </div>
+
+                                    <!-- Type Badge -->
+                                    <?php if($isDefault): ?>
+                                        <div class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/50 text-slate-200 text-[9px] font-semibold backdrop-blur-xs">
+                                            Default
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-teal-600/80 text-white text-[9px] font-bold backdrop-blur-xs">
+                                            Uploaded
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Hidden input to keep this banner on standard form save -->
+                                    <input type="hidden" name="existing_banners[]" value="<?php echo e($bPath); ?>" class="existing-banner-input">
+
+                                    <!-- Delete button (Works for both default and uploaded banners!) -->
+                                    <button type="button" 
+                                            onclick="removeBannerItem('<?php echo e($bPath); ?>', 'bannerCard-<?php echo e($idx); ?>')"
+                                            title="Delete this banner (Slide #<?php echo e($idx + 1); ?>)"
+                                            class="absolute top-2 right-2 w-7 h-7 rounded-lg bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center text-xs shadow-md transition active:scale-90 opacity-90 group-hover:opacity-100 cursor-pointer">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                <div id="emptyBannersNotice" class="col-span-full py-8 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border-2 border-dashed border-slate-200 dark:border-white/10">
+                                    <i class="fas fa-images text-slate-400 text-3xl mb-2 block"></i>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">No Banners Active</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">All banners have been removed. Upload new images above or restore original defaults.</p>
+                                    <button type="button" onclick="resetAllBanners()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-teal-600 text-white text-xs font-bold hover:bg-teal-700 transition">
+                                        Restore All 5 Default Banners
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Helpline & Contact Details -->
+            <div id="settings-panel-contact" class="settings-tab-content space-y-5 hidden">
+                <input type="hidden" name="settings_group" value="contact">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Primary Helpline (Header & Footer)</label>
+                        <input type="text" name="helpline_primary" value="<?php echo e($settings['helpline_primary'] ?? '898 898 8787'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Secondary Phone / Landline</label>
+                        <input type="text" name="helpline_secondary" value="<?php echo e($settings['helpline_secondary'] ?? '+91 9876543210'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Official WhatsApp Helpline Number</label>
+                        <input type="text" name="whatsapp_number" value="<?php echo e($settings['whatsapp_number'] ?? '8988988787'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Customer Support / Contact Email</label>
+                        <input type="email" name="support_email" value="<?php echo e($settings['support_email'] ?? $settings['contact_email'] ?? 'care@avwellcarediagnostics.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Home Sample Collection Operating Hours</label>
+                    <input type="text" name="collection_timing" value="<?php echo e($settings['collection_timing'] ?? $settings['working_hours'] ?? 'Daily 6:00 AM – 9:00 PM (Trained Phlebotomists)'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                </div>
+            </div>
+
+            <!-- TAB 3: Official Lab & Company Addresses -->
+            <div id="settings-panel-addresses" class="settings-tab-content space-y-5 hidden">
+                <input type="hidden" name="settings_group" value="contact">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Company Legal / Entity Name</label>
+                    <input type="text" name="company_legal_name" value="<?php echo e($settings['company_legal_name'] ?? 'Av Wellcare Lifetech Pvt. Ltd.'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    <p class="text-[11px] text-slate-400 mt-1">Displays in website footer above address, in Terms &amp; Conditions, and in Privacy Policy.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Company Registered Address (Footer &amp; Legal)</label>
+                    <textarea name="registered_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition"><?php echo e($settings['registered_address'] ?? 'H-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301'); ?></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on footer, contact cards, and compliance pages.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">National Reference Lab Address</label>
+                    <textarea name="reference_lab_address" rows="3" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition"><?php echo e($settings['reference_lab_address'] ?? 'H-21, 4th Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301'); ?></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Displays on Our Labs and Compliance pages.</p>
+                </div>
+            </div>
+
+            <!-- TAB 4: Social Media Links -->
+            <div id="settings-panel-social" class="settings-tab-content space-y-5 hidden">
+                <input type="hidden" name="settings_group" value="social">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fab fa-facebook text-blue-500 mr-1"></i> Facebook Page URL</label>
+                        <input type="url" name="social_facebook" value="<?php echo e($settings['social_facebook'] ?? 'https://facebook.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fab fa-twitter text-sky-400 mr-1"></i> Twitter / X Profile URL</label>
+                        <input type="url" name="social_twitter" value="<?php echo e($settings['social_twitter'] ?? 'https://twitter.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fab fa-linkedin text-blue-600 mr-1"></i> LinkedIn Company URL</label>
+                        <input type="url" name="social_linkedin" value="<?php echo e($settings['social_linkedin'] ?? 'https://linkedin.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fab fa-youtube text-red-500 mr-1"></i> YouTube Channel URL</label>
+                        <input type="url" name="social_youtube" value="<?php echo e($settings['social_youtube'] ?? 'https://youtube.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fab fa-instagram text-pink-500 mr-1"></i> Instagram Profile URL</label>
+                        <input type="url" name="social_instagram" value="<?php echo e($settings['social_instagram'] ?? 'https://instagram.com'); ?>" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: Serviceable Pincodes -->
+            <div id="settings-panel-pincodes" class="settings-tab-content space-y-5 hidden">
+                <input type="hidden" name="settings_group" value="service">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Serviceable Pincodes (Comma Separated)</label>
+                    <textarea name="serviceable_pincodes" rows="4" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition" placeholder="800001, 800002, 110001, 201301, 201309..."><?php echo e($settings['serviceable_pincodes'] ?? '800001, 800002, 110001, 201301, 201309, 400001, 560001'); ?></textarea>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        <i class="fas fa-info-circle mr-1 text-teal-400"></i> Enter all pincodes where home sample collection is supported. Checkout will validate patient address pincode dynamically against this list.
+                    </p>
+                </div>
+            </div>
+
+            <!-- TAB 6: Razorpay Payment Gateway -->
+            <div id="settings-panel-razorpay" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="payment">
+                
+                <!-- Webhook URL Display & Copy Card -->
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-slate-50 dark:to-white/[0.02] border border-emerald-500/30">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-[10px] uppercase tracking-wider mb-1.5">
+                                <i class="fas fa-bolt"></i> Automated Server-to-Server Webhook
+                            </span>
+                            <h4 class="font-black text-slate-900 dark:text-white text-sm">Razorpay Webhook Endpoint URL</h4>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure this exact URL in your Razorpay Dashboard &rarr; Settings &rarr; Webhooks.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="webhookUrlInput" readonly value="<?php echo e(url('/api/razorpay/webhook')); ?>" class="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-bold select-all">
+                            <button type="button" onclick="copyWebhookUrl()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 flex-shrink-0">
+                                <i class="fas fa-copy text-xs"></i>
+                                <span id="copyWebhookBtnText">Copy URL</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-3 border-t border-emerald-500/20 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+                        <span class="font-bold text-slate-700 dark:text-slate-300">Required Webhook Events:</span>
+                        <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono font-bold text-[10px] text-teal-600">payment.captured</span>
+                        <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono font-bold text-[10px] text-teal-600">order.paid</span>
+                        <span class="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono font-bold text-[10px] text-rose-500">payment.failed</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Razorpay Enable / Disable -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Enable Razorpay Gateway</label>
+                        <select name="razorpay_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" <?php echo e(($settings['razorpay_enabled'] ?? '1') == '1' ? 'selected' : ''); ?>>Enabled (Online Checkout Active)</option>
+                            <option value="0" <?php echo e(($settings['razorpay_enabled'] ?? '1') == '0' ? 'selected' : ''); ?>>Disabled (Cash on Collection Only)</option>
+                        </select>
+                    </div>
+
+                    <!-- Environment Mode -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Environment Mode</label>
+                        <select name="razorpay_mode" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="test" <?php echo e(($settings['razorpay_mode'] ?? 'test') == 'test' ? 'selected' : ''); ?>>Test / Sandbox Mode (rzp_test_...)</option>
+                            <option value="live" <?php echo e(($settings['razorpay_mode'] ?? 'test') == 'live' ? 'selected' : ''); ?>>Live / Production Mode (rzp_live_...)</option>
+                        </select>
+                    </div>
+
+                    <!-- Key ID -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Razorpay Key ID</label>
+                        <input type="text" name="razorpay_key_id" value="<?php echo e($settings['razorpay_key_id'] ?? env('RAZORPAY_KEY_ID', '')); ?>" 
+                            placeholder="rzp_test_xxxxxxxxxxxxxxxx or rzp_live_xxxxxxxxxxxxxxxx"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Found in Razorpay Dashboard &rarr; Settings &rarr; API Keys</p>
+                    </div>
+
+                    <!-- Key Secret -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Razorpay Key Secret</label>
+                        <div class="relative">
+                            <input type="password" id="razorpaySecretInput" name="razorpay_key_secret" value="<?php echo e($settings['razorpay_key_secret'] ?? env('RAZORPAY_KEY_SECRET', '')); ?>" 
+                                placeholder="Enter Razorpay Key Secret"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('razorpaySecretInput', 'secretEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="secretEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Kept confidential and securely stored.</p>
+                    </div>
+
+                    <!-- Webhook Secret -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Razorpay Webhook Secret</label>
+                        <div class="relative">
+                            <input type="password" id="razorpayWebhookSecretInput" name="razorpay_webhook_secret" value="<?php echo e($settings['razorpay_webhook_secret'] ?? env('RAZORPAY_WEBHOOK_SECRET', '')); ?>" 
+                                placeholder="Secret string configured in Razorpay Webhook creation dialog"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('razorpayWebhookSecretInput', 'webhookSecretEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="webhookSecretEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Used to verify that incoming webhook requests originate from Razorpay servers.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: Email / SMTP Gateway -->
+            <div id="settings-panel-email" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="mail">
+
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-teal-500/10 via-emerald-500/5 to-slate-50 dark:to-white/[0.02] border border-teal-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-600 dark:text-teal-400 font-black text-[10px] uppercase tracking-wider mb-1.5">
+                            <i class="fas fa-paper-plane"></i> Email Channel Engine
+                        </span>
+                        <h4 class="font-black text-slate-900 dark:text-white text-sm">SMTP Server & Outgoing Mail Settings</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Configure your transactional SMTP provider (Gmail, Brevo, SendGrid, Postmark, AWS SES, or custom mail server).</p>
+                    </div>
+                    <div>
+                        <a href="<?php echo e(route('admin.notifications.index')); ?>" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-sm transition inline-flex items-center gap-1.5">
+                            <i class="fas fa-bell"></i>
+                            <span>View Notification Logs</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Enable Email Notifications -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Email Notifications Active</label>
+                        <select name="email_notifications_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" <?php echo e(($settings['email_notifications_enabled'] ?? '1') == '1' ? 'selected' : ''); ?>>Enabled (Send Real Emails)</option>
+                            <option value="0" <?php echo e(($settings['email_notifications_enabled'] ?? '1') == '0' ? 'selected' : ''); ?>>Disabled (Skip Sending)</option>
+                        </select>
+                    </div>
+
+                    <!-- Patient Registration Email OTP Verification Toggle -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-shield-halved text-teal-500 mr-1"></i> Patient Registration Email OTP Verification
+                        </label>
+                        <select name="patient_email_otp_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" <?php echo e(($settings['patient_email_otp_enabled'] ?? '0') == '1' ? 'selected' : ''); ?>>Enabled (Require Email OTP on Patient Registration)</option>
+                            <option value="0" <?php echo e(($settings['patient_email_otp_enabled'] ?? '0') == '0' ? 'selected' : ''); ?>>Disabled (Direct Registration without OTP)</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">When enabled, newly registering patients receive a 6-digit OTP on their email to verify before account activation.</p>
+                    </div>
+
+                    <!-- Mail Driver / Mailer -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Mail Driver (Mailer)</label>
+                        <select name="mail_mailer" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="smtp" <?php echo e(($settings['mail_mailer'] ?? config('mail.default', 'smtp')) == 'smtp' ? 'selected' : ''); ?>>SMTP (Recommended for Live)</option>
+                            <option value="log" <?php echo e(($settings['mail_mailer'] ?? config('mail.default', 'smtp')) == 'log' ? 'selected' : ''); ?>>Log (Writes to storage/logs - Testing)</option>
+                            <option value="sendmail" <?php echo e(($settings['mail_mailer'] ?? config('mail.default', 'smtp')) == 'sendmail' ? 'selected' : ''); ?>>Sendmail (Server default)</option>
+                        </select>
+                    </div>
+
+                    <!-- SMTP Host -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">SMTP Host</label>
+                        <input type="text" name="mail_host" value="<?php echo e($settings['mail_host'] ?? env('MAIL_HOST', 'smtp.gmail.com')); ?>" 
+                            placeholder="e.g. smtp.gmail.com or smtp.mailgun.org"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Hostname of your outgoing mail server.</p>
+                    </div>
+
+                    <!-- SMTP Port & Encryption -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">SMTP Port</label>
+                            <input type="number" name="mail_port" value="<?php echo e($settings['mail_port'] ?? env('MAIL_PORT', 587)); ?>" 
+                                placeholder="587"
+                                class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Encryption</label>
+                            <select name="mail_encryption" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                                <option value="tls" <?php echo e(($settings['mail_encryption'] ?? env('MAIL_ENCRYPTION', 'tls')) == 'tls' ? 'selected' : ''); ?>>TLS (Port 587)</option>
+                                <option value="ssl" <?php echo e(($settings['mail_encryption'] ?? env('MAIL_ENCRYPTION', 'tls')) == 'ssl' ? 'selected' : ''); ?>>SSL (Port 465)</option>
+                                <option value="null" <?php echo e(($settings['mail_encryption'] ?? env('MAIL_ENCRYPTION', 'tls')) == 'null' ? 'selected' : ''); ?>>None</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SMTP Username -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">SMTP Username / Email</label>
+                        <input type="text" name="mail_username" value="<?php echo e($settings['mail_username'] ?? env('MAIL_USERNAME', '')); ?>" 
+                            placeholder="e.g. notifications@avwellcare.com"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+
+                    <!-- SMTP Password -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">SMTP Password / App Password</label>
+                        <div class="relative">
+                            <input type="password" id="mailPasswordInput" name="mail_password" value="<?php echo e($settings['mail_password'] ?? env('MAIL_PASSWORD', '')); ?>" 
+                                placeholder="Enter SMTP password or app-specific password"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('mailPasswordInput', 'mailPassEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="mailPassEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">If using Gmail, use a 16-character Google App Password.</p>
+                    </div>
+
+                    <!-- From Address -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Sender "From" Email Address</label>
+                        <input type="email" name="mail_from_address" value="<?php echo e($settings['mail_from_address'] ?? env('MAIL_FROM_ADDRESS', 'noreply@avwellcare.com')); ?>" 
+                            placeholder="noreply@avwellcare.com"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+
+                    <!-- From Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Sender "From" Display Name</label>
+                        <input type="text" name="mail_from_name" value="<?php echo e($settings['mail_from_name'] ?? env('MAIL_FROM_NAME', 'AV Wellcare Diagnostics')); ?>" 
+                            placeholder="AV Wellcare Diagnostics"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                    </div>
+
+                    <!-- Admin Notification Email -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Admin Notification Alerts Recipient Email</label>
+                        <input type="email" name="mail_admin_address" value="<?php echo e($settings['mail_admin_address'] ?? env('MAIL_ADMIN_ADDRESS', 'admin@avwellcare.com')); ?>" 
+                            placeholder="admin@avwellcare.com"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">This email address will receive notifications for new bookings, sample collection updates, and new field agent registrations.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 8: SMS Gateway (MSG91 / Twilio) -->
+            <div id="settings-panel-sms" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="sms">
+
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-sky-500/10 via-teal-500/5 to-slate-50 dark:to-white/[0.02] border border-sky-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-400 font-black text-[10px] uppercase tracking-wider mb-1.5">
+                            <i class="fas fa-comment-sms"></i> Mobile SMS Gateway
+                        </span>
+                        <h4 class="font-black text-slate-900 dark:text-white text-sm">SMS Gateway API Credentials</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Send instant transactional SMS alerts to patients and phlebotomists via MSG91 or Twilio.</p>
+                    </div>
+                    <div>
+                        <?php if(($settings['sms_enabled'] ?? '0') == '1' && (!empty($settings['msg91_auth_key']) || !empty($settings['twilio_sid']))): ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                <i class="fas fa-circle-check"></i> Gateway Active
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">
+                                <i class="fas fa-plug"></i> Stub Mode (Fill Keys to Activate)
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Enable SMS -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Enable SMS Service</label>
+                        <select name="sms_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" <?php echo e(($settings['sms_enabled'] ?? '0') == '1' ? 'selected' : ''); ?>>Enabled (Send Real SMS)</option>
+                            <option value="0" <?php echo e(($settings['sms_enabled'] ?? '0') == '0' ? 'selected' : ''); ?>>Disabled / Stub (Skip Sending)</option>
+                        </select>
+                    </div>
+
+                    <!-- SMS Provider -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Active SMS Provider</label>
+                        <select name="sms_provider" id="smsProviderSelect" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold" onchange="toggleSmsProviderSections(this.value)">
+                            <option value="msg91" <?php echo e(($settings['sms_provider'] ?? 'msg91') == 'msg91' ? 'selected' : ''); ?>>MSG91 (India DLT Compliant)</option>
+                            <option value="twilio" <?php echo e(($settings['sms_provider'] ?? 'msg91') == 'twilio' ? 'selected' : ''); ?>>Twilio (International / Global)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- MSG91 Credentials Block -->
+                <div id="msg91Section" class="p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 space-y-4">
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">MSG91 Credentials</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">MSG91 Auth Key</label>
+                            <div class="relative">
+                                <input type="password" id="msg91AuthKeyInput" name="msg91_auth_key" value="<?php echo e($settings['msg91_auth_key'] ?? env('MSG91_AUTH_KEY', '')); ?>" 
+                                    placeholder="Enter your MSG91 Authkey"
+                                    class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-sky-500 transition">
+                                <button type="button" onclick="toggleInputVisibility('msg91AuthKeyInput', 'msg91KeyEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                    <i class="fas fa-eye text-xs" id="msg91KeyEyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Sender ID / Header</label>
+                            <input type="text" name="msg91_sender_id" value="<?php echo e($settings['msg91_sender_id'] ?? env('MSG91_SENDER_ID', 'OUTSLAB')); ?>" 
+                                placeholder="e.g. OUTSLAB"
+                                class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono uppercase focus:ring-2 focus:ring-sky-500 transition">
+                            <p class="text-[11px] text-slate-400 mt-1">6-char DLT approved header.</p>
+                        </div>
+
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">MSG91 Flow / Template ID (Optional)</label>
+                            <input type="text" name="msg91_template_id" value="<?php echo e($settings['msg91_template_id'] ?? env('MSG91_TEMPLATE_ID', '')); ?>" 
+                                placeholder="e.g. 6423a8bc..."
+                                class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-sky-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Twilio Credentials Block -->
+                <div id="twilioSection" class="p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 space-y-4">
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-white/10">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">Twilio Credentials</h4>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Twilio Account SID</label>
+                            <input type="text" name="twilio_sid" value="<?php echo e($settings['twilio_sid'] ?? env('TWILIO_SID', '')); ?>" 
+                                placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-sky-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Twilio Auth Token</label>
+                            <div class="relative">
+                                <input type="password" id="twilioTokenInput" name="twilio_token" value="<?php echo e($settings['twilio_token'] ?? env('TWILIO_TOKEN', '')); ?>" 
+                                    placeholder="Enter Twilio Auth Token"
+                                    class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-sky-500 transition">
+                                <button type="button" onclick="toggleInputVisibility('twilioTokenInput', 'twilioTokenEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                    <i class="fas fa-eye text-xs" id="twilioTokenEyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Twilio Sender Number (From)</label>
+                            <input type="text" name="twilio_from" value="<?php echo e($settings['twilio_from'] ?? env('TWILIO_FROM', '')); ?>" 
+                                placeholder="+1234567890"
+                                class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-sky-500 transition">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 9: WhatsApp Gateway (Interakt / AiSensy) -->
+            <div id="settings-panel-whatsapp" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="whatsapp">
+
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-slate-50 dark:to-white/[0.02] border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-[10px] uppercase tracking-wider mb-1.5">
+                            <i class="fab fa-whatsapp"></i> WhatsApp Business API
+                        </span>
+                        <h4 class="font-black text-slate-900 dark:text-white text-sm">WhatsApp Gateway API Credentials</h4>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Send rich WhatsApp booking confirmations, sample collection alerts, and report PDFs to patients.</p>
+                    </div>
+                    <div>
+                        <?php if(($settings['whatsapp_enabled'] ?? '0') == '1' && (!empty($settings['interakt_api_key']) || !empty($settings['aisensy_api_key']))): ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                <i class="fas fa-circle-check"></i> Gateway Active
+                            </span>
+                        <?php else: ?>
+                            <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">
+                                <i class="fas fa-plug"></i> Stub Mode (Fill Keys to Activate)
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Enable WhatsApp -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Enable WhatsApp Service</label>
+                        <select name="whatsapp_enabled" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="1" <?php echo e(($settings['whatsapp_enabled'] ?? '0') == '1' ? 'selected' : ''); ?>>Enabled (Send Real WhatsApp)</option>
+                            <option value="0" <?php echo e(($settings['whatsapp_enabled'] ?? '0') == '0' ? 'selected' : ''); ?>>Disabled / Stub (Skip Sending)</option>
+                        </select>
+                    </div>
+
+                    <!-- WhatsApp Provider -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Active WhatsApp Provider</label>
+                        <select name="whatsapp_provider" class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-semibold">
+                            <option value="interakt" <?php echo e(($settings['whatsapp_provider'] ?? 'interakt') == 'interakt' ? 'selected' : ''); ?>>Interakt (Official Meta BSP)</option>
+                            <option value="aisensy" <?php echo e(($settings['whatsapp_provider'] ?? 'interakt') == 'aisensy' ? 'selected' : ''); ?>>AiSensy (Official Meta BSP)</option>
+                        </select>
+                    </div>
+
+                    <!-- Interakt API Key -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fas fa-key text-emerald-500 mr-1"></i> Interakt API Key</label>
+                        <div class="relative">
+                            <input type="password" id="interaktApiKeyInput" name="interakt_api_key" value="<?php echo e($settings['interakt_api_key'] ?? env('INTERAKT_API_KEY', '')); ?>" 
+                                placeholder="Enter Interakt API Key"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('interaktApiKeyInput', 'interaktKeyEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="interaktKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Obtained from Interakt Dashboard &rarr; Settings &rarr; Developer Settings.</p>
+                    </div>
+
+                    <!-- AiSensy API Key -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2"><i class="fas fa-key text-emerald-500 mr-1"></i> AiSensy API Key</label>
+                        <div class="relative">
+                            <input type="password" id="aisensyApiKeyInput" name="aisensy_api_key" value="<?php echo e($settings['aisensy_api_key'] ?? env('AISENSY_API_KEY', '')); ?>" 
+                                placeholder="Enter AiSensy API Key"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-emerald-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('aisensyApiKeyInput', 'aisensyKeyEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="aisensyKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Obtained from AiSensy Dashboard &rarr; Manage &rarr; API Key.</p>
+                    </div>
+                </div>
+            </div>
+
+            <?php if(config('pathology.enabled', false)): ?>
+            <!-- TAB 10: Pathology SaaS / LIS API Integration -->
+            <div id="settings-panel-pathology" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="pathology">
+                
+                <div class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/40 text-xs text-indigo-800 dark:text-indigo-300 flex items-start gap-3">
+                    <i class="fas fa-info-circle text-base text-indigo-500 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="font-bold">Pathology SaaS REST API v1 Connection:</strong>
+                        <p class="mt-0.5 leading-relaxed">
+                            Connect your website with your central Pathology LIS software. Synchronize live tests and package catalogs, automatically push web bookings into the LIS, link doctor-approved signed PDF reports, and provide seamless SSO login to patients.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Base URL -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-globe text-indigo-500 mr-1"></i> API Base URL
+                        </label>
+                        <input type="url" name="pathology_api_base_url" value="<?php echo e($settings['pathology_api_base_url'] ?? config('pathology.base_url')); ?>" 
+                            placeholder="https://your-pathology-domain.com/api/v1"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Must include protocol and <code>/api/v1</code> endpoint (e.g. <code>https://lab.domain.com/api/v1</code>).</p>
+                    </div>
+
+                    <!-- Default Branch ID -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-hospital text-indigo-500 mr-1"></i> Default Lab Branch ID
+                        </label>
+                        <input type="number" name="pathology_default_branch_id" value="<?php echo e($settings['pathology_default_branch_id'] ?? config('pathology.default_branch_id', 1)); ?>" 
+                            placeholder="1" min="1"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Default branch assigned to incoming online website bookings.</p>
+                    </div>
+
+                    <!-- Secret API Key -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-key text-indigo-500 mr-1"></i> Lab API Key (<code>X-Lab-Api-Key</code>)
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="pathologyApiKeyInput" name="pathology_api_key" value="<?php echo e($settings['pathology_api_key'] ?? config('pathology.api_key')); ?>" 
+                                placeholder="lab_xxxxxxxxxxxxxxxxxxxx"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('pathologyApiKeyInput', 'pathologyKeyEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="pathologyKeyEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Generated from your Pathology LIS Superadmin Plan &amp; Lab Settings.</p>
+                    </div>
+                </div>
+
+                <!-- Handshake & Catalog Sync Actions -->
+                <div class="pt-4 border-t border-slate-200 dark:border-white/[0.08] grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Action Card 1: Test Handshake -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/[0.08] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fas fa-bolt text-amber-500"></i> Connection Test
+                            </h4>
+                            <span id="handshakeStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                Idle
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Verify connectivity and multi-tenant authentication with your Pathology SaaS server.
+                        </p>
+                        <button type="button" id="btnTestPathology" onclick="testPathologyHandshake()" 
+                            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-sm">
+                            <i class="fas fa-plug text-xs"></i>
+                            <span id="btnTestPathologyText">Test Handshake Now</span>
+                        </button>
+                        <div id="handshakeResultMsg" class="hidden text-xs p-2.5 rounded-lg"></div>
+                    </div>
+
+                    <!-- Action Card 2: Catalog Sync -->
+                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-white/[0.08] space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fas fa-sync text-teal-500"></i> Catalog Synchronization
+                            </h4>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                            Sync all tests, health packages, turnaround times, and parameters from your LIS into OutsourceLab.
+                        </p>
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-600 dark:text-slate-300 font-medium">
+                            <input type="checkbox" id="overwritePricingCheck" class="rounded border-slate-300 text-teal-600 focus:ring-teal-500">
+                            <span>Overwrite non-locked custom selling prices with LIS prices</span>
+                        </label>
+                        <button type="button" id="btnSyncPathology" onclick="triggerCatalogSync()" 
+                            class="w-full inline-flex justify-center items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-sm">
+                            <i class="fas fa-arrows-rotate text-xs"></i>
+                            <span id="btnSyncPathologyText">Sync Catalog from LIS</span>
+                        </button>
+                        <div id="syncResultMsg" class="hidden text-xs p-2.5 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <!-- Submit Button (Always Visible at bottom) -->
+            <div class="mt-8 pt-6 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
+                <div class="text-xs text-slate-400">
+                    <i class="fas fa-shield-halved text-teal-500 mr-1"></i> All API credentials and secrets are encrypted & securely stored.
+                </div>
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-sm shadow-lg shadow-teal-500/25 transition">
+                    <i class="fas fa-save"></i>
+                    <span>Save All Credentials</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function switchSettingsTab(tabKey) {
+        if (!tabKey) tabKey = 'general';
+        // Normalize any variations: '#tab-email', 'tab-email', 'email', 'settings-panel-email'
+        const cleanKey = String(tabKey).replace(/^#/, '').replace(/^settings-panel-/, '').replace(/^tab-/, '');
+        
+        // Hide all tabs
+        document.querySelectorAll('.settings-tab-content').forEach(el => el.classList.add('hidden'));
+        
+        // Show selected tab panel
+        let targetPanel = document.getElementById('settings-panel-' + cleanKey);
+        let resolvedKey = cleanKey;
+        if (!targetPanel) {
+            targetPanel = document.getElementById('settings-panel-general');
+            resolvedKey = 'general';
+        }
+        if (targetPanel) {
+            targetPanel.classList.remove('hidden');
+        }
+
+        // Update tab buttons style
+        document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-teal-600', 'text-white', 'shadow-md');
+            btn.classList.add('text-slate-600', 'dark:text-slate-400', 'bg-slate-100', 'dark:bg-white/[0.04]');
+        });
+
+        // Highlight active button (supports data-tab="email" or data-tab="tab-email")
+        const activeBtn = document.querySelector(`.settings-tab-btn[data-tab="${resolvedKey}"]`)
+            || document.querySelector(`.settings-tab-btn[data-tab="tab-${resolvedKey}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-teal-600', 'text-white', 'shadow-md');
+            activeBtn.classList.remove('text-slate-600', 'dark:text-slate-400', 'bg-slate-100', 'dark:bg-white/[0.04]');
+        }
+
+        // Remember active tab in hidden input for form submission
+        const activeInput = document.getElementById('activeTabInput');
+        if (activeInput) {
+            activeInput.value = resolvedKey;
+        }
+
+        // Keep clean hash without causing any browser viewport jump
+        if (history.replaceState) {
+            history.replaceState(null, null, '#tab-' + resolvedKey);
+        }
+
+        // Strictly keep header and layout scroll pinned to top
+        window.scrollTo(0, 0);
+        const mainEl = document.getElementById('adminMainScroll') || document.querySelector('main');
+        if (mainEl && mainEl.scrollTop > 0) {
+            mainEl.scrollTop = 0;
+        }
+    }
+
+    function toggleInputVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (!input) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+
+    function copyWebhookUrl() {
+        const input = document.getElementById('webhookUrlInput');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        const btnText = document.getElementById('copyWebhookBtnText');
+        btnText.innerText = 'Copied!';
+        setTimeout(() => { btnText.innerText = 'Copy URL'; }, 2000);
+    }
+
+    async function testPathologyHandshake() {
+        const btn = document.getElementById('btnTestPathology');
+        const btnText = document.getElementById('btnTestPathologyText');
+        const msgEl = document.getElementById('handshakeResultMsg');
+        const badge = document.getElementById('handshakeStatusBadge');
+
+        btn.disabled = true;
+        btnText.textContent = 'Pinging LIS API...';
+        msgEl.className = 'hidden';
+
+        try {
+            const baseUrlVal = document.querySelector('input[name="pathology_api_base_url"]')?.value || '';
+            const apiKeyVal = document.getElementById('pathologyApiKeyInput')?.value || '';
+
+            const res = await fetch('<?php echo e(route("admin.pathology.testConnection")); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                },
+                body: JSON.stringify({
+                    base_url: baseUrlVal,
+                    api_key: apiKeyVal
+                })
+            });
+
+
+            const data = await res.json();
+            msgEl.classList.remove('hidden');
+
+            if (data.success) {
+                badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+                badge.textContent = 'Connected';
+                msgEl.className = 'text-xs p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-medium';
+                msgEl.textContent = '✅ ' + data.message;
+            } else {
+                badge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300';
+                badge.textContent = 'Connection Failed';
+                msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+                msgEl.textContent = '❌ ' + (data.message || 'Handshake failed.');
+            }
+        } catch (err) {
+            msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+            msgEl.textContent = '❌ Server network error. Please verify the API Base URL.';
+            msgEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Test Handshake Now';
+        }
+    }
+
+    async function triggerCatalogSync() {
+        const btn = document.getElementById('btnSyncPathology');
+        const btnText = document.getElementById('btnSyncPathologyText');
+        const msgEl = document.getElementById('syncResultMsg');
+        const overwrite = document.getElementById('overwritePricingCheck').checked;
+
+        if (!confirm('Start syncing tests, health packages, and parameters from your Pathology LIS software?')) {
+            return;
+        }
+
+        btn.disabled = true;
+        btnText.textContent = 'Synchronizing Catalog...';
+        msgEl.className = 'hidden';
+
+        try {
+            const res = await fetch('<?php echo e(route("admin.pathology.sync")); ?>', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                },
+                body: JSON.stringify({
+                    overwrite_pricing: overwrite
+                })
+            });
+
+            const data = await res.json();
+            msgEl.classList.remove('hidden');
+
+            if (data.success) {
+                msgEl.className = 'text-xs p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-800/40 font-medium';
+                msgEl.textContent = '🎉 ' + data.message;
+            } else {
+                msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+                msgEl.textContent = '❌ ' + (data.message || 'Sync failed.');
+            }
+        } catch (err) {
+            msgEl.className = 'text-xs p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/40 font-medium';
+            msgEl.textContent = '❌ Connection failed while running catalog sync.';
+            msgEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btnText.textContent = 'Sync Catalog from LIS';
+        }
+    }
+
+    let selectedBannerFiles = [];
+
+    function handleBannerFilesSelected(input) {
+        if (!input.files || input.files.length === 0) return;
+
+        Array.from(input.files).forEach(f => {
+            selectedBannerFiles.push(f);
+        });
+
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function removeNewSelectedBanner(fileIndex) {
+        selectedBannerFiles.splice(fileIndex, 1);
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function syncBannerFilesInput() {
+        const input = document.getElementById('bannerImagesInput');
+        if (!input) return;
+
+        try {
+            const dt = new DataTransfer();
+            selectedBannerFiles.forEach(f => dt.items.add(f));
+            input.files = dt.files;
+        } catch (e) {
+            console.log('DataTransfer fallback', e);
+        }
+    }
+
+    function renderNewBannersPreview() {
+        const previewContainer = document.getElementById('newBannersPreviewContainer');
+        const grid = document.getElementById('newBannersGrid');
+        const countText = document.getElementById('selectedCountText');
+        if (!grid || !previewContainer) return;
+
+        grid.innerHTML = '';
+
+        if (selectedBannerFiles.length === 0) {
+            previewContainer.classList.add('hidden');
+            return;
+        }
+
+        countText.textContent = `${selectedBannerFiles.length} new image(s) ready to upload on save:`;
+        previewContainer.classList.remove('hidden');
+
+        selectedBannerFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            const card = document.createElement('div');
+            card.className = 'relative group rounded-xl overflow-hidden border-2 border-teal-400 bg-slate-900/10 shadow-sm';
+            
+            reader.onload = function(e) {
+                card.innerHTML = `
+                    <div class="aspect-video w-full overflow-hidden">
+                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-1.5 bg-white dark:bg-slate-900 text-[10px] truncate font-medium text-slate-700 dark:text-slate-300">
+                        ${file.name}
+                    </div>
+                    <div class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-teal-600 text-white text-[9px] font-bold">
+                        New +${index + 1}
+                    </div>
+                    <button type="button" onclick="removeNewSelectedBanner(${index})" title="Remove this file from upload list" class="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[10px] flex items-center justify-center shadow transition cursor-pointer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            };
+            reader.readAsDataURL(file);
+            grid.appendChild(card);
+        });
+    }
+
+    function clearNewSelectedBanners() {
+        selectedBannerFiles = [];
+        syncBannerFilesInput();
+        renderNewBannersPreview();
+    }
+
+    function resetAllBanners() {
+        if (!confirm('Restore all 5 original default system hero banners?')) {
+            return;
+        }
+        const resetInput = document.getElementById('resetBannersInput');
+        if (resetInput) resetInput.value = '1';
+        
+        // Remove existing banner inputs so none are sent
+        document.querySelectorAll('.existing-banner-input').forEach(el => el.remove());
+        
+        // Automatically submit the form to apply reset
+        const form = document.querySelector('form[action="<?php echo e(route("admin.settings.update")); ?>"]');
+        if (form) form.submit();
+    }
+
+    async function removeBannerItem(bannerPath, cardId) {
+        if (!confirm('Are you sure you want to delete this banner image?')) {
+            return;
+        }
+
+        const card = document.getElementById(cardId);
+        if (card) {
+            card.style.opacity = '0.4';
+            card.style.pointerEvents = 'none';
+        }
+
+        try {
+            const res = await fetch('<?php echo e(route("admin.settings.deleteBanner")); ?>', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                },
+                body: JSON.stringify({ banner_path: bannerPath })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                if (card) {
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+
+                        // Update counter badge
+                        const countBadge = document.getElementById('activeBannerCountBadge');
+                        if (countBadge) {
+                            countBadge.textContent = `${data.remaining_count} Active`;
+                        }
+
+                        // If all banners deleted, show empty state notice
+                        const activeGrid = document.getElementById('activeBannersGrid');
+                        if (activeGrid && data.remaining_count === 0) {
+                            activeGrid.innerHTML = `
+                                <div id="emptyBannersNotice" class="col-span-full py-8 text-center rounded-2xl bg-slate-50 dark:bg-white/[0.02] border-2 border-dashed border-slate-200 dark:border-white/10">
+                                    <i class="fas fa-images text-slate-400 text-3xl mb-2 block"></i>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300">No Banners Active</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">All banners have been removed. Upload new images above or restore original defaults.</p>
+                                    <button type="button" onclick="resetAllBanners()" class="mt-3 px-3.5 py-1.5 rounded-xl bg-teal-600 text-white text-xs font-bold hover:bg-teal-700 transition">
+                                        Restore All 5 Default Banners
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }, 250);
+                }
+            } else {
+                alert(data.message || 'Failed to delete banner.');
+                if (card) {
+                    card.style.opacity = '1';
+                    card.style.pointerEvents = 'auto';
+                }
+            }
+        } catch (err) {
+            // Fallback for network issues: remove from DOM so saving form applies it
+            if (card) {
+                card.remove();
+            }
+        }
+    }
+
+    // Auto-select tab based on hash or session on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        // Prevent and undo any initial browser anchor jump
+        window.scrollTo(0, 0);
+        const mainEl = document.getElementById('adminMainScroll') || document.querySelector('main');
+        if (mainEl) {
+            mainEl.scrollTop = 0;
+        }
+
+        let initialTab = 'general';
+        const hash = window.location.hash.replace('#', '');
+        const savedTab = document.getElementById('activeTabInput')?.value;
+
+        if (hash) {
+            initialTab = hash;
+        } else if (savedTab) {
+            initialTab = savedTab;
+        }
+
+        switchSettingsTab(initialTab);
+
+        // One more tick to ensure rendering stays at top
+        setTimeout(function() {
+            window.scrollTo(0, 0);
+            if (mainEl) mainEl.scrollTop = 0;
+        }, 10);
+    });
+</script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('admin.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\lab\lab\resources\views/admin/pages/settings/index.blade.php ENDPATH**/ ?>
