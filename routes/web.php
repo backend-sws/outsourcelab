@@ -173,6 +173,9 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::get('/notifications', [PatientNotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/unread-feed', [PatientNotificationController::class, 'unreadFeed'])->name('notifications.unreadFeed');
     Route::post('/notifications/mark-read/{id?}', [PatientNotificationController::class, 'markAsRead'])->name('notifications.markRead');
+
+    // Admin Impersonation Exit
+    Route::get('/exit-impersonation', [AdminUserController::class, 'leaveImpersonate'])->name('exit_impersonate');
 });
 
 // =========================================================================
@@ -214,6 +217,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Registered Customers / Patients
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::get('/users/{id}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::get('/users/{id}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy'])->name('users.destroy');
 
         // Bookings
@@ -276,6 +280,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Site Settings / CMS
         Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
         Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+        Route::delete('/settings/banner', [AdminSettingController::class, 'deleteBannerImage'])->name('settings.deleteBanner');
 
         // Pathology SaaS / LIS Integration Actions
         Route::post('/pathology/test-connection', [AdminSettingController::class, 'testPathologyConnection'])->name('pathology.testConnection');

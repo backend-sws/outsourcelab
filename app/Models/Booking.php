@@ -76,4 +76,38 @@ class Booking extends Model
 
         return '07:00 AM - 08:00 AM';
     }
+
+    /**
+     * Check if a collection slot has already expired/passed for a given date.
+     * If the date is in the past, or if the date is today and the slot's start time has passed, returns true.
+     */
+    public static function isSlotExpiredForDate(?string $dateStr, ?string $slotStr): bool
+    {
+        if (empty($dateStr) || empty($slotStr)) {
+            return false;
+        }
+
+        try {
+            $parsedDate = \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+            $todayDate = now()->format('Y-m-d');
+
+            if ($parsedDate < $todayDate) {
+                return true;
+            }
+
+            if ($parsedDate > $todayDate) {
+                return false;
+            }
+
+            // Target date is today! Parse slot start time (e.g. "07:00 AM - 08:00 AM" or "07:00 AM")
+            $parts = explode('-', $slotStr);
+            $startTimeStr = trim($parts[0]);
+
+            $slotDateTime = \Carbon\Carbon::parse($todayDate . ' ' . $startTimeStr);
+
+            return $slotDateTime->lessThanOrEqualTo(now());
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
 }

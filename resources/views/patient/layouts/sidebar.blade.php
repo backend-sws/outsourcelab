@@ -160,6 +160,19 @@
         </ul>
     </div>
 
+    @if(session('impersonated_by_admin'))
+        <!-- Admin Mode Return Button in Sidebar -->
+        <div class="p-3 bg-amber-50 border border-amber-300 rounded-xl mt-3 shadow-sm">
+            <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900 mb-2">
+                <i class="fas fa-shield-alt text-amber-600"></i>
+                <span>Admin Impersonation Mode</span>
+            </div>
+            <a href="{{ route('patient.exit_impersonate') }}" class="block text-center bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-3 rounded-lg text-xs transition shadow-sm">
+                <i class="fas fa-arrow-left mr-1"></i> Return to Admin Panel
+            </a>
+        </div>
+    @endif
+
     <!-- Logout -->
     <a href="{{ route('patient.logout') }}" class="inline-block bg-white border border-gray-200 rounded-lg py-2 px-4 text-sm font-bold text-gray-500 hover:text-red-500 hover:border-red-200 transition shadow-sm mt-2">
         <i class="fas fa-sign-out-alt mr-2 transform rotate-180"></i> Logout

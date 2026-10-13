@@ -16,15 +16,19 @@ class SettingSeeder extends Seeder
             ['group' => 'general', 'key' => 'site_logo', 'value' => '/logo.png', 'type' => 'image'],
             ['group' => 'general', 'key' => 'cin_number', 'value' => 'CIN: U85190UP2021PTC149892', 'type' => 'text'],
             ['group' => 'general', 'key' => 'copyright_text', 'value' => 'Av Wellcare Diagnostics © 2026. All rights reserved.', 'type' => 'text'],
+            ['group' => 'general', 'key' => 'footer_about', 'value' => 'Av Wellcare Diagnostics is an impact-driven, fast-growing diagnostic healthcare partner redefining healthcare access with the purpose of Adding Healthy Years to Lives. Having served 1+ crore customers, the company operates with a preventive-first approach across 220+ cities through 80+ advanced labs, offering 3,600+ tests powered by clinical expertise and AI-led innovation.', 'type' => 'text'],
 
             // Contact & Helpdesk
             ['group' => 'contact', 'key' => 'helpline_primary', 'value' => '898 898 8787', 'type' => 'text'],
             ['group' => 'contact', 'key' => 'helpline_secondary', 'value' => '+91 9876543210', 'type' => 'text'],
             ['group' => 'contact', 'key' => 'whatsapp_number', 'value' => '8988988787', 'type' => 'text'],
             ['group' => 'contact', 'key' => 'support_email', 'value' => 'care@avwellcarediagnostics.com', 'type' => 'text'],
+            ['group' => 'contact', 'key' => 'contact_email', 'value' => 'care@avwellcarediagnostics.com', 'type' => 'text'],
             ['group' => 'contact', 'key' => 'collection_timing', 'value' => 'Daily 6:00 AM – 9:00 PM (Trained Phlebotomists)', 'type' => 'text'],
-            ['group' => 'contact', 'key' => 'registered_address', 'value' => "Av Wellcare Lifetech Pvt. Ltd.\nH-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301", 'type' => 'text'],
-            ['group' => 'contact', 'key' => 'reference_lab_address', 'value' => "Av Wellcare Lifetech Pvt. Ltd.\nH-21, 4th Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301", 'type' => 'text'],
+            ['group' => 'contact', 'key' => 'working_hours', 'value' => 'Daily 6:00 AM – 9:00 PM (Trained Phlebotomists)', 'type' => 'text'],
+            ['group' => 'contact', 'key' => 'company_legal_name', 'value' => 'Av Wellcare Lifetech Pvt. Ltd.', 'type' => 'text'],
+            ['group' => 'contact', 'key' => 'registered_address', 'value' => 'H-21, 2nd Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301', 'type' => 'text'],
+            ['group' => 'contact', 'key' => 'reference_lab_address', 'value' => 'H-21, 4th Floor, Electronic City, H Block, Sector 63, Noida, Uttar Pradesh 201301', 'type' => 'text'],
 
             // Social Media Links
             ['group' => 'social', 'key' => 'social_facebook', 'value' => 'https://facebook.com', 'type' => 'text'],

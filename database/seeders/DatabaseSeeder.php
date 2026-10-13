@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Seed Sample Reviews if empty
+        // Seed Sample Reviews if empty               
         if (Review::count() === 0) {
             Review::create([
                 'author_name' => 'Rahul Sharma',
@@ -395,6 +395,6 @@ class DatabaseSeeder extends Seeder
         //         'description' => 'Vital antenatal health panel checking blood group Rh typing, Glucose Tolerance, Complete Urine Analysis, Thyroid, and Infectious disease markers.',
         //         'parameters' => ['Blood Group & Rh Typing', 'Glucose Challenge Test', 'Urine Routine & Microscopic', 'Hemoglobin & Platelet Count'],
         //     ]);
-        // }
+        $this->call(SettingSeeder::class);
     }
 }

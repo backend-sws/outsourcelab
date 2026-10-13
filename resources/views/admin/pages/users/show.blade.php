@@ -22,6 +22,12 @@
 
     <!-- Actions -->
     <div class="flex items-center space-x-2">
+        <a href="{{ route('admin.users.impersonate', $user->id) }}" 
+           class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 transition-all hover:scale-105">
+            <i class="fas fa-sign-in-alt text-xs"></i>
+            <span>Enter Dashboard (Full Access)</span>
+        </a>
+
         <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user? All bookings and linked data will be deleted.');">
             @csrf
             @method('DELETE')

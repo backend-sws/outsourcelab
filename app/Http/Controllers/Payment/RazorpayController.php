@@ -60,6 +60,13 @@ class RazorpayController extends Controller
             return response()->json(['success' => false, 'message' => 'Your cart is empty.'], 400);
         }
 
+        if (Booking::isSlotExpiredForDate($bookingDate, $collectionSlot)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
+            ], 422);
+        }
+
         // Server-side price recalculation (Prevents price manipulation)
         $sanitizedCart = [];
         $subtotal = 0;
@@ -230,6 +237,14 @@ class RazorpayController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Sample collection address is required. Please add or select an address before booking.',
+            ], 422);
+        }
+
+        // Validate time slot expiration for today
+        if (Booking::isSlotExpiredForDate($bookingDate, $collectionSlot)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
             ], 422);
         }
 

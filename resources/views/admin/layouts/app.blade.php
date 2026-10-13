@@ -174,7 +174,7 @@
             <div>
                 <div class="h-[72px] flex items-center justify-between px-5 border-b border-slate-100 dark:border-teal-900/40">
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 group">
-                        <img src="{{ asset('logo.png') }}" alt="AV Wellcare Diagnostics" class="h-9 w-auto object-contain group-hover:scale-105 transition-transform">
+                        <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="{{ \App\Models\Setting::get('site_name', 'AV Wellcare Diagnostics') }}" class="h-9 w-auto object-contain group-hover:scale-105 transition-transform">
                         <span class="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-600 dark:text-teal-400 border border-teal-500/25 self-end mb-1">Admin</span>
                     </a>
                     <button id="closeSidebarBtn" class="md:hidden text-slate-400 hover:text-white p-1">

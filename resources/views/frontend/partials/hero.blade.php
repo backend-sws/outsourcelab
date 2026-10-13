@@ -1,12 +1,16 @@
 <!-- Hero Section -->
 <div class="relative py-20 lg:py-28 px-4 z-30">
-    <!-- Background Image Slider -->
+    <!-- Background Image Slider (Dynamic from Admin Settings) -->
+    @php
+        $heroBanners = \App\Models\Setting::getBannerImages();
+    @endphp
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <img src="/hero_banner_dna.jpg" class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-100" style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" alt="Background 1">
-        <img src="/banner.jpg" class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-0" style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" alt="Background 2">
-        <img src="/biochemistry.jpg" class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-0" style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" alt="Background 3">
-        <img src="/flask.jpg" class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-0" style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" alt="Background 4">
-        <img src="/two-asian.jpg" class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out opacity-0" style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" alt="Background 5">
+        @foreach($heroBanners as $bIdx => $bannerUrl)
+            <img src="{{ $bannerUrl }}" 
+                 class="hero-bg-slider absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out {{ $bIdx === 0 ? 'opacity-100' : 'opacity-0' }}" 
+                 style="image-rendering: high-quality; filter: contrast(1.05) saturate(1.1); transform: translateZ(0);" 
+                 alt="Background {{ $bIdx + 1 }}">
+        @endforeach
     </div>
 
     <!-- Live Electricity Animations -->
@@ -46,7 +50,7 @@
                     const bgImages = document.querySelectorAll('.hero-bg-slider');
                     let currentBgIndex = 0;
                     
-                    if(bgImages.length > 0) {
+                    if(bgImages.length > 1) {
                         setInterval(() => {
                             bgImages[currentBgIndex].classList.remove('opacity-100');
                             bgImages[currentBgIndex].classList.add('opacity-0');

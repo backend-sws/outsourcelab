@@ -271,9 +271,13 @@
 
                     @php
                         $waNumber = \App\Models\Setting::get('whatsapp_number', '8988988787');
+                        $waClean = preg_replace('/[^0-9]/', '', $waNumber);
+                        if (strlen($waClean) === 10) {
+                            $waClean = '91' . $waClean;
+                        }
                         $waText = urlencode("Hello Wellcare, I would like to book the " . $package->name . " (Price: Rs. " . number_format($package->price) . "). Please share available appointment slots.");
                     @endphp
-                    <a href="https://wa.me/91{{ $waNumber }}?text={{ $waText }}" target="_blank" class="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-2xl border border-emerald-200 transition flex items-center justify-center gap-2">
+                    <a href="https://wa.me/{{ $waClean }}?text={{ $waText }}" target="_blank" class="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-2xl border border-emerald-200 transition flex items-center justify-center gap-2">
                         <i class="fab fa-whatsapp text-emerald-600 text-sm"></i>
                         <span>Book via WhatsApp Assistant</span>
                     </a>

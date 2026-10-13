@@ -329,8 +329,11 @@
                         </button>
 
                         @php
-                            $waPhone = \App\Models\Setting::get('whatsapp_number', '918988988787');
+                            $waPhone = \App\Models\Setting::get('whatsapp_number', '8988988787');
                             $waClean = preg_replace('/[^0-9]/', '', $waPhone);
+                            if (strlen($waClean) === 10) {
+                                $waClean = '91' . $waClean;
+                            }
                             $waMessage = urlencode("Hello, I want to book the {$test->name} test (₹{$test->price}). Please share available slots.");
                         @endphp
                         <a href="https://wa.me/{{ $waClean }}?text={{ $waMessage }}" target="_blank"
