@@ -46,6 +46,7 @@
     @include('patient.modals.modify-booking')
     
     @include('frontend.partials.floating-welcome-ticket')
+    @include('frontend.partials.floating-video')
 
     @include('frontend.partials.scripts')
 </body>

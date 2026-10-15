@@ -63,6 +63,8 @@ Route::get('/patient-login', [PageController::class, 'downloadReport'])->name('p
 Route::get('/lis-login', [PageController::class, 'lisLogin'])->name('lis.login');
 Route::post('/lis-login/authenticate', [PageController::class, 'authenticateLisSso'])->name('lis.login.authenticate');
 Route::get('/login', [PageController::class, 'loginRedirect'])->name('login');
+Route::get('/auth/google', [PatientAuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [PatientAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 // Corporate, Info, Legal & SEO Pages
 Route::get('/about-us', [PageController::class, 'about'])->name('about');
@@ -121,6 +123,10 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::post('/forgot-password', [PatientAuthController::class, 'forgotPassword'])->name('forgot_password');
     Route::post('/reset-password', [PatientAuthController::class, 'resetPassword'])->name('reset_password');
     Route::get('/logout', [PatientAuthController::class, 'logout'])->name('logout');
+
+    // Google OAuth Authentication
+    Route::get('/auth/google', [PatientAuthController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [PatientAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
     // Profile & Medical Records
     Route::get('/dashboard', [PatientProfileController::class, 'dashboard'])->name('dashboard');

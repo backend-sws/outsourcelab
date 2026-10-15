@@ -33,6 +33,9 @@
             <button type="button" onclick="switchSettingsTab('general')" class="settings-tab-btn active px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 bg-teal-600 text-white shadow-md" data-tab="general">
                 <i class="fas fa-gem"></i> General & Branding
             </button>
+            <button type="button" onclick="switchSettingsTab('video')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="video">
+                <i class="fas fa-circle-play text-rose-500"></i> Floating Video
+            </button>
             <button type="button" onclick="switchSettingsTab('contact')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="contact">
                 <i class="fas fa-phone-alt"></i> Helpline & Contact
             </button>
@@ -58,6 +61,9 @@
             </button>
             <button type="button" onclick="switchSettingsTab('whatsapp')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="whatsapp">
                 <i class="fab fa-whatsapp text-emerald-500"></i> WhatsApp API
+            </button>
+            <button type="button" onclick="switchSettingsTab('google')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="google">
+                <i class="fab fa-google text-rose-500"></i> Google OAuth
             </button>
             @if(config('pathology.enabled', false))
             <button type="button" onclick="switchSettingsTab('pathology')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="pathology">
@@ -243,6 +249,229 @@
                                     </button>
                                 </div>
                             @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Floating Video Settings -->
+            <div id="settings-panel-video" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="video">
+
+                <!-- Header / Intro Banner -->
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-teal-500/10 border border-rose-500/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center flex-shrink-0 shadow-lg shadow-rose-500/30">
+                            <i class="fas fa-circle-play text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span>Homepage Floating Video Pop-up</span>
+                                <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-full {{ ($settings['floating_video_enabled'] ?? '0') == '1' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : 'bg-slate-500/20 text-slate-500 border border-slate-500/30' }}">
+                                    {{ ($settings['floating_video_enabled'] ?? '0') == '1' ? 'Active / Enabled' : 'Disabled' }}
+                                </span>
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+                                Display an animated floating button on your website homepage (e.g. "Watch Lab Tour"). When visitors click the button, an HD video popup modal opens instantly with seamless playback.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Master Enable / Disable Toggle Switch -->
+                    <div class="flex items-center gap-3 bg-white dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm flex-shrink-0">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="hidden" name="floating_video_enabled" value="0">
+                            <input type="checkbox" name="floating_video_enabled" value="1" id="floating_video_enabled" 
+                                {{ ($settings['floating_video_enabled'] ?? '0') == '1' ? 'checked' : '' }} 
+                                class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-rose-600"></div>
+                        </label>
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            Enable Widget
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Video Source Configuration Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    
+                    <!-- Source 1: YouTube / Vimeo / Direct Video Link -->
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.08] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fab fa-youtube text-rose-500 text-base"></i>
+                                <span>Video URL (YouTube / Vimeo / MP4 Link)</span>
+                            </h4>
+                            <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/40 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800">
+                                Recommended
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Paste any public YouTube link (Standard, Shorts, youtu.be, or embed) or Vimeo link.
+                        </p>
+                        <div>
+                            <input type="url" 
+                                name="floating_video_url" 
+                                id="adminFloatingVideoUrl"
+                                value="{{ $settings['floating_video_url'] ?? '' }}" 
+                                placeholder="https://www.youtube.com/watch?v=..." 
+                                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-rose-500 transition font-mono">
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1.5">
+                                <span>Examples: https://youtu.be/xyz or https://youtube.com/shorts/...</span>
+                                <button type="button" onclick="previewAdminVideo()" class="text-rose-500 hover:text-rose-600 font-bold flex items-center gap-1 cursor-pointer">
+                                    <i class="fas fa-play text-[10px]"></i> Test Link
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Live URL Preview container -->
+                        <div id="adminVideoPreviewBox" class="hidden mt-3 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 aspect-video bg-black relative">
+                            <iframe id="adminVideoPreviewIframe" class="w-full h-full border-0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Source 2: Direct Video File Upload -->
+                    <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.08] space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <i class="fas fa-cloud-arrow-up text-teal-500 text-base"></i>
+                                <span>OR Direct Video Upload (.mp4, .webm)</span>
+                            </h4>
+                            <span class="text-[10px] font-bold text-slate-500 bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded">
+                                Max 50MB
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Upload your lab video or promotional clip directly to your server if you prefer not hosting on YouTube.
+                        </p>
+                        
+                        <div>
+                            <input type="file" 
+                                name="floating_video_file" 
+                                id="adminFloatingVideoFile"
+                                accept="video/mp4,video/webm" 
+                                class="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition">
+                        </div>
+
+                        @if(!empty($settings['floating_video_file_path']))
+                            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300 truncate">
+                                    <i class="fas fa-circle-check text-emerald-500"></i>
+                                    <span class="truncate font-mono">{{ $settings['floating_video_file_path'] }}</span>
+                                </div>
+                                <label class="flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-700 font-bold cursor-pointer flex-shrink-0">
+                                    <input type="checkbox" name="delete_floating_video_file" value="1" class="rounded border-rose-300 text-rose-600 focus:ring-rose-500">
+                                    <span>Delete</span>
+                                </label>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Customization: Text, Badges, Position, Options -->
+                <div class="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.08] space-y-5">
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-palette text-amber-500"></i>
+                        <span>Floating Button & Pop-up Modal Customization</span>
+                    </h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Floating Button Label</label>
+                            <input type="text" 
+                                name="floating_video_button_text" 
+                                value="{{ $settings['floating_video_button_text'] ?? 'Watch Video' }}" 
+                                placeholder="e.g. Watch Video or Lab Tour" 
+                                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                            <span class="text-[11px] text-slate-400 mt-1 block">Text displayed on the floating pill button.</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Mini-Badge Text</label>
+                            <input type="text" 
+                                name="floating_video_badge" 
+                                value="{{ $settings['floating_video_badge'] ?? 'Watch Lab Tour' }}" 
+                                placeholder="e.g. Virtual Tour or Intro Video" 
+                                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                            <span class="text-[11px] text-slate-400 mt-1 block">Badge shown with the glowing dot.</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Modal Pop-up Title</label>
+                            <input type="text" 
+                                name="floating_video_title" 
+                                value="{{ $settings['floating_video_title'] ?? 'Av Wellcare Diagnostics - Virtual Tour' }}" 
+                                placeholder="Heading inside video popup modal" 
+                                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Modal Description / Subtitle</label>
+                            <input type="text" 
+                                name="floating_video_description" 
+                                value="{{ $settings['floating_video_description'] ?? 'Take a virtual tour of our state-of-the-art diagnostic facilities and automated pathology analyzers.' }}" 
+                                placeholder="Short caption under the video" 
+                                class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Screen Position</label>
+                            <select name="floating_video_position" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-teal-500 transition">
+                                <option value="bottom-left" {{ ($settings['floating_video_position'] ?? 'bottom-left') === 'bottom-left' ? 'selected' : '' }}>Bottom-Left (Recommended)</option>
+                                <option value="bottom-right" {{ ($settings['floating_video_position'] ?? '') === 'bottom-right' ? 'selected' : '' }}>Bottom-Right (Above Welcome Pass)</option>
+                            </select>
+                            <span class="text-[11px] text-slate-400 mt-1 block">Bottom-left avoids overlapping with coupons & tickets.</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Display Scope</label>
+                            <div class="pt-2">
+                                <label class="inline-flex items-center gap-2 cursor-pointer">
+                                    <input type="hidden" name="floating_video_homepage_only" value="0">
+                                    <input type="checkbox" name="floating_video_homepage_only" value="1" {{ ($settings['floating_video_homepage_only'] ?? '1') == '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Homepage Only</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400 block mt-1">If unchecked, button shows across all pages.</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Autoplay on Pop-up</label>
+                            <div class="pt-2">
+                                <label class="inline-flex items-center gap-2 cursor-pointer">
+                                    <input type="hidden" name="floating_video_autoplay" value="0">
+                                    <input type="checkbox" name="floating_video_autoplay" value="1" {{ ($settings['floating_video_autoplay'] ?? '1') == '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300">
+                                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Autoplay Video</span>
+                                </label>
+                                <span class="text-[11px] text-slate-400 block mt-1">Video starts automatically when clicked.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Poster / Thumbnail Upload (Optional) -->
+                    <div class="pt-3 border-t border-slate-200 dark:border-white/[0.08]">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Custom Video Poster / Thumbnail (Optional)</label>
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                            <input type="file" 
+                                name="floating_video_thumbnail" 
+                                accept="image/jpeg,image/png,image/webp" 
+                                class="w-full sm:w-auto px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 transition">
+                            
+                            @if(!empty($settings['floating_video_thumbnail']))
+                                <div class="flex items-center gap-3">
+                                    <img src="{{ asset($settings['floating_video_thumbnail']) }}" class="h-10 w-16 object-cover rounded-lg border border-slate-200 dark:border-white/10 shadow-sm" alt="Thumbnail">
+                                    <label class="flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-700 font-bold cursor-pointer">
+                                        <input type="checkbox" name="delete_floating_video_thumb" value="1" class="rounded border-rose-300 text-rose-600 focus:ring-rose-500">
+                                        <span>Remove Image</span>
+                                    </label>
+                                </div>
+                            @else
+                                <span class="text-[11px] text-slate-400">For YouTube videos, YouTube's HQ thumbnail is automatically fetched if no custom thumbnail is uploaded.</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -856,6 +1085,75 @@
             </div>
             @endif
 
+            <!-- TAB: Google OAuth Settings -->
+            <div id="settings-panel-google" class="settings-tab-content space-y-6 hidden">
+                <input type="hidden" name="settings_group" value="google">
+
+                <div class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800/40 text-xs text-rose-900 dark:text-rose-200 flex items-start gap-3">
+                    <i class="fab fa-google text-lg text-rose-500 mt-0.5 flex-shrink-0"></i>
+                    <div>
+                        <strong class="font-bold">Google Sign-in &amp; OAuth 2.0 Configuration:</strong>
+                        <p class="mt-0.5 leading-relaxed">
+                            Allow patients to sign up and log in instantly with 1-click using their Google account. Obtain credentials from the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="underline font-bold text-rose-600 dark:text-rose-400 hover:text-rose-800">Google Cloud Console</a>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Enable Google Login Switch -->
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="hidden" name="google_oauth_enabled" value="0">
+                            <input type="checkbox" name="google_oauth_enabled" value="1" {{ ($settings['google_oauth_enabled'] ?? '1') == '1' ? 'checked' : '' }} class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 border-slate-300">
+                            <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Enable Google Sign-in button on Login &amp; Register modal</span>
+                        </label>
+                    </div>
+
+                    <!-- Client ID -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-id-badge text-teal-500 mr-1"></i> Google Client ID
+                        </label>
+                        <input type="text" name="google_client_id" value="{{ $settings['google_client_id'] ?? env('GOOGLE_CLIENT_ID', '') }}" 
+                            placeholder="e.g. 1234567890-xxxxxxxxxx.apps.googleusercontent.com"
+                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                        <p class="text-[11px] text-slate-400 mt-1">Found under Credentials &rarr; OAuth 2.0 Client IDs in Google Cloud Console.</p>
+                    </div>
+
+                    <!-- Client Secret -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-key text-amber-500 mr-1"></i> Google Client Secret
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="googleClientSecretInput" name="google_client_secret" value="{{ $settings['google_client_secret'] ?? env('GOOGLE_CLIENT_SECRET', '') }}" 
+                                placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
+                                class="w-full pl-4 pr-10 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition">
+                            <button type="button" onclick="toggleInputVisibility('googleClientSecretInput', 'googleSecretEyeIcon')" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <i class="fas fa-eye text-xs" id="googleSecretEyeIcon"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Keep this secret private. Stored securely in database.</p>
+                    </div>
+
+                    <!-- Authorized Redirect URI -->
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            <i class="fas fa-link text-indigo-500 mr-1"></i> Authorized Redirect URI (Copy this to Google Console)
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="googleRedirectUriInput" readonly value="{{ url('/auth/google/callback') }}" 
+                                class="flex-grow px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-700 dark:text-slate-300 font-mono select-all">
+                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('googleRedirectUriInput').value); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy URL', 2000);" 
+                                class="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-sm whitespace-nowrap cursor-pointer">
+                                Copy URL
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Paste this exact URL into <strong>"Authorized redirect URIs"</strong> in Google Cloud Console.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Submit Button (Always Visible at bottom) -->
             <div class="mt-8 pt-6 border-t border-slate-200 dark:border-white/[0.08] flex items-center justify-between">
                 <div class="text-xs text-slate-400">
@@ -1210,6 +1508,39 @@
                 card.remove();
             }
         }
+    }
+
+    function previewAdminVideo() {
+        const input = document.getElementById('adminFloatingVideoUrl');
+        const box = document.getElementById('adminVideoPreviewBox');
+        const iframe = document.getElementById('adminVideoPreviewIframe');
+        if (!input || !box || !iframe) return;
+
+        const val = input.value.trim();
+        if (!val) {
+            alert('Please enter a YouTube or Vimeo URL first.');
+            return;
+        }
+
+        // Parse YouTube
+        const ytMatch = val.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i);
+        if (ytMatch && ytMatch[1]) {
+            iframe.src = `https://www.youtube-nocookie.com/embed/${ytMatch[1]}?autoplay=1`;
+            box.classList.remove('hidden');
+            return;
+        }
+
+        // Parse Vimeo
+        const vimMatch = val.match(/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|))(\d+)/i);
+        if (vimMatch) {
+            const vidId = vimMatch[vimMatch.length - 1];
+            iframe.src = `https://player.vimeo.com/video/${vidId}?autoplay=1`;
+            box.classList.remove('hidden');
+            return;
+        }
+
+        iframe.src = val;
+        box.classList.remove('hidden');
     }
 
     // Auto-select tab based on hash or session on page load

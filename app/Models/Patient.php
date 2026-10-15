@@ -10,7 +10,7 @@ class Patient extends Model
     use Notifiable;
 
     protected $fillable = [
-        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'password', 'otp', 'otp_expires_at', 'last_login_at', 'cart', 'reward_coins',
+        'mobile', 'name', 'gender', 'age', 'dob', 'relation', 'alt_mobile', 'email', 'google_id', 'avatar', 'password', 'otp', 'otp_expires_at', 'last_login_at', 'cart', 'reward_coins',
     ];
 
     protected $hidden = [
