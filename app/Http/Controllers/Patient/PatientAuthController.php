@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Socialite\Facades\Socialite;
 
 class PatientAuthController extends Controller
 {
@@ -375,6 +376,141 @@ class PatientAuthController extends Controller
     }
 
     /**
+     * Get configured Socialite Google driver with local CA SSL support.
+     */
+    protected function getGoogleSocialiteDriver()
+    {
+        $clientId = Setting::get('google_client_id') ?: config('services.google.client_id');
+        $clientSecret = Setting::get('google_client_secret') ?: config('services.google.client_secret');
+        $redirectUri = Setting::get('google_redirect_uri') ?: config('services.google.redirect');
+
+        if (! empty($clientId) && ! empty($clientSecret)) {
+            config([
+                'services.google.client_id' => $clientId,
+                'services.google.client_secret' => $clientSecret,
+                'services.google.redirect' => $redirectUri,
+            ]);
+        }
+
+        $caCertPath = storage_path('certs/cacert.pem');
+        $verify = file_exists($caCertPath) ? $caCertPath : false;
+
+        $guzzleClient = new \GuzzleHttp\Client([
+            'verify' => $verify,
+            'timeout' => 30,
+        ]);
+
+        $driver = Socialite::driver('google')->stateless();
+        $driver->setHttpClient($guzzleClient);
+
+        return $driver;
+    }
+
+    /**
+     * Redirect to Google OAuth provider.
+     */
+    public function redirectToGoogle(Request $request): RedirectResponse
+    {
+        if ($request->has('redirect_to')) {
+            session(['google_oauth_redirect' => $request->input('redirect_to')]);
+        }
+
+        $clientId = Setting::get('google_client_id') ?: config('services.google.client_id');
+        $clientSecret = Setting::get('google_client_secret') ?: config('services.google.client_secret');
+
+        if (empty($clientId) || empty($clientSecret)) {
+            return redirect()->back()->with('error', 'Google Sign-in is not configured yet. Please enter Google Client ID and Secret in Admin Settings or .env file.');
+        }
+
+        try {
+            return $this->getGoogleSocialiteDriver()->redirect();
+        } catch (\Throwable $e) {
+            Log::error('Google OAuth redirect error: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Unable to initialize Google Sign-in: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle callback from Google OAuth provider.
+     */
+    public function handleGoogleCallback(Request $request): RedirectResponse
+    {
+        try {
+            $googleUser = $this->getGoogleSocialiteDriver()->user();
+        } catch (\Throwable $e) {
+            Log::error('Google OAuth callback error: ' . $e->getMessage());
+
+            return redirect()->route('home')->with('error', 'Google authentication failed: ' . $e->getMessage());
+        }
+
+        $googleId = (string) $googleUser->getId();
+        $email = strtolower(trim((string) $googleUser->getEmail()));
+        $name = trim((string) $googleUser->getName());
+        $avatar = (string) $googleUser->getAvatar();
+
+        if (empty($email)) {
+            return redirect()->route('home')->with('error', 'Unable to retrieve email from your Google account.');
+        }
+
+        if (empty($name)) {
+            $name = explode('@', $email)[0];
+        }
+
+        // Match existing patient by google_id or email
+        $patient = Patient::where('google_id', $googleId)
+            ->orWhere('email', $email)
+            ->first();
+
+        if ($patient) {
+            $updates = [
+                'last_login_at' => now(),
+            ];
+            if (empty($patient->google_id)) {
+                $updates['google_id'] = $googleId;
+            }
+            if (empty($patient->avatar) && ! empty($avatar)) {
+                $updates['avatar'] = $avatar;
+            }
+            if (empty($patient->name) && ! empty($name)) {
+                $updates['name'] = $name;
+            }
+            $patient->update($updates);
+        } else {
+            $patient = Patient::create([
+                'name' => $name,
+                'email' => $email,
+                'google_id' => $googleId,
+                'avatar' => $avatar ?: null,
+                'last_login_at' => now(),
+            ]);
+
+            $this->assignWelcomeCoupons($patient->id);
+
+            try {
+                NotificationService::send(
+                    'patient',
+                    $patient->id,
+                    'Welcome to ' . Setting::get('site_name', 'Av Wellcare'),
+                    "Welcome {$name}! Your account has been created via Google Sign-in. Explore checkups and manage your health records effortlessly.",
+                    'account'
+                );
+            } catch (\Throwable $t) {
+                Log::warning('Google sign-in welcome notification error: ' . $t->getMessage());
+            }
+        }
+
+        session(['patient_id' => $patient->id]);
+
+        $redirectTo = session()->pull('google_oauth_redirect');
+        if ($redirectTo && $redirectTo !== '/' && $redirectTo !== route('home') && !str_ends_with($redirectTo, 'localhost:8000/')) {
+            return redirect($redirectTo)->with('success', 'Logged in successfully with Google!');
+        }
+
+        return redirect()->route('patient.dashboard')->with('success', 'Logged in successfully with Google!');
+    }
+
+    /**
      * Auto-assign welcome coupons upon registration / login.
      */
     protected function assignWelcomeCoupons(int $patientId): void
@@ -391,3 +527,4 @@ class PatientAuthController extends Controller
         }
     }
 }
+

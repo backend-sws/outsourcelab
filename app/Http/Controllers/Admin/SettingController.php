@@ -33,7 +33,11 @@ class SettingController extends Controller
             $inputs['banner_images'], 
             $inputs['existing_banners'], 
             $inputs['reset_banners'], 
-            $inputs['banner_section_submitted']
+            $inputs['banner_section_submitted'],
+            $inputs['floating_video_file'],
+            $inputs['floating_video_thumbnail'],
+            $inputs['delete_floating_video_file'],
+            $inputs['delete_floating_video_thumb']
         );
 
         // Handle File Uploads (Logo & Favicon)
@@ -114,6 +118,58 @@ class SettingController extends Controller
             Setting::set('banner_images', json_encode($finalBanners), 'general', 'json');
         }
 
+        // Handle Direct Video Upload
+        if ($request->hasFile('floating_video_file')) {
+            $file = $request->file('floating_video_file');
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'mp4');
+            $filename = 'floating_video_' . time() . '_' . uniqid() . '.' . $extension;
+
+            $file->storeAs('videos', $filename, 'public');
+
+            $publicVideosDir = public_path('storage/videos');
+            if (!file_exists($publicVideosDir)) {
+                @mkdir($publicVideosDir, 0755, true);
+            }
+            @copy($file->getRealPath(), $publicVideosDir . DIRECTORY_SEPARATOR . $filename);
+
+            Setting::set('floating_video_file_path', 'storage/videos/' . $filename, 'video', 'video');
+        } elseif ($request->boolean('delete_floating_video_file')) {
+            $currentVideo = Setting::get('floating_video_file_path');
+            if ($currentVideo) {
+                $filePath = public_path($currentVideo);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            Setting::set('floating_video_file_path', '', 'video', 'video');
+        }
+
+        // Handle Floating Video Thumbnail Upload
+        if ($request->hasFile('floating_video_thumbnail')) {
+            $file = $request->file('floating_video_thumbnail');
+            $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
+            $filename = 'video_thumb_' . time() . '_' . uniqid() . '.' . $extension;
+
+            $file->storeAs('branding', $filename, 'public');
+
+            $publicBrandingDir = public_path('storage/branding');
+            if (!file_exists($publicBrandingDir)) {
+                @mkdir($publicBrandingDir, 0755, true);
+            }
+            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+
+            Setting::set('floating_video_thumbnail', 'storage/branding/' . $filename, 'video', 'image');
+        } elseif ($request->boolean('delete_floating_video_thumb')) {
+            $currentThumb = Setting::get('floating_video_thumbnail');
+            if ($currentThumb) {
+                $filePath = public_path($currentThumb);
+                if (file_exists($filePath)) {
+                    @unlink($filePath);
+                }
+            }
+            Setting::set('floating_video_thumbnail', '', 'video', 'image');
+        }
+
         // Auto-sync alias keys so that changes to one immediately update the other
         if (array_key_exists('support_email', $inputs)) {
             $inputs['contact_email'] = $inputs['support_email'];
@@ -129,6 +185,7 @@ class SettingController extends Controller
 
         foreach ($inputs as $key => $value) {
             $keyGroup = match (true) {
+                str_starts_with($key, 'floating_video_') => 'video',
                 str_starts_with($key, 'razorpay_') => 'payment',
                 str_starts_with($key, 'mail_') || $key === 'email_notifications_enabled' || $key === 'patient_email_otp_enabled' => 'mail',
                 str_starts_with($key, 'sms_') || str_starts_with($key, 'msg91_') || str_starts_with($key, 'twilio_') => 'sms',

@@ -129,6 +129,17 @@ class Setting extends Model
             'social_instagram',
             'serviceable_pincodes',
             'banner_images',
+            'floating_video_enabled',
+            'floating_video_url',
+            'floating_video_file_path',
+            'floating_video_title',
+            'floating_video_badge',
+            'floating_video_description',
+            'floating_video_button_text',
+            'floating_video_position',
+            'floating_video_autoplay',
+            'floating_video_homepage_only',
+            'floating_video_thumbnail',
         ];
 
         foreach ($knownKeys as $k) {
@@ -229,6 +240,71 @@ class Setting extends Model
         }
 
         return asset('favicon.png');
+    }
+
+    /**
+     * Get floating promotional / tour video details.
+     */
+    public static function getFloatingVideoDetails(): ?array
+    {
+        $enabled = (string) static::get('floating_video_enabled', '0') === '1';
+        $rawUrl = trim(static::get('floating_video_url', ''));
+        $uploadedFile = trim(static::get('floating_video_file_path', ''));
+
+        // If neither URL nor uploaded file exists, nothing can be played
+        if (empty($rawUrl) && empty($uploadedFile)) {
+            return null;
+        }
+
+        $type = 'youtube';
+        $embedUrl = '';
+        $videoId = null;
+        $autoThumbnail = '';
+
+        if (!empty($uploadedFile)) {
+            $type = 'html5';
+            $embedUrl = asset(ltrim($uploadedFile, '/'));
+        } elseif (!empty($rawUrl)) {
+            // Check YouTube: standard watch, youtu.be, shorts, embed
+            if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
+                $type = 'youtube';
+                $videoId = $matches[1];
+                $embedUrl = "https://www.youtube-nocookie.com/embed/{$videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1";
+                $autoThumbnail = "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg";
+            } elseif (preg_match('/(?:vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|))(\d+)/i', $rawUrl, $matches)) {
+                $type = 'vimeo';
+                $videoId = end($matches);
+                $embedUrl = "https://player.vimeo.com/video/{$videoId}?autoplay=1";
+            } elseif (preg_match('/\.(mp4|webm|ogg)($|\?)/i', $rawUrl)) {
+                $type = 'html5';
+                $embedUrl = $rawUrl;
+            } else {
+                $type = 'embed';
+                $embedUrl = $rawUrl;
+            }
+        }
+
+        $customThumb = static::get('floating_video_thumbnail');
+        $resolvedThumb = !empty($customThumb)
+            ? (str_starts_with($customThumb, 'http') ? $customThumb : asset(ltrim($customThumb, '/')))
+            : $autoThumbnail;
+
+        return [
+            'enabled' => $enabled,
+            'type' => $type,
+            'embed_url' => $embedUrl,
+            'raw_url' => $rawUrl,
+            'file_path' => $uploadedFile,
+            'video_id' => $videoId,
+            'thumbnail_url' => $resolvedThumb,
+            'title' => static::get('floating_video_title', 'Virtual Lab Tour & Diagnostics Overview'),
+            'badge' => static::get('floating_video_badge', 'Watch Lab Tour'),
+            'description' => static::get('floating_video_description', 'Explore our state-of-the-art diagnostic facilities and automated pathology analyzers.'),
+            'button_text' => static::get('floating_video_button_text', 'Watch Video'),
+            'position' => static::get('floating_video_position', 'bottom-right'),
+            'autoplay' => (string) static::get('floating_video_autoplay', '1') === '1',
+            'homepage_only' => (string) static::get('floating_video_homepage_only', '1') === '1',
+        ];
     }
 }
 
