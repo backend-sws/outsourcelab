@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AgentController as AdminAgentController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CityController as AdminCityController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EnquiryController as AdminEnquiryController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Admin\RewardController as AdminRewardController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\SlotController as AdminSlotController;
 use App\Http\Controllers\Admin\TestCategoryController as AdminTestCategoryController;
 use App\Http\Controllers\Admin\TestController as AdminTestController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
@@ -55,6 +57,7 @@ use Illuminate\Support\Facades\Route;
 // 1. FRONTEND PUBLIC ROUTES (Zero Closures, Modular Controller Architecture)
 // =========================================================================
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::post('/set-city', [HomeController::class, 'setCity'])->name('set.city');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::get('/download-report', [PageController::class, 'downloadReport'])->name('download.report');
 Route::post('/download-report/track', [PageController::class, 'fetchReportTrack'])->name('download.report.track');
@@ -235,6 +238,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/report', [AdminBookingController::class, 'uploadReport'])->name('bookings.report.upload');
         Route::delete('/bookings/{id}/report', [AdminBookingController::class, 'deleteReport'])->name('bookings.report.delete');
         Route::post('/bookings/{id}/modify', [AdminBookingController::class, 'modifyBooking'])->name('bookings.modify');
+
+        // Sample Collection Time Slots Management
+        Route::get('/slots', [AdminSlotController::class, 'index'])->name('slots.index');
+        Route::post('/slots', [AdminSlotController::class, 'store'])->name('slots.store');
+        Route::put('/slots/{id}', [AdminSlotController::class, 'update'])->name('slots.update');
+        Route::post('/slots/{id}/toggle', [AdminSlotController::class, 'toggle'])->name('slots.toggle');
+        Route::delete('/slots/{id}', [AdminSlotController::class, 'destroy'])->name('slots.destroy');
+
+        // Serviceable Cities & Pincodes Control
+        Route::get('/cities', [AdminCityController::class, 'index'])->name('cities.index');
+        Route::post('/cities', [AdminCityController::class, 'store'])->name('cities.store');
+        Route::put('/cities/{id}', [AdminCityController::class, 'update'])->name('cities.update');
+        Route::post('/cities/{id}/toggle', [AdminCityController::class, 'toggle'])->name('cities.toggle');
+        Route::post('/cities/{id}/set-default', [AdminCityController::class, 'setDefault'])->name('cities.set_default');
+        Route::delete('/cities/{id}', [AdminCityController::class, 'destroy'])->name('cities.destroy');
 
         // Test Catalog
         Route::resource('tests', AdminTestController::class);

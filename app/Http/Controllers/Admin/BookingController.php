@@ -18,7 +18,7 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Booking::with(['patient', 'agent'])->latest();
+        $query = Booking::with(['patient', 'familyMember', 'agent'])->latest();
 
         if ($request->filled('agent_id')) {
             if ($request->agent_id === 'unassigned') {

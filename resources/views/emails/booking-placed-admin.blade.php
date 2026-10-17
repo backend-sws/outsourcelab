@@ -16,9 +16,15 @@
                 <td style="padding: 8px 0; color: #0d9488; font-weight: 700; font-size: 14px; text-align: right;">#{{ $booking->booking_reference }}</td>
             </tr>
             <tr style="border-bottom: 1px dashed #e2e8f0;">
-                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Customer Name</td>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Patient / Beneficiary</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 700; font-size: 14px; text-align: right;">{{ $booking->beneficiary_display }}</td>
+            </tr>
+            @if($booking->familyMember)
+            <tr style="border-bottom: 1px dashed #e2e8f0;">
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Booked By (Account Owner)</td>
                 <td style="padding: 8px 0; color: #0f172a; font-weight: 600; font-size: 14px; text-align: right;">{{ $booking->patient?->name ?? 'N/A' }}</td>
             </tr>
+            @endif
             <tr style="border-bottom: 1px dashed #e2e8f0;">
                 <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Contact Number</td>
                 <td style="padding: 8px 0; color: #0f172a; font-weight: 600; font-size: 14px; text-align: right;">{{ $booking->patient?->mobile ?? 'N/A' }}</td>

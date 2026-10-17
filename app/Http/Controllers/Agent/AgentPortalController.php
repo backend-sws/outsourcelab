@@ -238,7 +238,7 @@ class AgentPortalController extends Controller
             return redirect('/')->with('error', 'Please login to access the Agent Portal.');
         }
 
-        $bookings = Booking::with(['patient', 'address'])
+        $bookings = Booking::with(['patient', 'address', 'familyMember'])
             ->where('agent_id', $agent->id)
             ->latest('booking_date')
             ->get();

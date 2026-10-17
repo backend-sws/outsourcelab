@@ -322,26 +322,113 @@
                             <div class="flex-1">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <h3 class="font-bold text-gray-900 text-lg flex items-center"><span id="primaryPatientDisplayName">{{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : 'Self' }}</span> <span class="text-[10px] bg-brand-light/30 text-brand-dark px-2 py-0.5 rounded ml-2 uppercase font-extrabold">Self</span></h3>
-                                        <p class="text-xs text-gray-500 font-semibold mt-1">{{ $patient->age ?? '25' }} Years | {{ ucfirst($patient->gender ?? 'Not Specified') }}</p>
+                                        <h3 class="font-bold text-gray-900 text-lg flex items-center">
+                                            <span id="primaryPatientDisplayName">{{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : 'Self' }}</span> 
+                                            <span class="text-[10px] bg-brand-light/30 text-brand-dark px-2 py-0.5 rounded ml-2 uppercase font-extrabold">Self</span>
+                                            @php
+                                                $patientCleanPhone = preg_replace('/[^0-9]/', '', (string)($patient->mobile ?? ''));
+                                                if (strlen($patientCleanPhone) > 10 && str_starts_with($patientCleanPhone, '91')) {
+                                                    $patientCleanPhone = substr($patientCleanPhone, 2);
+                                                }
+                                                $hasValidMobile = strlen($patientCleanPhone) === 10;
+                                                $hasValidAge = !empty($patient->age) && (int)$patient->age >= 1 && (int)$patient->age <= 120;
+                                                $hasValidName = !empty($patient->name) && strtolower(trim($patient->name)) !== 'self';
+                                                $patientProfileIncomplete = !$hasValidName || !$hasValidAge || !$hasValidMobile;
+                                            @endphp
+                                            @if($patientProfileIncomplete)
+                                                <span id="primaryPatientIncompleteBadge" class="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-2 py-0.5 rounded ml-2 flex items-center gap-1">
+                                                    <i class="fas fa-exclamation-circle text-[9px]"></i> Profile Incomplete
+                                                </span>
+                                            @endif
+                                        </h3>
+                                        <p class="text-xs text-gray-500 font-semibold mt-1 flex flex-wrap items-center gap-2">
+                                            <span id="primaryPatientDisplayAge" class="{{ $hasValidAge ? 'text-gray-600' : 'text-rose-600 font-bold' }}">
+                                                {{ $hasValidAge ? $patient->age . ' Years' : 'Age Required *' }}
+                                            </span>
+                                            <span class="text-gray-300">•</span>
+                                            <span id="primaryPatientDisplayGender" class="text-gray-600">
+                                                {{ ucfirst($patient->gender ?? 'Not Specified') }}
+                                            </span>
+                                            <span class="text-gray-300">•</span>
+                                            <span id="primaryPatientDisplayMobile" class="{{ $hasValidMobile ? 'text-gray-600' : 'text-rose-600 font-bold' }}">
+                                                <i class="fas fa-phone-alt text-[10px] mr-1"></i>{{ $hasValidMobile ? '+91 ' . $patientCleanPhone : 'Phone Required *' }}
+                                            </span>
+                                        </p>
                                     </div>
-                                    <span class="text-xs font-bold text-brand-secondary">Primary Patient</span>
-                                </div>
-
-                                <!-- Inline Name Required Input if Name is missing or 'Self' -->
-                                <div class="mt-3 pt-3 border-t border-slate-100 {{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? 'hidden' : '' }}" id="patientNamePromptBox" onclick="event.stopPropagation()">
-                                    <label class="block text-xs font-black text-rose-700 mb-1 flex items-center gap-1.5">
-                                        <i class="fas fa-id-card text-rose-600"></i>
-                                        <span>Full Name Required for Diagnostic Report <span class="text-rose-600">*</span></span>
-                                    </label>
-                                    <div class="flex gap-2">
-                                        <input type="text" id="checkoutPatientNameInput" value="{{ (!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : '' }}" placeholder="Enter Patient Full Name (e.g. Ramesh Kumar)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:bg-white focus:ring-2 focus:ring-teal-600">
-                                        <button type="button" onclick="saveCheckoutPatientName()" class="px-3.5 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shadow-sm cursor-pointer">
-                                            <i class="fas fa-check text-[10px]"></i>
-                                            <span>Save Name</span>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="text-xs font-bold text-brand-secondary">Primary Patient</span>
+                                        <button type="button" onclick="event.stopPropagation(); toggleCheckoutProfilePrompt()" class="text-[11px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 underline cursor-pointer">
+                                            <i class="fas fa-pencil-alt text-[9px]"></i> Edit Details
                                         </button>
                                     </div>
-                                    <p id="checkoutNameSavedMsg" class="text-[11px] text-emerald-700 font-bold mt-1.5 hidden flex items-center gap-1"><i class="fas fa-circle-check text-emerald-600"></i> Name saved successfully!</p>
+                                </div>
+
+                                <!-- Mandatory Profile Details Prompt Box -->
+                                <div class="mt-3 pt-3 border-t border-slate-200 {{ $patientProfileIncomplete ? '' : 'hidden' }} bg-amber-50/70 rounded-xl p-3.5 border border-amber-200 shadow-sm" id="patientDetailsPromptBox" onclick="event.stopPropagation()">
+                                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black shrink-0">
+                                                <i class="fas fa-id-card"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-xs font-black text-amber-900 flex items-center gap-1">
+                                                    <span>Mandatory Patient Details</span> <span class="text-rose-600">*</span>
+                                                </h4>
+                                                <p class="text-[11px] text-amber-700 font-medium">Name, Age and 10-digit Phone are mandatory for diagnostic reports and sample collection slot booking.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                        <!-- Full Name -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                Full Name <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="text" id="checkoutPatientNameInput" value="{{ $hasValidName ? $patient->name : '' }}" placeholder="e.g. Ramesh Kumar" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+
+                                        <!-- Age -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                Age (Years) <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="number" id="checkoutPatientAgeInput" min="1" max="120" value="{{ $hasValidAge ? $patient->age : '' }}" placeholder="e.g. 28" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+
+                                        <!-- Phone Number -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                10-digit Phone <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="tel" id="checkoutPatientMobileInput" maxlength="10" pattern="[0-9]{10}" value="{{ $hasValidMobile ? $patientCleanPhone : '' }}" placeholder="e.g. 9876543210" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gender selection & Save Button -->
+                                    <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-200/60">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] font-extrabold text-slate-700">Gender:</span>
+                                            <div class="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 text-xs font-bold">
+                                                @php $curGender = strtolower($patient->gender ?? 'female'); @endphp
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md {{ $curGender === 'female' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900' }} transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Female" class="hidden" {{ $curGender === 'female' ? 'checked' : '' }} onchange="updateGenderRadioUI(this)"> Female
+                                                </label>
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md {{ $curGender === 'male' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900' }} transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Male" class="hidden" {{ $curGender === 'male' ? 'checked' : '' }} onchange="updateGenderRadioUI(this)"> Male
+                                                </label>
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md {{ $curGender === 'other' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900' }} transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Other" class="hidden" {{ $curGender === 'other' ? 'checked' : '' }} onchange="updateGenderRadioUI(this)"> Other
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" id="btnSaveCheckoutDetails" onclick="saveCheckoutPatientDetails()" class="px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 shadow-sm cursor-pointer ml-auto">
+                                            <i class="fas fa-check-circle text-xs"></i>
+                                            <span>Save Profile Details</span>
+                                        </button>
+                                    </div>
+                                    <div id="checkoutDetailsAlert" class="mt-2 text-xs font-bold hidden"></div>
                                 </div>
 
                                 <div class="mt-3 pt-3 border-t border-gray-100">
@@ -445,41 +532,48 @@
 
                         <h3 class="font-extrabold text-gray-800 text-lg mb-4 mt-6">Available Slots</h3>
                         
+                        @php
+                            $activeSlots = $collectionSlots ?? \App\Models\CollectionSlot::active()->ordered()->get()->groupBy('period');
+                            $morningSlots = $activeSlots['morning'] ?? collect();
+                            $afternoonSlots = $activeSlots['afternoon'] ?? collect();
+                            $eveningSlots = $activeSlots['evening'] ?? collect();
+                        @endphp
+                        
                         <!-- Morning Slots -->
+                        @if($morningSlots->isNotEmpty())
                         <div class="mb-6 slot-section" data-section="morning">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-cloud-sun mr-2"></i> Morning</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">05:00 AM - 06:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">06:00 AM - 07:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">07:00 AM - 08:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">08:00 AM - 09:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">09:00 AM - 10:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">10:00 AM - 11:00 AM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">11:00 AM - 12:00 PM</div>
+                                @foreach($morningSlots as $slot)
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
 
                         <!-- Afternoon Slots -->
+                        @if($afternoonSlots->isNotEmpty())
                         <div class="mb-6 slot-section" data-section="afternoon">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-sun mr-2"></i> Afternoon</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">12:00 PM - 01:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">01:00 PM - 02:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">02:00 PM - 03:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">03:00 PM - 04:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">04:00 PM - 05:00 PM</div>
+                                @foreach($afternoonSlots as $slot)
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
 
                         <!-- Evening Slots -->
+                        @if($eveningSlots->isNotEmpty())
                         <div class="mb-6 slot-section" data-section="evening">
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-moon mr-2"></i> Evening</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">05:00 PM - 06:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">06:00 PM - 07:00 PM</div>
-                                <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">07:00 PM - 08:00 PM</div>
+                                @foreach($eveningSlots as $slot)
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                @endforeach
                             </div>
                         </div>
+                        @endif
 
                         <!-- Empty State Notice for Today if all slots have passed -->
                         <div id="noSlotsAvailableNotice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
@@ -1837,7 +1931,42 @@
         renderCheckoutCart();
     });
 
+    let isBookingInProgress = false;
+
+    function setPaymentButtonsState(loading, text = 'Booking...') {
+        const cashBtn = document.querySelector('#btnPay button:first-child');
+        const onlineBtn = document.getElementById('btnPayOnline');
+        if (loading) {
+            isBookingInProgress = true;
+            if (cashBtn) {
+                cashBtn.disabled = true;
+                cashBtn.classList.add('opacity-60', 'pointer-events-none');
+                cashBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1.5"></i> ${text}`;
+            }
+            if (onlineBtn) {
+                onlineBtn.disabled = true;
+                onlineBtn.classList.add('opacity-60', 'pointer-events-none');
+            }
+        } else {
+            isBookingInProgress = false;
+            if (cashBtn) {
+                cashBtn.disabled = false;
+                cashBtn.classList.remove('opacity-60', 'pointer-events-none');
+                cashBtn.innerHTML = `<i class="fas fa-money-bill-wave text-teal-600 mr-1.5"></i> Pay on Collection`;
+            }
+            if (onlineBtn) {
+                onlineBtn.disabled = false;
+                onlineBtn.classList.remove('opacity-60', 'pointer-events-none');
+                onlineBtn.innerHTML = `<i class="fas fa-lock text-xs"></i> <span>Pay Now Online</span>`;
+            }
+        }
+    }
+
     function payOnCollection() {
+        if (isBookingInProgress) {
+            return;
+        }
+
         let cart = getCheckoutCart();
         if (cart.length === 0) {
             alert('Your cart is empty!');
@@ -1883,9 +2012,7 @@
         let slotStart = selectedSlot.split('-')[0].trim();
         let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
 
-        let btn = document.querySelector('#btnPay button') || event.target;
-        btn.disabled = true;
-        btn.innerText = 'Booking...';
+        setPaymentButtonsState(true, 'Booking...');
 
         fetch("{{ route('patient.place_booking') }}", {
             method: 'POST',
@@ -1917,19 +2044,21 @@
                 // Redirect to bookings
                 window.location.href = "{{ route('patient.bookings') }}";
             } else {
-                alert('Booking failed: ' + (data.message || 'Unknown error'));
-                btn.disabled = false;
-                btn.innerText = 'Pay On Collection';
+                alert('Booking notice: ' + (data.message || 'Unknown error'));
+                setPaymentButtonsState(false);
             }
         })
         .catch(() => {
             alert('Network error. Please try again.');
-            btn.disabled = false;
-            btn.innerText = 'Pay On Collection';
+            setPaymentButtonsState(false);
         });
     }
 
     function payOnlineRazorpay() {
+        if (isBookingInProgress) {
+            return;
+        }
+
         let cart = getCheckoutCart();
         if (cart.length === 0) {
             alert('Your cart is empty!');
@@ -1975,10 +2104,7 @@
         let slotStart = selectedSlot.split('-')[0].trim();
         let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
 
-        let btn = document.getElementById('btnPayOnline') || event.target;
-        let originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Initializing...';
+        setPaymentButtonsState(true, 'Initializing...');
 
         fetch("{{ route('razorpay.order.create') }}", {
             method: 'POST',
@@ -2004,8 +2130,7 @@
         .then(data => {
             if (!data.success) {
                 alert(data.message || 'Payment initiation failed. Please try again.');
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                setPaymentButtonsState(false);
                 return;
             }
 
@@ -2019,7 +2144,7 @@
                 prefill: data.prefill || {},
                 theme: data.theme || { color: '#0d9488' },
                 handler: function (response) {
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Verifying Payment...';
+                    setPaymentButtonsState(true, 'Verifying Payment...');
                     fetch("{{ route('razorpay.payment.verify') }}", {
                         method: 'POST',
                         headers: {
@@ -2052,8 +2177,7 @@
                 },
                 modal: {
                     ondismiss: function () {
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
+                        setPaymentButtonsState(false);
                     }
                 }
             };
@@ -2061,49 +2185,118 @@
             const rzp = new Razorpay(options);
             rzp.on('payment.failed', function (response) {
                 alert('Payment failed: ' + (response.error.description || 'Transaction declined.'));
-                btn.disabled = false;
-                btn.innerHTML = originalText;
+                setPaymentButtonsState(false);
             });
             rzp.open();
         })
         .catch(err => {
             console.error(err);
             alert('Network error. Please try again.');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            setPaymentButtonsState(false);
         });
     }
 
 
     @php
-        $pincodeStr = \App\Models\Setting::get('serviceable_pincodes', '800001, 800002, 110001, 400001');
-        $pincodeArray = array_values(array_filter(array_map('trim', preg_split('/[,\r\n]+/', $pincodeStr))));
+        $pincodeArray = \App\Models\City::getAllActivePincodes();
+        if (empty($pincodeArray)) {
+            $pincodeStr = \App\Models\Setting::get('serviceable_pincodes', '800001, 800002, 110001, 400001');
+            $pincodeArray = array_values(array_filter(array_map('trim', preg_split('/[,\r\n]+/', $pincodeStr))));
+        }
         $defaultAddr = $patient->addresses->first();
+        $patientCleanPhone = preg_replace('/[^0-9]/', '', (string)($patient->mobile ?? ''));
+        if (strlen($patientCleanPhone) > 10 && str_starts_with($patientCleanPhone, '91')) {
+            $patientCleanPhone = substr($patientCleanPhone, 2);
+        }
     @endphp
 
     let currentStep = 1;
     const validPincodes = @json($pincodeArray);
     window.selectedAddressId = @json($defaultAddr?->id ?? null);
     window.selectedMemberId = null;
-    window.currentPatientName = @json($patient->name ?? '');
+    window.currentPatientName = @json((!empty($patient->name) && strtolower(trim($patient->name)) !== 'self') ? $patient->name : '');
+    window.currentPatientAge = @json((!empty($patient->age) && (int)$patient->age >= 1) ? (int)$patient->age : null);
+    window.currentPatientMobile = @json((strlen($patientCleanPhone) === 10) ? $patientCleanPhone : '');
+    window.currentPatientGender = @json($patient->gender ?? 'Female');
     let isPincodeVerified = false;
 
-    function saveCheckoutPatientName() {
-        const input = document.getElementById('checkoutPatientNameInput');
-        if (!input) return;
-        const name = input.value.trim();
-        if (!name || name.toLowerCase() === 'self') {
-            alert('Please enter a valid full name for the diagnostic report.');
-            input.focus();
-            return;
+    function toggleCheckoutProfilePrompt() {
+        const box = document.getElementById('patientDetailsPromptBox');
+        if (box) box.classList.toggle('hidden');
+    }
+    window.toggleCheckoutProfilePrompt = toggleCheckoutProfilePrompt;
+
+    function updateGenderRadioUI(radio) {
+        document.querySelectorAll('input[name="checkout_patient_gender"]').forEach(r => {
+            const label = r.closest('label');
+            if (label) {
+                if (r.checked) {
+                    label.className = 'cursor-pointer px-2.5 py-1 rounded-md bg-teal-700 text-white transition';
+                } else {
+                    label.className = 'cursor-pointer px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+                }
+            }
+        });
+    }
+    window.updateGenderRadioUI = updateGenderRadioUI;
+
+    function saveCheckoutPatientDetails(onSuccessCallback = null) {
+        const nameInput = document.getElementById('checkoutPatientNameInput');
+        const ageInput = document.getElementById('checkoutPatientAgeInput');
+        const mobileInput = document.getElementById('checkoutPatientMobileInput');
+        const genderEl = document.querySelector('input[name="checkout_patient_gender"]:checked');
+        const alertBox = document.getElementById('checkoutDetailsAlert');
+        const btn = document.getElementById('btnSaveCheckoutDetails');
+
+        const name = (nameInput?.value || '').trim();
+        const age = parseInt((ageInput?.value || '').trim(), 10);
+        let mobile = (mobileInput?.value || '').trim().replace(/\D/g, '');
+        if (mobile.length > 10 && mobile.startsWith('91')) {
+            mobile = mobile.substring(2);
+        }
+        const gender = genderEl ? genderEl.value : 'Female';
+
+        if (!name || name.toLowerCase() === 'self' || name.length < 2) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'Patient Full Name is mandatory (minimum 2 characters).';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('Patient Full Name is mandatory (minimum 2 characters).');
+            }
+            nameInput?.focus();
+            return false;
         }
 
-        const btn = document.querySelector('#patientNamePromptBox button');
-        let oldHtml = '';
+        if (isNaN(age) || age < 1 || age > 120) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'Patient Age is mandatory and must be between 1 and 120 years.';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('Patient Age is mandatory and must be between 1 and 120 years.');
+            }
+            ageInput?.focus();
+            return false;
+        }
+
+        if (mobile.length !== 10) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'A valid 10-digit mobile number is mandatory for booking updates.';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('A valid 10-digit mobile number is mandatory for booking updates.');
+            }
+            mobileInput?.focus();
+            return false;
+        }
+
+        if (alertBox) alertBox.classList.add('hidden');
+        let oldHtml = btn ? btn.innerHTML : '';
         if (btn) {
-            oldHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Saving...';
         }
 
         fetch("{{ route('patient.update_name') }}", {
@@ -2113,29 +2306,62 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ name: name })
+            body: JSON.stringify({ name, age, mobile, gender })
         })
         .then(r => r.json())
         .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
             if (data.success) {
-                window.currentPatientName = name;
-                const primaryNameEl = document.getElementById('primaryPatientDisplayName');
-                if (primaryNameEl) primaryNameEl.innerText = name;
-                const msg = document.getElementById('checkoutNameSavedMsg');
-                if (msg) {
-                    msg.classList.remove('hidden');
-                    setTimeout(() => msg.classList.add('hidden'), 4000);
+                window.currentPatientName = data.name;
+                window.currentPatientAge = data.age;
+                window.currentPatientMobile = data.mobile;
+                window.currentPatientGender = data.gender;
+
+                const nameEl = document.getElementById('primaryPatientDisplayName');
+                if (nameEl) nameEl.innerText = data.name;
+
+                const ageEl = document.getElementById('primaryPatientDisplayAge');
+                if (ageEl) {
+                    ageEl.innerText = data.age + ' Years';
+                    ageEl.className = 'text-gray-600';
                 }
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-check"></i> Saved';
-                    setTimeout(() => { if (btn) btn.innerHTML = oldHtml; }, 2000);
+
+                const mobileEl = document.getElementById('primaryPatientDisplayMobile');
+                if (mobileEl) {
+                    mobileEl.innerHTML = '<i class="fas fa-phone-alt text-[10px] mr-1"></i>+91 ' + data.mobile;
+                    mobileEl.className = 'text-gray-600';
+                }
+
+                const genderDisplayEl = document.getElementById('primaryPatientDisplayGender');
+                if (genderDisplayEl) genderDisplayEl.innerText = data.gender;
+
+                const badge = document.getElementById('primaryPatientIncompleteBadge');
+                if (badge) badge.remove();
+
+                if (alertBox) {
+                    alertBox.className = 'mt-2 text-xs font-bold text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 flex items-center gap-1.5';
+                    alertBox.innerHTML = '<i class="fas fa-circle-check text-emerald-600"></i> Profile details saved successfully!';
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => {
+                        const box = document.getElementById('patientDetailsPromptBox');
+                        if (box) box.classList.add('hidden');
+                        alertBox.classList.add('hidden');
+                    }, 1500);
+                }
+
+                if (typeof onSuccessCallback === 'function') {
+                    onSuccessCallback();
                 }
             } else {
-                alert(data.message || 'Could not update name. Please try again.');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = oldHtml;
+                if (alertBox) {
+                    alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                    alertBox.innerText = data.message || 'Error saving details.';
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alert(data.message || 'Error saving details.');
                 }
             }
         })
@@ -2147,10 +2373,46 @@
             }
         });
     }
-    window.saveCheckoutPatientName = saveCheckoutPatientName;
+    window.saveCheckoutPatientDetails = saveCheckoutPatientDetails;
+    window.saveCheckoutPatientName = saveCheckoutPatientDetails; // Backward-compatibility
+
+    // Dynamically append newly added family member on checkout without page reload
+    window.onFamilyMemberCreated = function(member) {
+        const list = document.getElementById('memberSelectionList');
+        if (!list) return;
+
+        const card = document.createElement('div');
+        card.className = 'member-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex items-start transition hover:border-brand-secondary shadow-sm';
+        card.onclick = function() { selectMember(member.id, card); };
+        card.innerHTML = `
+            <div class="pt-1 mr-4">
+                <div class="w-6 h-6 rounded-full border border-gray-300 text-transparent flex items-center justify-center text-xs member-check-indicator">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg flex items-center">
+                            <span>\${member.name}</span>
+                            <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase font-extrabold">\${member.relation}</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 font-semibold mt-1">\${member.age} Years | \${member.gender}</p>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400">Family Member</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
+                    <div class="member-cart-summary text-sm font-semibold text-gray-700">All tests in cart</div>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+        selectMember(member.id, card);
+    };
 
     function selectMember(memberId, cardEl) {
-        window.selectedMemberId = memberId;
+        window.selectedMemberId = memberId || null;
         document.querySelectorAll('#memberSelectionList .member-card').forEach(card => {
             card.classList.remove('border-2', 'border-brand-secondary');
             card.classList.add('border', 'border-gray-200');
@@ -2161,13 +2423,94 @@
             }
         });
 
-        cardEl.classList.add('border-2', 'border-brand-secondary');
-        cardEl.classList.remove('border', 'border-gray-200');
-        const activeInd = cardEl.querySelector('.member-check-indicator');
-        if (activeInd) {
-            activeInd.classList.add('bg-brand-dark', 'text-white');
-            activeInd.classList.remove('border', 'border-gray-300', 'text-transparent');
+        if (cardEl) {
+            cardEl.classList.add('border-2', 'border-brand-secondary');
+            cardEl.classList.remove('border', 'border-gray-200');
+            const activeInd = cardEl.querySelector('.member-check-indicator');
+            if (activeInd) {
+                activeInd.classList.add('bg-brand-dark', 'text-white');
+                activeInd.classList.remove('border', 'border-gray-300', 'text-transparent');
+            }
         }
+
+        // Dynamically update Step 4 Review summary patient name
+        const summaryNameEl = document.getElementById('summaryPatientName');
+        if (summaryNameEl) {
+            const ownerName = (window.currentPatientName || '{{ addslashes($patient->name ?? "Account Owner") }}').trim();
+            if (memberId && cardEl) {
+                const nameHeading = cardEl.querySelector('h3');
+                let memberName = '';
+                let memberRel = '';
+                if (nameHeading) {
+                    const spanRel = nameHeading.querySelector('span');
+                    memberRel = spanRel ? spanRel.innerText.trim() : '';
+                    memberName = (nameHeading.innerText || '').replace(memberRel, '').trim();
+                }
+                if (!memberName) memberName = 'Family Member';
+                if (memberRel) {
+                    summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${memberName}</span> <span class="text-teal-700 font-bold">(${memberRel} of ${ownerName})</span>`;
+                } else {
+                    summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${memberName}</span> <span class="text-teal-700 font-bold">(Family Member of ${ownerName})</span>`;
+                }
+            } else {
+                summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${ownerName}</span> <span class="text-slate-500 font-bold">(Primary Patient - Self)</span>`;
+            }
+        }
+    }
+
+    function validateStep2() {
+        if (!window.selectedMemberId) {
+            // Primary patient is selected: Name, Age, and 10-digit Phone are mandatory
+            const nameInput = document.getElementById('checkoutPatientNameInput');
+            const ageInput = document.getElementById('checkoutPatientAgeInput');
+            const mobileInput = document.getElementById('checkoutPatientMobileInput');
+
+            const nameVal = (nameInput?.value || window.currentPatientName || '').trim();
+            const ageVal = parseInt((ageInput?.value || window.currentPatientAge || 0), 10);
+            let mobileVal = (mobileInput?.value || window.currentPatientMobile || '').trim().replace(/\D/g, '');
+            if (mobileVal.length > 10 && mobileVal.startsWith('91')) {
+                mobileVal = mobileVal.substring(2);
+            }
+
+            if (!nameVal || nameVal.toLowerCase() === 'self' || nameVal.length < 2) {
+                alert('Patient Full Name is mandatory (minimum 2 characters) before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                nameInput?.focus();
+                return false;
+            }
+
+            if (isNaN(ageVal) || ageVal < 1 || ageVal > 120) {
+                alert('Patient Age is mandatory (1-120 years) before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                ageInput?.focus();
+                return false;
+            }
+
+            if (mobileVal.length !== 10) {
+                alert('A valid 10-digit mobile number is mandatory before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                mobileInput?.focus();
+                return false;
+            }
+
+            // If unsaved changes are present in input fields, save them before moving forward
+            if (nameVal !== window.currentPatientName || ageVal !== window.currentPatientAge || mobileVal !== window.currentPatientMobile) {
+                saveCheckoutPatientDetails();
+            }
+        } else {
+            // Family member selected: check that primary contact phone number is available
+            let mobileVal = (document.getElementById('checkoutPatientMobileInput')?.value || window.currentPatientMobile || '').trim().replace(/\D/g, '');
+            if (mobileVal.length > 10 && mobileVal.startsWith('91')) {
+                mobileVal = mobileVal.substring(2);
+            }
+            if (mobileVal.length !== 10) {
+                alert('A valid 10-digit primary mobile number is mandatory for slot booking and sample collection updates.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                document.getElementById('checkoutPatientMobileInput')?.focus();
+                return false;
+            }
+        }
+        return true;
     }
 
     function goToStep(step) {
@@ -2175,8 +2518,13 @@
             currentStep = step;
             updateUI();
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else if (step === currentStep + 1 && (currentStep !== 3 || isPincodeVerified)) {
-            nextStep();
+        } else if (step > currentStep) {
+            if (currentStep === 2 && !validateStep2()) {
+                return;
+            }
+            if (step === currentStep + 1 && (currentStep !== 3 || isPincodeVerified)) {
+                nextStep();
+            }
         }
     }
     window.goToStep = goToStep;
@@ -2273,20 +2621,10 @@
     }
 
     function nextStep() {
-        // Step 2 Validation: Check patient name if primary patient is selected
+        // Step 2 Validation: Check patient name, age, and phone number
         if (currentStep === 2) {
-            if (!window.selectedMemberId) {
-                let nameVal = (window.currentPatientName || '').trim();
-                let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
-                if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
-                    alert('Patient Full Name is required before proceeding to the next step.');
-                    document.getElementById('checkoutPatientNameInput')?.focus();
-                    return;
-                }
-                if ((!nameVal || nameVal.toLowerCase() === 'self') && inputVal && inputVal.toLowerCase() !== 'self') {
-                    // Automatically persist the typed name
-                    saveCheckoutPatientName();
-                }
+            if (!validateStep2()) {
+                return;
             }
         }
 

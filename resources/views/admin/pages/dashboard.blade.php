@@ -311,7 +311,7 @@
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center justify-between">
                                     <h5 class="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                        {{ $booking->patient->name ?? 'Patient Record' }} 
+                                        {{ $booking->beneficiary_display }} 
                                         <span class="text-xs font-normal text-slate-400">(#{{ $booking->booking_reference }})</span>
                                     </h5>
                                     
@@ -499,8 +499,13 @@
                             #{{ $booking->booking_reference }}
                         </td>
                         <td class="px-6 py-4">
-                            <div class="font-medium text-slate-800 dark:text-slate-200">{{ $booking->patient->name ?? 'Guest Patient' }}</div>
-                            <div class="text-xs text-slate-400">{{ $booking->patient->phone ?? '' }}</div>
+                            <div class="font-medium text-slate-800 dark:text-slate-200">{{ $booking->beneficiary_name }}</div>
+                            @if($booking->familyMember)
+                                <div class="text-[11px] text-teal-600 dark:text-teal-400 font-semibold">
+                                    {{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Owner' }}
+                                </div>
+                            @endif
+                            <div class="text-xs text-slate-400">{{ $booking->patient->mobile ?? ($booking->patient->phone ?? '') }}</div>
                         </td>
                         <td class="px-6 py-4 text-xs">
                             <div class="font-medium text-slate-800 dark:text-slate-200">

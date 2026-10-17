@@ -115,15 +115,136 @@
     <!-- Top Header -->
     <div class="bg-white py-3 px-4 border-b">
         <div class="container mx-auto flex justify-between items-center text-sm">
-            <!-- Brand Logo -->
-            <div class="flex items-center space-x-2 md:space-x-4">
+            <!-- Brand Logo & City Selector -->
+            <div class="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
                 @php
                     $headerLogoUrl = \App\Models\Setting::getLogoUrl();
                     $siteName = \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics');
+                    $activeHeaderCities = \App\Models\City::active()->ordered()->get();
+                    $defaultHeaderCity = \App\Models\City::getDefaultCity();
+                    $selectedHeaderCityId = session('selected_city_id', $defaultHeaderCity?->id);
+                    $selectedHeaderCity = $activeHeaderCities->firstWhere('id', $selectedHeaderCityId) ?? $defaultHeaderCity;
                 @endphp
-                <a href="{{ route('home') }}" class="block">
-                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-12 md:h-16 w-auto object-contain">
+                <a href="{{ route('home') }}" class="block flex-shrink-0">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-10 sm:h-12 md:h-16 w-auto object-contain">
                 </a>
+
+                @if($activeHeaderCities->isNotEmpty())
+                <!-- City Selector Dropdown (Logo Ke Bagal Me) -->
+                <div class="relative" id="headerCityDropdownContainer">
+                    <button type="button" 
+                            id="headerCityDropdownBtn"
+                            onclick="toggleHeaderCityDropdown(event)"
+                            class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-gray-200 hover:border-teal-500 bg-gray-50/80 hover:bg-teal-50/40 transition shadow-2xs group cursor-pointer focus:outline-none"
+                            title="Select Your City & View Pincodes">
+                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                            <i class="fas fa-map-marker-alt text-xs sm:text-sm"></i>
+                        </div>
+                        <div class="text-left leading-tight">
+                            <span class="hidden sm:block text-[9px] font-bold text-gray-400 uppercase tracking-wider">City</span>
+                            <div class="flex items-center gap-1">
+                                <span id="headerSelectedCityName" class="text-xs sm:text-sm font-extrabold text-gray-800 tracking-tight">
+                                    {{ $selectedHeaderCity?->name ?? 'Select City' }}
+                                </span>
+                                <i class="fas fa-chevron-down text-[10px] text-gray-400 group-hover:text-teal-600 transition-transform duration-200" id="headerCityChevron"></i>
+                            </div>
+                        </div>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="headerCityDropdownMenu" 
+                         class="hidden absolute left-0 top-full mt-2 w-72 sm:w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden text-left">
+                        
+                        <!-- Header -->
+                        <div class="p-3.5 bg-gradient-to-r from-teal-50 to-emerald-50/60 border-b border-teal-100/60 flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-black text-gray-800 flex items-center gap-1.5">
+                                    <i class="fas fa-city text-teal-600 text-xs"></i>
+                                    <span>Select Diagnostic City</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-0.5">Serviceable pincodes are shown inside each city</p>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-600 text-white shadow-2xs">
+                                {{ $activeHeaderCities->count() }} Cities
+                            </span>
+                        </div>
+
+                        <!-- Search -->
+                        <div class="p-2.5 border-b border-gray-100 bg-gray-50/60">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" 
+                                       id="headerCitySearchInput" 
+                                       oninput="filterHeaderCities(this.value)" 
+                                       placeholder="Search city or pincode..." 
+                                       class="w-full pl-8 pr-3 py-1.5 text-xs font-medium bg-white border border-gray-200 rounded-xl outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
+                            </div>
+                        </div>
+
+                        <!-- List of Cities with Pincodes -->
+                        <div id="headerCityList" class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                            @foreach($activeHeaderCities as $cItem)
+                                @php
+                                    $isSelected = ($selectedHeaderCity?->id === $cItem->id);
+                                    $cPinList = $cItem->pincode_list;
+                                @endphp
+                                <div class="city-item header-city-option p-3 hover:bg-teal-50/50 transition cursor-pointer flex flex-col gap-1.5 {{ $isSelected ? 'bg-teal-50/70 border-l-4 border-teal-600' : '' }}"
+                                     data-city-id="{{ $cItem->id }}"
+                                     data-city-name="{{ strtolower($cItem->name) }}"
+                                     data-display-name="{{ $cItem->name }}"
+                                     data-city-state="{{ strtolower((string)$cItem->state) }}"
+                                     data-city-pincodes="{{ implode(' ', $cPinList) }}">
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-extrabold text-xs sm:text-sm text-gray-900">{{ $cItem->name }}</span>
+                                            @if($cItem->state)
+                                                <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{{ $cItem->state }}</span>
+                                            @endif
+                                            @if($cItem->is_default)
+                                                <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded-full">Default</span>
+                                            @endif
+                                        </div>
+                                        @if($isSelected)
+                                            <span class="text-teal-600 font-bold text-xs flex items-center gap-1">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span class="text-[10px]">Selected</span>
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Covered Pincodes displayed right inside this city item -->
+                                    <div class="text-[11px] text-gray-500">
+                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                                            Pincodes ({{ count($cPinList) }}):
+                                        </span>
+                                        <div class="flex flex-wrap gap-1">
+                                            @forelse(array_slice($cPinList, 0, 8) as $p)
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white border border-gray-200 text-gray-700">
+                                                    {{ $p }}
+                                                </span>
+                                            @empty
+                                                <span class="text-[10px] text-gray-400 italic">All city areas</span>
+                                            @endforelse
+                                            @if(count($cPinList) > 8)
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600">
+                                                    +{{ count($cPinList) - 8 }} more
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="p-2.5 bg-gray-50 border-t border-gray-100 text-center text-[11px] text-gray-400">
+                            <i class="fas fa-truck text-teal-600 mr-1"></i> Doorstep sample collection available in all listed pincodes
+                        </div>
+
+                    </div>
+                </div>
+                @endif
             </div>
             
             @php
@@ -288,12 +409,11 @@
     <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/60 hidden opacity-0 transition-opacity duration-300">
         <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col" id="mobileMenuDrawer">
             <!-- Drawer Header -->
-            <div class="flex justify-between items-center p-5 border-b border-gray-100 bg-gray-50/50">
-                <div class="flex items-center space-x-2">
-                    <img src="{{ asset('logo.jpeg') }}" alt="Logo" class="h-8">
-                    <span class="text-brand-primary font-extrabold text-xl tracking-tight">Wellcare</span>
-                </div>
-                <button id="closeMobileMenuBtn" class="text-gray-400 hover:text-red-500 p-2 focus:outline-none transition-colors rounded-full hover:bg-red-50">
+            <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100 bg-white">
+                <a href="{{ route('home') }}" class="flex items-center group" title="{{ $siteName }}">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-10 sm:h-11 w-auto max-w-[210px] object-contain transition-transform duration-200 group-hover:scale-105">
+                </a>
+                <button id="closeMobileMenuBtn" class="text-gray-400 hover:text-red-500 p-2 focus:outline-none transition-colors rounded-full hover:bg-red-50" aria-label="Close menu">
                     <i class="fas fa-times text-2xl"></i>
                 </button>
             </div>
@@ -551,5 +671,95 @@
 
         loadPatientNotifications();
         @endif
+
+        function toggleHeaderCityDropdown(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('headerCityDropdownMenu');
+            const chevron = document.getElementById('headerCityChevron');
+            if (!menu) return;
+
+            const isHidden = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !isHidden);
+            if (chevron) {
+                chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+            if (isHidden) {
+                const input = document.getElementById('headerCitySearchInput');
+                if (input) {
+                    input.value = '';
+                    filterHeaderCities('');
+                    setTimeout(() => input.focus(), 50);
+                }
+            }
+        }
+
+        function filterHeaderCities(query) {
+            const q = (query || '').toLowerCase().trim();
+            const items = document.querySelectorAll('#headerCityList .city-item');
+            items.forEach(item => {
+                const name = item.getAttribute('data-city-name') || '';
+                const state = item.getAttribute('data-city-state') || '';
+                const pins = item.getAttribute('data-city-pincodes') || '';
+                if (!q || name.includes(q) || state.includes(q) || pins.includes(q)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function selectHeaderCity(id, name) {
+            const nameEl = document.getElementById('headerSelectedCityName');
+            if (nameEl) nameEl.innerText = name;
+
+            try {
+                localStorage.setItem('selected_city_id', id);
+                localStorage.setItem('selected_city_name', name);
+            } catch (err) {}
+
+            fetch("{{ route('set.city') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ city_id: id })
+            }).then(res => res.json()).then(data => {
+                document.querySelectorAll('#headerCityList .city-item').forEach(item => {
+                    const itemId = parseInt(item.getAttribute('data-city-id'), 10);
+                    if (itemId === id) {
+                        item.classList.add('bg-teal-50/70', 'border-l-4', 'border-teal-600');
+                    } else {
+                        item.classList.remove('bg-teal-50/70', 'border-l-4', 'border-teal-600');
+                    }
+                });
+            }).catch(err => console.error('Error saving city', err));
+
+            const menu = document.getElementById('headerCityDropdownMenu');
+            const chevron = document.getElementById('headerCityChevron');
+            if (menu) menu.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.header-city-option').forEach(item => {
+                item.addEventListener('click', () => {
+                    const id = parseInt(item.getAttribute('data-city-id'), 10);
+                    const name = item.getAttribute('data-display-name') || '';
+                    selectHeaderCity(id, name);
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                const container = document.getElementById('headerCityDropdownContainer');
+                const menu = document.getElementById('headerCityDropdownMenu');
+                const chevron = document.getElementById('headerCityChevron');
+                if (container && !container.contains(e.target)) {
+                    if (menu) menu.classList.add('hidden');
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
     </script>
 

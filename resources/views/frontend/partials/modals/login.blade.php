@@ -4,9 +4,11 @@
 <!-- Offcanvas Login Modal Panel -->
 <div id="loginModalPanel" class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white z-[101] transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col overflow-y-auto">
     <!-- Header -->
-    <div class="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0">
-        <h3 class="text-xl font-extrabold text-brand-dark">Welcome</h3>
-        <button id="closeLoginModalBtn" class="text-gray-400 hover:text-gray-600 transition">
+    <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
+        <div class="flex items-center gap-2">
+            <img src="{{ \App\Models\Setting::getLogoUrl() }}" alt="{{ \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics') }}" class="h-9 sm:h-10 w-auto max-w-[200px] object-contain">
+        </div>
+        <button id="closeLoginModalBtn" class="text-gray-400 hover:text-red-500 p-2 focus:outline-none transition-colors rounded-full hover:bg-red-50" aria-label="Close">
             <i class="fas fa-times text-xl"></i>
         </button>
     </div>
@@ -115,10 +117,10 @@
             </div>
 
             <div>
-                <label for="regMobileInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Number (Optional)</label>
+                <label for="regMobileInput" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Mobile Number <span class="text-rose-500">*</span></label>
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fas fa-phone-alt text-sm"></i></span>
-                    <input type="tel" id="regMobileInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="e.g. 9876543210" maxlength="15">
+                    <input type="tel" id="regMobileInput" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-teal-500/15 focus:border-teal-600 transition shadow-sm font-medium text-slate-800 text-sm placeholder:text-slate-400 outline-none" placeholder="Enter 10-digit mobile number" maxlength="10" pattern="[0-9]{10}" required>
                 </div>
             </div>
 
@@ -637,6 +639,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!regNameInput.value.trim()) {
             registerError.innerText = "Please enter your Full Name.";
             registerError.classList.remove('hidden');
+            regNameInput.focus();
+            return;
+        }
+
+        const rawRegMobile = (regMobileInput ? regMobileInput.value : '').replace(/\D/g, '');
+        const cleanRegMobile = (rawRegMobile.length > 10 && rawRegMobile.startsWith('91')) ? rawRegMobile.substring(2) : rawRegMobile;
+        if (cleanRegMobile.length !== 10) {
+            registerError.innerText = "Please enter a valid 10-digit mobile number.";
+            registerError.classList.remove('hidden');
+            if (regMobileInput) regMobileInput.focus();
             return;
         }
         

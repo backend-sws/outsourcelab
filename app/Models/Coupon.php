@@ -21,6 +21,8 @@ class Coupon extends Model
         'valid_from',
         'valid_until',
         'usage_limit_per_user',
+        'usage_count',
+        'usage_limit',
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class Coupon extends Model
         'valid_from' => 'date',
         'valid_until' => 'date',
         'usage_limit_per_user' => 'integer',
+        'usage_count' => 'integer',
+        'usage_limit' => 'integer',
     ];
 
     public function patientCoupons()

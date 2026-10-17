@@ -71,8 +71,34 @@
                         </div>
                     </td>
                     <td class="px-6 py-4 text-gray-600">
-                        <div class="font-bold text-gray-800">{{ $booking->patient->name ?? 'N/A' }}</div>
-                        <span class="text-xs text-gray-400">{{ $booking->collection_type }}</span>
+                        <div class="font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                            <span>{{ $booking->beneficiary_name }}</span>
+                            @if($booking->familyMember)
+                                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                                    {{ $booking->familyMember->relation }}
+                                </span>
+                            @else
+                                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-gray-100 text-gray-600">
+                                    Self
+                                </span>
+                            @endif
+                        </div>
+                        @if($booking->familyMember)
+                            <div class="text-[11px] text-teal-800 font-semibold mt-0.5">
+                                ({{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }})
+                            </div>
+                            <div class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1.5">
+                                <span>Owner: {{ $booking->patient->name ?? 'N/A' }}</span>
+                                <span>•</span>
+                                <span><i class="fas fa-phone-alt text-[9px]"></i> {{ $booking->patient->mobile ?? 'N/A' }}</span>
+                            </div>
+                        @else
+                            <div class="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1.5">
+                                <span><i class="fas fa-phone-alt text-[9px]"></i> {{ $booking->patient->mobile ?? 'N/A' }}</span>
+                                <span>•</span>
+                                <span>{{ $booking->collection_type }}</span>
+                            </div>
+                        @endif
                     </td>
 
                     <!-- Interactive Field Agent Column -->

@@ -193,13 +193,26 @@
         const gender = genderEl ? genderEl.value : 'Female';
         const relation = relationEl ? relationEl.value : 'Other';
 
-        if (!name || !age) {
+        if (!name || name.length < 2) {
             if (errorBox) {
-                errorBox.textContent = 'Please enter member full name and age.';
+                errorBox.textContent = 'Member Full Name is mandatory (minimum 2 characters).';
                 errorBox.classList.remove('hidden');
             } else {
-                alert('Please enter member full name and age.');
+                alert('Member Full Name is mandatory (minimum 2 characters).');
             }
+            nameInput.focus();
+            return;
+        }
+
+        const parsedAge = parseInt(age, 10);
+        if (isNaN(parsedAge) || parsedAge < 1 || parsedAge > 120) {
+            if (errorBox) {
+                errorBox.textContent = 'Member Age is mandatory and must be a valid number between 1 and 120.';
+                errorBox.classList.remove('hidden');
+            } else {
+                alert('Member Age is mandatory and must be a valid number between 1 and 120.');
+            }
+            ageInput.focus();
             return;
         }
 
@@ -212,7 +225,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
-            body: JSON.stringify({ name, age, gender, relation })
+            body: JSON.stringify({ name, age: parsedAge, gender, relation })
         })
         .then(response => response.json())
         .then(data => {
@@ -220,6 +233,15 @@
             saveBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Save Member';
 
             if (data.success) {
+                // If a callback is registered (e.g. on Checkout page), notify and close smoothly without full reload
+                if (typeof window.onFamilyMemberCreated === 'function') {
+                    window.onFamilyMemberCreated(data.member);
+                    closeAddMemberModal();
+                    nameInput.value = '';
+                    ageInput.value = '';
+                    return;
+                }
+
                 // Store active tab in session or hash to focus on newly created member
                 if (data.member && data.member.id) {
                     window.location.hash = 'member-' + data.member.id;

@@ -46,10 +46,19 @@ class PatientFamilyController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|min:2|max:255',
             'gender' => 'required|string|in:Male,Female,Other,male,female,other',
-            'age' => 'required|integer|min:0|max:120',
+            'age' => 'required|integer|min:1|max:120',
             'relation' => 'required|string|max:50',
+        ], [
+            'name.required' => 'Member full name is mandatory.',
+            'name.min' => 'Member name must be at least 2 characters.',
+            'age.required' => 'Member age is mandatory.',
+            'age.integer' => 'Member age must be a valid number between 1 and 120.',
+            'age.min' => 'Age must be at least 1 year.',
+            'age.max' => 'Age cannot exceed 120 years.',
+            'gender.required' => 'Please select member gender.',
+            'relation.required' => 'Please select relation with primary member.',
         ]);
 
         $gender = ucfirst(strtolower((string) $request->input('gender')));
@@ -57,9 +66,9 @@ class PatientFamilyController extends Controller
 
         $member = FamilyMember::create([
             'patient_id' => $patientId,
-            'name' => $request->input('name'),
+            'name' => trim((string) $request->input('name')),
             'gender' => $gender,
-            'age' => $request->input('age'),
+            'age' => (int) $request->input('age'),
             'relation' => $relation,
         ]);
 

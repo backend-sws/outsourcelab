@@ -236,6 +236,32 @@
                                 @endif
                             </a>
 
+                            <!-- Slots -->
+                            <a href="{{ route('admin.slots.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.slots.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20' }}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-clock w-5 text-center text-sm {{ request()->routeIs('admin.slots.*') ? 'text-teal-500' : 'text-slate-400 dark:text-slate-500' }}"></i>
+                                    <span>Slots</span>
+                                </div>
+                                @if(request()->routeIs('admin.slots.*'))
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_#2dd4bf]"></span>
+                                @else
+                                    <i class="fas fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600"></i>
+                                @endif
+                            </a>
+
+                            <!-- Cities & Pincodes -->
+                            <a href="{{ route('admin.cities.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.cities.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20' }}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-map-marked-alt w-5 text-center text-sm {{ request()->routeIs('admin.cities.*') ? 'text-teal-500' : 'text-slate-400 dark:text-slate-500' }}"></i>
+                                    <span>Cities</span>
+                                </div>
+                                @if(request()->routeIs('admin.cities.*'))
+                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_#2dd4bf]"></span>
+                                @else
+                                    <i class="fas fa-chevron-right text-[10px] text-slate-300 dark:text-slate-600"></i>
+                                @endif
+                            </a>
+
                             <!-- Payment Transactions -->
                             <a href="{{ route('admin.transactions.index') }}" class="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all {{ request()->routeIs('admin.transactions.*') ? 'sidebar-item-active' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-teal-50 dark:hover:bg-teal-900/20' }}">
                                 <div class="flex items-center space-x-3">

@@ -87,19 +87,31 @@ class PatientAuthController extends Controller
     {
         $name = trim((string) $request->input('name'));
         $email = strtolower(trim((string) $request->input('email')));
-        $mobile = trim((string) $request->input('mobile'));
+        $rawMobile = trim((string) $request->input('mobile'));
         $password = $request->input('password');
+
+        if (empty($name)) {
+            return response()->json(['success' => false, 'message' => 'Full Name is mandatory.']);
+        }
 
         if (! $email || ! $password) {
             return response()->json(['success' => false, 'message' => 'Email and password are required.']);
         }
 
-        if (empty($name)) {
-            $name = explode('@', $email)[0];
+        $cleanMobile = preg_replace('/[^0-9]/', '', $rawMobile);
+        if (strlen($cleanMobile) > 10 && str_starts_with($cleanMobile, '91')) {
+            $cleanMobile = substr($cleanMobile, 2);
+        }
+        if (strlen($cleanMobile) !== 10) {
+            return response()->json(['success' => false, 'message' => 'A valid 10-digit mobile number is mandatory.']);
         }
 
         if (Patient::where('email', $email)->exists()) {
             return response()->json(['success' => false, 'message' => 'This email address is already registered. Please login.']);
+        }
+
+        if (Patient::where('mobile', $cleanMobile)->exists()) {
+            return response()->json(['success' => false, 'message' => 'This mobile number is already registered. Please login.']);
         }
 
         $otpEnabled = Setting::get('patient_email_otp_enabled', '0') == '1';
@@ -111,7 +123,7 @@ class PatientAuthController extends Controller
                 'pending_patient_registration' => [
                     'name' => $name,
                     'email' => $email,
-                    'mobile' => $mobile ?: null,
+                    'mobile' => $cleanMobile,
                     'password' => Hash::make($password),
                     'otp' => $otp,
                     'expires_at' => now()->addMinutes(15),
@@ -143,7 +155,7 @@ class PatientAuthController extends Controller
         $patient = Patient::create([
             'name' => $name,
             'email' => $email,
-            'mobile' => $mobile ?: null,
+            'mobile' => $cleanMobile,
             'password' => Hash::make($password),
             'last_login_at' => now(),
             'cart' => [],
@@ -263,7 +275,7 @@ class PatientAuthController extends Controller
     }
 
     /**
-     * Quick Name Update for logged-in patient (e.g. from Checkout).
+     * Quick Profile Details Update for logged-in patient (e.g. from Checkout or Modal).
      */
     public function updateName(Request $request): JsonResponse
     {
@@ -272,22 +284,64 @@ class PatientAuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Please login.'], 401);
         }
 
-        $name = trim((string) $request->input('name'));
-        if (empty($name) || strtolower($name) === 'self') {
-            return response()->json(['success' => false, 'message' => 'Please enter a valid patient name.'], 422);
-        }
-
         $patient = Patient::find($patientId);
         if (! $patient) {
             return response()->json(['success' => false, 'message' => 'Patient not found.'], 404);
         }
 
-        $patient->update(['name' => $name]);
+        $updates = [];
+
+        if ($request->has('name')) {
+            $name = trim((string) $request->input('name'));
+            if (empty($name) || strtolower($name) === 'self') {
+                return response()->json(['success' => false, 'message' => 'Full Name is required and cannot be empty.'], 422);
+            }
+            if (strlen($name) < 2) {
+                return response()->json(['success' => false, 'message' => 'Full Name must be at least 2 characters.'], 422);
+            }
+            $updates['name'] = $name;
+        }
+
+        if ($request->has('age')) {
+            $age = (int) $request->input('age');
+            if ($age < 1 || $age > 120) {
+                return response()->json(['success' => false, 'message' => 'Please enter a valid age between 1 and 120 years.'], 422);
+            }
+            $updates['age'] = $age;
+        }
+
+        if ($request->has('mobile')) {
+            $cleanMobile = preg_replace('/[^0-9]/', '', (string) $request->input('mobile'));
+            if (strlen($cleanMobile) > 10 && str_starts_with($cleanMobile, '91')) {
+                $cleanMobile = substr($cleanMobile, 2);
+            }
+            if (strlen($cleanMobile) !== 10) {
+                return response()->json(['success' => false, 'message' => 'Please enter a valid 10-digit mobile number.'], 422);
+            }
+            if (Patient::where('mobile', $cleanMobile)->where('id', '!=', $patientId)->exists()) {
+                return response()->json(['success' => false, 'message' => 'This mobile number is already linked to another account.'], 422);
+            }
+            $updates['mobile'] = $cleanMobile;
+        }
+
+        if ($request->has('gender')) {
+            $gender = ucfirst(strtolower((string) $request->input('gender')));
+            if (in_array($gender, ['Male', 'Female', 'Other'])) {
+                $updates['gender'] = $gender;
+            }
+        }
+
+        if (! empty($updates)) {
+            $patient->update($updates);
+        }
 
         return response()->json([
             'success' => true,
-            'name' => $name,
-            'message' => 'Patient name saved successfully.',
+            'name' => $patient->name,
+            'age' => $patient->age,
+            'mobile' => $patient->mobile,
+            'gender' => $patient->gender,
+            'message' => 'Patient details saved successfully.',
         ]);
     }
 

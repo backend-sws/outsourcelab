@@ -45,7 +45,7 @@ class PageController extends Controller
         $mobile = preg_replace('/[^0-9]/', '', $validated['mobile']);
 
         // 1. Search local bookings
-        $booking = Booking::with('patient')
+        $booking = Booking::with(['patient', 'familyMember'])
             ->where(function ($q) use ($ref) {
                 $q->where('booking_reference', $ref)
                     ->orWhere('lis_booking_reference', $ref)
@@ -66,7 +66,7 @@ class PageController extends Controller
                 'message' => 'Report is ready for download.',
                 'data' => [
                     'bill_number' => $booking->lis_booking_reference ?: $booking->booking_reference,
-                    'patient_name' => $booking->patient?->name ?? 'Patient',
+                    'patient_name' => $booking->beneficiary_display,
                     'current_stage' => 'Report Ready',
                     'is_ready' => true,
                     'download_url' => $downloadUrl,
@@ -108,7 +108,7 @@ class PageController extends Controller
                 'message' => 'Your sample is currently being processed by the laboratory.',
                 'data' => [
                     'bill_number' => $booking->booking_reference,
-                    'patient_name' => $booking->patient?->name ?? 'Patient',
+                    'patient_name' => $booking->beneficiary_display,
                     'current_stage' => $booking->status ?: 'Sample Processing',
                     'is_ready' => false,
                     'download_url' => null,

@@ -13,8 +13,12 @@
                 <i class="far fa-user"></i>
             </div>
             <div>
-                <h4 class="font-extrabold text-brand-dark">{{ $userName }}</h4>
-                <p class="text-xs text-gray-500 font-medium">+91 {{ $userMobile }}</p>
+                <h4 class="font-extrabold text-brand-dark {{ (empty($userName) || strtolower($userName) === 'self') ? 'text-rose-600' : '' }}">
+                    {{ (!empty($userName) && strtolower($userName) !== 'self') ? $userName : 'Name Missing *' }}
+                </h4>
+                <p class="text-xs font-medium {{ empty($userMobile) ? 'text-rose-600 font-bold' : 'text-gray-500' }}">
+                    {{ !empty($userMobile) ? '+91 ' . $userMobile : 'Phone Missing *' }}
+                </p>
             </div>
         </div>
         <a href="{{ route('patient.dashboard') }}#profile-form" 

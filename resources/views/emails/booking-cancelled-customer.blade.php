@@ -16,6 +16,10 @@
                 <td style="padding: 8px 0; color: #0d9488; font-weight: 700; font-size: 14px; text-align: right;">#{{ $booking->booking_reference }}</td>
             </tr>
             <tr style="border-bottom: 1px dashed #e2e8f0;">
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Patient / Beneficiary</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 700; font-size: 14px; text-align: right;">{{ $booking->beneficiary_display }}</td>
+            </tr>
+            <tr style="border-bottom: 1px dashed #e2e8f0;">
                 <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Scheduled Date</td>
                 <td style="padding: 8px 0; color: #0f172a; font-weight: 600; font-size: 14px; text-align: right;">
                     {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('d M, Y') : 'N/A' }}

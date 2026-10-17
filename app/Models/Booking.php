@@ -78,6 +78,71 @@ class Booking extends Model
     }
 
     /**
+     * Check if this booking was placed for a family member.
+     */
+    public function isForFamilyMember(): bool
+    {
+        return ! empty($this->family_member_id) && $this->familyMember !== null;
+    }
+
+    /**
+     * Beneficiary / patient full name for this test booking.
+     */
+    public function getBeneficiaryNameAttribute(): string
+    {
+        return $this->familyMember?->name ?: ($this->patient?->name ?? 'Patient');
+    }
+
+    /**
+     * Beneficiary relation to the primary account owner (e.g. 'Spouse', 'Father', 'Self').
+     */
+    public function getBeneficiaryRelationAttribute(): string
+    {
+        return $this->familyMember?->relation ?: 'Self';
+    }
+
+    /**
+     * Beneficiary age in years.
+     */
+    public function getBeneficiaryAgeAttribute(): ?int
+    {
+        if ($this->familyMember && $this->familyMember->age !== null) {
+            return (int) $this->familyMember->age;
+        }
+
+        return $this->patient?->age !== null ? (int) $this->patient->age : null;
+    }
+
+    /**
+     * Beneficiary gender ('Male', 'Female', 'Other').
+     */
+    public function getBeneficiaryGenderAttribute(): ?string
+    {
+        return $this->familyMember?->gender ?: $this->patient?->gender;
+    }
+
+    /**
+     * Formatted string showing beneficiary name and relation to the account owner.
+     * e.g. "Sunita Sharma (Spouse of Ramesh Kumar)" or "Ramesh Kumar (Self)"
+     */
+    public function getBeneficiaryDisplayAttribute(): string
+    {
+        if ($this->familyMember) {
+            $relation = trim((string) ($this->familyMember->relation ?? ''));
+            $ownerName = trim((string) ($this->patient?->name ?? 'Account Owner'));
+            if (! empty($relation)) {
+                return "{$this->familyMember->name} ({$relation} of {$ownerName})";
+            }
+
+            return "{$this->familyMember->name} (Family Member of {$ownerName})";
+        }
+
+        $ownerName = trim((string) ($this->patient?->name ?? 'Patient'));
+
+        return "{$ownerName} (Self)";
+    }
+
+    /**
      * Check if a collection slot has already expired/passed for a given date.
      * If the date is in the past, or if the date is today and the slot's start time has passed, returns true.
      */
