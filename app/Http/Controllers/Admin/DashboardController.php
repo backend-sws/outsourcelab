@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $recentTests = Test::where('is_active', true)->take(4)->get();
         $completionRate = $totalBookings > 0 ? round(($completedBookings / $totalBookings) * 100) : 67;
 
-        $recentBookings = Booking::with('patient')->latest()->take(6)->get();
+        $recentBookings = Booking::with(['patient', 'familyMember'])->latest()->take(6)->get();
 
         return view('admin.pages.dashboard', compact(
             'totalBookings',

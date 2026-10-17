@@ -5,7 +5,7 @@
         <span class="badge badge-success">Sample Collected</span>
         <h2 style="margin: 12px 0 6px; color: #0f172a; font-size: 20px;">Sample Successfully Collected</h2>
         <p style="margin: 0; color: #64748b; font-size: 14px;">
-            Hello <strong>{{ $booking->patient?->name ?? 'Valued Customer' }}</strong>, your diagnostic sample for booking <strong>#{{ $booking->booking_reference }}</strong> has been collected.
+            Hello <strong>{{ $booking->patient?->name ?? 'Valued Customer' }}</strong>, diagnostic sample for @if($booking->familyMember)<strong>{{ $booking->familyMember->name }} ({{ $booking->familyMember->relation }})</strong>@else you @endif (Booking <strong>#{{ $booking->booking_reference }}</strong>) has been successfully collected.
         </p>
     </div>
 

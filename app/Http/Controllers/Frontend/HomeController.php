@@ -49,4 +49,34 @@ class HomeController extends Controller
             'categories'
         ));
     }
+
+    /**
+     * Store selected city in user session.
+     */
+    public function setCity(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $cityId = $request->input('city_id');
+        $city = \App\Models\City::active()->find($cityId);
+
+        if ($city) {
+            session([
+                'selected_city_id' => $city->id,
+                'selected_city_name' => $city->name,
+                'selected_city_state' => $city->state,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'city' => [
+                    'id' => $city->id,
+                    'name' => $city->name,
+                    'state' => $city->state,
+                    'pincodes' => $city->pincode_list,
+                ],
+                'message' => "City set to {$city->name}.",
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'City not found or inactive.'], 404);
+    }
 }

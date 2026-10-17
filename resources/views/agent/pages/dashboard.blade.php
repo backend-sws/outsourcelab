@@ -134,12 +134,26 @@
                     <!-- Patient Info -->
                     <div class="space-y-1.5">
                         <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Patient Details</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-base font-extrabold text-slate-900">{{ $booking->patient->name ?? 'Patient' }}</span>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-base font-extrabold text-slate-900">{{ $booking->beneficiary_name }}</span>
                             @if($booking->familyMember)
-                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-bold">
-                                    For: {{ $booking->familyMember->name }} ({{ $booking->familyMember->relation }})
+                                <span class="text-xs bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded-md font-bold">
+                                    {{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }}
                                 </span>
+                            @else
+                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-bold">
+                                    Primary Patient (Self)
+                                </span>
+                            @endif
+                        </div>
+                        <div class="text-xs text-slate-500 font-medium">
+                            <span>Age: <strong class="text-slate-800">{{ $booking->beneficiary_age ?? 'N/A' }} Yrs</strong></span>
+                            <span class="mx-1">•</span>
+                            <span>Gender: <strong class="text-slate-800">{{ ucfirst($booking->beneficiary_gender ?? 'N/A') }}</strong></span>
+                            @if($booking->familyMember)
+                                <div class="text-[11px] text-slate-400 mt-0.5">
+                                    Booked by: <strong class="text-slate-600">{{ $booking->patient->name ?? 'Owner' }}</strong>
+                                </div>
                             @endif
                         </div>
                         

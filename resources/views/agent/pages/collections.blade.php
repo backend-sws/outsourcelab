@@ -75,13 +75,19 @@
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-slate-50/40 transition">
                     <!-- Client & Booking Info -->
                     <div class="space-y-1">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-mono text-xs font-black bg-slate-900 text-teal-300 px-2 py-0.5 rounded">
                                 #{{ $booking->booking_reference }}
                             </span>
-                            <span class="text-sm font-extrabold text-slate-900">{{ $booking->patient->name ?? 'Patient' }}</span>
+                            <span class="text-sm font-extrabold text-slate-900">{{ $booking->beneficiary_name }}</span>
                             @if($booking->familyMember)
-                                <span class="text-[11px] text-slate-500 font-semibold">({{ $booking->familyMember->name }})</span>
+                                <span class="text-[11px] text-teal-800 font-bold bg-teal-50 border border-teal-200 px-1.5 py-0.2 rounded">
+                                    {{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }}
+                                </span>
+                            @else
+                                <span class="text-[10px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0.2 rounded">
+                                    Self
+                                </span>
                             @endif
                         </div>
                         <div class="text-xs text-slate-500 flex flex-wrap items-center gap-3">

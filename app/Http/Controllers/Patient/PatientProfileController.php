@@ -22,7 +22,7 @@ class PatientProfileController extends Controller
         }
 
         $profile = Patient::with([
-            'bookings' => fn ($q) => $q->with('agent')->latest(),
+            'bookings' => fn ($q) => $q->with(['agent', 'familyMember', 'patient'])->latest(),
             'familyMembers',
             'prescriptions',
             'addresses',
@@ -90,38 +90,47 @@ class PatientProfileController extends Controller
             return redirect('/');
         }
 
+        // Sanitize mobile before validation
+        $rawMobile = (string) $request->input('mobile');
+        $cleanMobile = preg_replace('/[^0-9]/', '', $rawMobile);
+        if (strlen($cleanMobile) > 10 && str_starts_with($cleanMobile, '91')) {
+            $cleanMobile = substr($cleanMobile, 2);
+        }
+        $request->merge(['mobile' => $cleanMobile]);
+
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|min:2|max:255',
             'email' => 'required|email|unique:patients,email,'.$patientId,
-            'mobile' => 'nullable|string|min:10|max:15|unique:patients,mobile,'.$patientId,
-            'age' => 'nullable|integer|min:1|max:120',
-            'gender' => 'nullable|string|in:Male,Female,Other,male,female,other',
+            'mobile' => 'required|string|regex:/^[0-9]{10}$/|unique:patients,mobile,'.$patientId,
+            'age' => 'required|integer|min:1|max:120',
+            'gender' => 'required|string|in:Male,Female,Other,male,female,other',
             'dob' => 'nullable|date',
             'relation' => 'nullable|string|max:50',
             'alt_mobile' => 'nullable|string|max:20',
+        ], [
+            'name.required' => 'Full Name is mandatory.',
+            'name.min' => 'Full Name must be at least 2 characters.',
+            'mobile.required' => 'A valid 10-digit mobile number is mandatory.',
+            'mobile.regex' => 'Mobile number must be exactly 10 digits (e.g. 9876543210).',
+            'mobile.unique' => 'This mobile number is already linked to another patient account.',
+            'age.required' => 'Age is mandatory for lab test reference ranges.',
+            'age.integer' => 'Age must be a valid number between 1 and 120.',
+            'age.min' => 'Age must be at least 1 year.',
+            'age.max' => 'Age cannot exceed 120 years.',
+            'gender.required' => 'Gender is mandatory.',
         ]);
 
         $patient = Patient::find($patientId);
         if ($patient) {
-            $gender = $request->filled('gender') ? ucfirst(strtolower((string) $request->input('gender'))) : null;
-
-            $mobile = $request->input('mobile');
-            if ($mobile) {
-                $mobile = preg_replace('/[^0-9]/', '', $mobile);
-                if (strlen($mobile) > 10 && str_starts_with($mobile, '91')) {
-                    $mobile = substr($mobile, 2);
-                }
-            } else {
-                $mobile = $patient->mobile;
-            }
+            $gender = ucfirst(strtolower((string) $request->input('gender')));
 
             $patient->update([
-                'name' => $request->input('name'),
-                'mobile' => $mobile,
+                'name' => trim((string) $request->input('name')),
+                'mobile' => $cleanMobile,
                 'gender' => $gender,
-                'age' => $request->input('age'),
+                'age' => (int) $request->input('age'),
                 'dob' => $request->input('dob'),
-                'relation' => $request->input('relation'),
+                'relation' => $request->input('relation') ?: 'Self',
                 'alt_mobile' => $request->input('alt_mobile'),
                 'email' => $request->input('email'),
             ]);

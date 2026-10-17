@@ -48,9 +48,14 @@
         </div>
         <div class="box">
             <h3 class="box-title">Patient Information</h3>
-            <p><strong>Name:</strong> {{ $booking->patient->name ?? 'N/A' }}</p>
+            <p><strong>Patient Name:</strong> {{ $booking->beneficiary_name }}</p>
             @if($booking->familyMember)
-            <p><strong>Family Member:</strong> {{ $booking->familyMember->name }} ({{ $booking->familyMember->relation }})</p>
+            <p><strong>Relationship:</strong> {{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }}</p>
+            <p><strong>Age / Gender:</strong> {{ $booking->beneficiary_age ? $booking->beneficiary_age . ' Yrs' : 'N/A' }} / {{ ucfirst($booking->beneficiary_gender ?? 'N/A') }}</p>
+            <p><strong>Booked By:</strong> {{ $booking->patient->name ?? 'N/A' }} ({{ $booking->patient->mobile ?? '' }})</p>
+            @else
+            <p><strong>Age / Gender:</strong> {{ $booking->beneficiary_age ? $booking->beneficiary_age . ' Yrs' : 'N/A' }} / {{ ucfirst($booking->beneficiary_gender ?? 'N/A') }}</p>
+            <p><strong>Phone:</strong> {{ $booking->patient->mobile ?? 'N/A' }}</p>
             @endif
             @if($booking->address)
             <p><strong>Address:</strong><br>

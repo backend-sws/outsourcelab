@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\CollectionSlot;
 use App\Models\Coupon;
 use App\Models\MembershipPlan;
 use App\Models\Patient;
@@ -90,6 +91,11 @@ class CheckoutController extends Controller
             'patient_coins' => (int) $patient->reward_coins,
         ];
 
+        $collectionSlots = CollectionSlot::active()
+            ->ordered()
+            ->get()
+            ->groupBy('period');
+
         return view('frontend.pages.checkout', compact(
             'patient',
             'myCoupons',
@@ -99,7 +105,8 @@ class CheckoutController extends Controller
             'patientVip',
             'patientVipData',
             'allVipPlansData',
-            'rewardSettings'
+            'rewardSettings',
+            'collectionSlots'
         ));
     }
 }

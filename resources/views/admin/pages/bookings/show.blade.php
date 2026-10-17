@@ -62,8 +62,37 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Patient Name</p>
-                    <p class="font-medium text-gray-800">{{ $booking->patient->name ?? 'N/A' }}</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Patient Name (Beneficiary)</p>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-extrabold text-gray-900 text-base">{{ $booking->beneficiary_name }}</span>
+                        @if($booking->familyMember)
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200">
+                                {{ $booking->familyMember->relation }}
+                            </span>
+                        @else
+                            <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 border border-gray-200">
+                                Primary Patient (Self)
+                            </span>
+                        @endif
+                    </div>
+                    @if($booking->familyMember)
+                        <p class="text-xs text-teal-800 font-semibold mt-1">
+                            ({{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }})
+                        </p>
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            Age: <strong class="text-gray-700">{{ $booking->beneficiary_age ?? 'N/A' }} Yrs</strong> •
+                            Gender: <strong class="text-gray-700">{{ ucfirst($booking->beneficiary_gender ?? 'N/A') }}</strong>
+                        </p>
+                        <p class="text-[11px] text-gray-400 mt-1 pt-1 border-t border-gray-100">
+                            Booked by Account Owner: <strong class="text-gray-700">{{ $booking->patient->name ?? 'N/A' }}</strong> (<a href="tel:{{ $booking->patient->mobile }}" class="text-teal-700 underline">{{ $booking->patient->mobile ?? 'N/A' }}</a>)
+                        </p>
+                    @else
+                        <p class="text-xs text-gray-500 mt-1">
+                            Age: <strong class="text-gray-700">{{ $booking->beneficiary_age ?? 'N/A' }} Yrs</strong> •
+                            Gender: <strong class="text-gray-700">{{ ucfirst($booking->beneficiary_gender ?? 'N/A') }}</strong> •
+                            Phone: <a href="tel:{{ $booking->patient->mobile }}" class="text-teal-700 font-bold underline">{{ $booking->patient->mobile ?? 'N/A' }}</a>
+                        </p>
+                    @endif
                 </div>
                 <div>
                     <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Collection Date</p>
@@ -113,8 +142,21 @@
                 
                 @if($booking->family_member_id && $booking->familyMember)
                 <div class="md:col-span-2 mt-2 pt-4 border-t">
-                    <p class="text-xs text-indigo-500 uppercase tracking-wider mb-1 font-semibold">Booking for Family Member</p>
-                    <p class="font-medium text-gray-800">{{ $booking->familyMember->name }} ({{ $booking->familyMember->relation }}) - {{ $booking->familyMember->gender }}, {{ $booking->familyMember->age }} Yrs</p>
+                    <p class="text-xs text-teal-700 uppercase tracking-wider mb-1.5 font-bold flex items-center gap-1.5">
+                        <i class="fas fa-users"></i> Booking Placed For Family Member
+                    </p>
+                    <div class="p-3.5 bg-teal-50/70 rounded-xl border border-teal-200/80 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <span class="font-extrabold text-teal-950 text-sm">{{ $booking->familyMember->name }}</span>
+                            <span class="text-xs text-teal-800 font-bold ml-1">({{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }})</span>
+                            <div class="text-xs text-slate-600 mt-0.5">
+                                Age: <strong class="text-slate-800">{{ $booking->familyMember->age }} Yrs</strong> • Gender: <strong class="text-slate-800">{{ ucfirst($booking->familyMember->gender) }}</strong>
+                            </div>
+                        </div>
+                        <span class="text-xs bg-white text-teal-900 font-extrabold px-3 py-1 rounded-lg border border-teal-200 shadow-2xs">
+                            Account Owner: {{ $booking->patient->name ?? 'N/A' }}
+                        </span>
+                    </div>
                 </div>
                 @endif
             </div>

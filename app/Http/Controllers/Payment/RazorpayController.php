@@ -204,24 +204,46 @@ class RazorpayController extends Controller
                 : (int) round($earnValue);
         }
 
-        // Validate beneficiary / patient name (User cannot book without name)
+        // Validate beneficiary / patient name, age, and primary mobile (Mandatory for booking)
         $beneficiaryName = null;
+        $beneficiaryAge = null;
         if ($familyMemberId) {
             $member = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->first();
             if (! $member) {
                 $familyMemberId = null;
                 $beneficiaryName = $patient->name;
+                $beneficiaryAge = $patient->age;
             } else {
                 $beneficiaryName = $member->name;
+                $beneficiaryAge = $member->age;
             }
         } else {
             $beneficiaryName = $patient->name;
+            $beneficiaryAge = $patient->age;
         }
 
         if (empty(trim((string) $beneficiaryName)) || strtolower(trim((string) $beneficiaryName)) === 'self') {
             return response()->json([
                 'success' => false,
-                'message' => 'Patient name is required. Please provide a valid patient name before booking.',
+                'message' => 'Patient Full Name is mandatory. Please provide a valid patient name before booking.',
+            ], 422);
+        }
+
+        if (empty($beneficiaryAge) || (int) $beneficiaryAge < 1 || (int) $beneficiaryAge > 120) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient Age is mandatory (1-120 years). Please provide a valid age before booking.',
+            ], 422);
+        }
+
+        $cleanPatientPhone = preg_replace('/[^0-9]/', '', (string) ($patient->mobile ?? ''));
+        if (strlen($cleanPatientPhone) > 10 && str_starts_with($cleanPatientPhone, '91')) {
+            $cleanPatientPhone = substr($cleanPatientPhone, 2);
+        }
+        if (strlen($cleanPatientPhone) !== 10) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A valid 10-digit contact mobile number is mandatory for booking and sample collection updates.',
             ], 422);
         }
 
@@ -246,6 +268,41 @@ class RazorpayController extends Controller
                 'success' => false,
                 'message' => 'The selected collection slot has already passed for today. Please select an upcoming slot or a future date.',
             ], 422);
+        }
+
+        // Guard against duplicate rapid clicks / requests
+        $recentPendingBooking = Booking::where('patient_id', $patientId)
+            ->where('payment_status', 'Pending')
+            ->where('payment_method', 'Online')
+            ->where('amount', $finalAmount)
+            ->where('created_at', '>=', now()->subSeconds(20))
+            ->whereNotNull('razorpay_order_id')
+            ->latest()
+            ->first();
+
+        if ($recentPendingBooking) {
+            $existingTxn = PaymentTransaction::where('booking_id', $recentPendingBooking->id)->latest()->first();
+            return response()->json([
+                'success' => true,
+                'key' => $razorpay->getKeyId(),
+                'order_id' => $recentPendingBooking->razorpay_order_id,
+                'amount' => round($finalAmount * 100),
+                'amount_in_rupees' => $finalAmount,
+                'currency' => 'INR',
+                'name' => Setting::get('app_name', 'Av Wellcare Diagnostics'),
+                'description' => "Lab Tests Booking #{$recentPendingBooking->booking_reference}",
+                'booking_id' => $recentPendingBooking->id,
+                'booking_reference' => $recentPendingBooking->booking_reference,
+                'transaction_id' => $existingTxn ? $existingTxn->id : null,
+                'prefill' => [
+                    'name' => $patient->name ?? '',
+                    'email' => $patient->email ?? '',
+                    'contact' => preg_replace('/[^0-9]/', '', $patient->mobile ?? ''),
+                ],
+                'theme' => [
+                    'color' => '#0d9488',
+                ],
+            ]);
         }
 
         // Create Pending Booking
@@ -288,11 +345,13 @@ class RazorpayController extends Controller
         ]);
 
         // Call Razorpay Order API
+        $booking->load(['patient', 'familyMember']);
         $razorpayOrder = $razorpay->createOrder($finalAmount, $booking->booking_reference, [
             'booking_id' => (string) $booking->id,
             'booking_reference' => $booking->booking_reference,
             'patient_id' => (string) $patientId,
-            'patient_name' => substr($patient->name ?? 'Patient', 0, 40),
+            'patient_name' => substr($booking->beneficiary_name, 0, 40),
+            'beneficiary_relation' => substr($booking->beneficiary_relation, 0, 30),
             'transaction_id' => (string) $txn->id,
         ]);
 
@@ -483,7 +542,11 @@ class RazorpayController extends Controller
                             'used_at' => now(),
                             'booking_id' => $booking->id,
                         ]);
-                        $coupon->increment('usage_count');
+                        try {
+                            $coupon->increment('usage_count');
+                        } catch (\Throwable $couponErr) {
+                            Log::warning('Coupon usage_count increment note: '.$couponErr->getMessage());
+                        }
                     }
                 }
 

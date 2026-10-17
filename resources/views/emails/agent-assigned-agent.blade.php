@@ -16,11 +16,22 @@
                 <td style="padding: 8px 0; color: #0d9488; font-weight: 700; font-size: 14px; text-align: right;">#{{ $booking->booking_reference }}</td>
             </tr>
             <tr style="border-bottom: 1px dashed #e2e8f0;">
-                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Patient Name</td>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Patient (Beneficiary)</td>
+                <td style="padding: 8px 0; color: #0f172a; font-weight: 700; font-size: 14px; text-align: right;">
+                    {{ $booking->beneficiary_name }}
+                    @if($booking->familyMember)
+                        <div style="font-size: 12px; color: #0d9488; font-weight: 600;">({{ $booking->familyMember->relation }} of {{ $booking->patient?->name ?? 'Account Owner' }})</div>
+                    @endif
+                </td>
+            </tr>
+            @if($booking->familyMember)
+            <tr style="border-bottom: 1px dashed #e2e8f0;">
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Booked By (Primary Contact)</td>
                 <td style="padding: 8px 0; color: #0f172a; font-weight: 600; font-size: 14px; text-align: right;">{{ $booking->patient?->name ?? 'N/A' }}</td>
             </tr>
+            @endif
             <tr style="border-bottom: 1px dashed #e2e8f0;">
-                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Patient Phone</td>
+                <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Contact Phone</td>
                 <td style="padding: 8px 0; color: #0f172a; font-weight: 600; font-size: 14px; text-align: right;">
                     <a href="tel:{{ $booking->patient?->mobile }}" style="color: #0d9488; text-decoration: none;">{{ $booking->patient?->mobile ?? 'N/A' }}</a>
                 </td>

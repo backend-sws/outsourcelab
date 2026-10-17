@@ -20,6 +20,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PatientBookingController extends Controller
@@ -232,24 +233,46 @@ class PatientBookingController extends Controller
             }
         }
 
-        // Validate beneficiary / patient name (User cannot book without name)
+        // Validate beneficiary / patient name, age, and primary mobile (Mandatory for booking)
         $beneficiaryName = null;
+        $beneficiaryAge = null;
         if ($familyMemberId) {
             $member = FamilyMember::where('id', $familyMemberId)->where('patient_id', $patientId)->first();
             if (! $member) {
                 $familyMemberId = null;
                 $beneficiaryName = $patient->name;
+                $beneficiaryAge = $patient->age;
             } else {
                 $beneficiaryName = $member->name;
+                $beneficiaryAge = $member->age;
             }
         } else {
             $beneficiaryName = $patient->name;
+            $beneficiaryAge = $patient->age;
         }
 
         if (empty(trim((string) $beneficiaryName)) || strtolower(trim((string) $beneficiaryName)) === 'self') {
             return response()->json([
                 'success' => false,
-                'message' => 'Patient name is required. Please provide a valid patient name before booking.',
+                'message' => 'Patient Full Name is mandatory. Please provide a valid patient name before booking.',
+            ], 422);
+        }
+
+        if (empty($beneficiaryAge) || (int) $beneficiaryAge < 1 || (int) $beneficiaryAge > 120) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Patient Age is mandatory (1-120 years). Please provide a valid age before booking.',
+            ], 422);
+        }
+
+        $cleanPatientPhone = preg_replace('/[^0-9]/', '', (string) ($patient->mobile ?? ''));
+        if (strlen($cleanPatientPhone) > 10 && str_starts_with($cleanPatientPhone, '91')) {
+            $cleanPatientPhone = substr($cleanPatientPhone, 2);
+        }
+        if (strlen($cleanPatientPhone) !== 10) {
+            return response()->json([
+                'success' => false,
+                'message' => 'A valid 10-digit contact mobile number is mandatory for booking and sample collection updates.',
             ], 422);
         }
 
@@ -280,70 +303,103 @@ class PatientBookingController extends Controller
             ], 422);
         }
 
+        // Idempotency check: prevent duplicate bookings submitted within 20 seconds
+        $recentDuplicate = Booking::where('patient_id', $patientId)
+            ->where('amount', $finalAmount)
+            ->where('booking_date', $bookingDate)
+            ->where('created_at', '>=', now()->subSeconds(20))
+            ->first();
+
+        if ($recentDuplicate) {
+            return response()->json([
+                'success' => true,
+                'booking_id' => $recentDuplicate->id,
+                'booking_reference' => $recentDuplicate->booking_reference,
+                'final_amount' => $recentDuplicate->amount,
+                'coins_redeemed' => $recentDuplicate->coins_redeemed ?? 0,
+                'coins_earned' => $recentDuplicate->coins_earned ?? 0,
+                'message' => 'Booking was already placed.',
+            ]);
+        }
+
         // Generate unique booking reference
         $ref = 'BK-'.strtoupper(substr(uniqid(), -6));
 
-        $booking = Booking::create([
-            'booking_reference' => $ref,
-            'patient_id' => $patientId,
-            'family_member_id' => $familyMemberId,
-            'address_id' => $addressId,
-            'test_details' => $sanitizedCart,
-            'collection_type' => $collectionType,
-            'collection_slot' => $collectionSlot,
-            'amount' => $finalAmount,
-            'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
-            'discount_amount' => $totalDiscount,
-            'coins_redeemed' => $coinsRedeemed,
-            'coins_discount' => $coinsDiscount,
-            'coins_earned' => $coinsEarned,
-            'payment_method' => $paymentMethod,
-            'payment_status' => $paymentMethod === 'Cash' ? 'Pending' : 'Paid',
-            'status' => 'Booked',
-            'booking_date' => $bookingDate,
-        ]);
-
-        // Debit redeemed coins from patient
-        if ($coinsRedeemed > 0) {
-            $patient->debitCoins($coinsRedeemed, "Redeemed on booking #{$ref}", $booking->id, $coinsDiscount);
-        }
-
-        // Credit earned coins to patient
-        if ($coinsEarned > 0) {
-            $patient->creditCoins($coinsEarned, "Earned from booking #{$ref}", $booking->id, round($coinsEarned * $coinValue, 2));
-        }
-
-        // If VIP Membership was purchased, activate membership record
-        if ($purchasedPlan) {
-            PatientMembership::create([
+        $booking = DB::transaction(function () use (
+            $ref, $patient, $patientId, $familyMemberId, $addressId, $sanitizedCart,
+            $collectionType, $collectionSlot, $finalAmount, $appliedCoupon,
+            $vipDiscountAmount, $totalDiscount, $coinsRedeemed, $coinsDiscount,
+            $coinsEarned, $paymentMethod, $bookingDate, $coinValue, $purchasedPlan
+        ) {
+            $booking = Booking::create([
+                'booking_reference' => $ref,
                 'patient_id' => $patientId,
-                'membership_plan_id' => $purchasedPlan->id,
-                'plan_name_snapshot' => $purchasedPlan->name,
-                'discount_percentage' => $purchasedPlan->discount_percentage,
-                'price_paid' => $purchasedPlan->price,
-                'started_at' => now(),
-                'expires_at' => now()->addMonths($purchasedPlan->duration_in_months),
-                'status' => 'active',
-                'booking_id' => $booking->id,
+                'family_member_id' => $familyMemberId,
+                'address_id' => $addressId,
+                'test_details' => $sanitizedCart,
+                'collection_type' => $collectionType,
+                'collection_slot' => $collectionSlot,
+                'amount' => $finalAmount,
+                'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
+                'discount_amount' => $totalDiscount,
+                'coins_redeemed' => $coinsRedeemed,
+                'coins_discount' => $coinsDiscount,
+                'coins_earned' => $coinsEarned,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentMethod === 'Cash' ? 'Pending' : 'Paid',
+                'status' => 'Booked',
+                'booking_date' => $bookingDate,
             ]);
-        }
 
-        // If coupon applied, record usage
-        if ($appliedCoupon) {
-            $userCoupon = PatientCoupon::firstOrCreate([
-                'patient_id' => $patientId,
-                'coupon_id' => $appliedCoupon->id,
-            ]);
-            $userCoupon->update([
-                'is_used' => true,
-                'used_at' => now(),
-                'booking_id' => $booking->id,
-            ]);
-            $appliedCoupon->increment('usage_count');
-        }
+            // Debit redeemed coins from patient
+            if ($coinsRedeemed > 0) {
+                $patient->debitCoins($coinsRedeemed, "Redeemed on booking #{$ref}", $booking->id, $coinsDiscount);
+            }
 
-        // Clear patient cart in DB
-        $patient->update(['cart' => []]);
+            // Credit earned coins to patient
+            if ($coinsEarned > 0) {
+                $patient->creditCoins($coinsEarned, "Earned from booking #{$ref}", $booking->id, round($coinsEarned * $coinValue, 2));
+            }
+
+            // If VIP Membership was purchased, activate membership record
+            if ($purchasedPlan) {
+                PatientMembership::create([
+                    'patient_id' => $patientId,
+                    'membership_plan_id' => $purchasedPlan->id,
+                    'plan_name_snapshot' => $purchasedPlan->name,
+                    'discount_percentage' => $purchasedPlan->discount_percentage,
+                    'price_paid' => $purchasedPlan->price,
+                    'started_at' => now(),
+                    'expires_at' => now()->addMonths($purchasedPlan->duration_in_months),
+                    'status' => 'active',
+                    'booking_id' => $booking->id,
+                ]);
+            }
+
+            // If coupon applied, record usage safely
+            if ($appliedCoupon) {
+                $userCoupon = PatientCoupon::firstOrCreate([
+                    'patient_id' => $patientId,
+                    'coupon_id' => $appliedCoupon->id,
+                ]);
+                $userCoupon->update([
+                    'is_used' => true,
+                    'used_at' => now(),
+                    'booking_id' => $booking->id,
+                ]);
+
+                try {
+                    $appliedCoupon->increment('usage_count');
+                } catch (\Throwable $couponErr) {
+                    Log::warning('Coupon usage_count increment note: '.$couponErr->getMessage());
+                }
+            }
+
+            // Clear patient cart in DB
+            $patient->update(['cart' => []]);
+
+            return $booking;
+        });
 
         // Push order to Pathology SaaS LIS API
         try {

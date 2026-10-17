@@ -51,14 +51,18 @@
                 <!-- Card Header -->
                 <div class="flex flex-wrap justify-between items-start gap-2 border-b border-slate-100 pb-3">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <span class="font-mono text-xs font-black bg-slate-900 text-teal-300 px-2.5 py-1 rounded-lg">
                                 #{{ $booking->booking_reference }}
                             </span>
-                            <span class="text-sm font-extrabold text-slate-900">{{ $booking->patient->name ?? 'Patient' }}</span>
+                            <span class="text-sm font-extrabold text-slate-900">{{ $booking->beneficiary_name }}</span>
                             @if($booking->familyMember)
-                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold">
-                                    ({{ $booking->familyMember->name }} - {{ $booking->familyMember->relation }})
+                                <span class="text-xs bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 rounded font-bold">
+                                    {{ $booking->familyMember->relation }} of {{ $booking->patient->name ?? 'Account Owner' }}
+                                </span>
+                            @else
+                                <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">
+                                    Primary Patient (Self)
                                 </span>
                             @endif
                         </div>

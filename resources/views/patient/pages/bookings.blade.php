@@ -197,7 +197,7 @@
                                     </span>
                                     <span class="text-xs font-bold text-gray-600 flex items-center gap-1">
                                         <i class="far fa-user text-gray-400"></i>
-                                        <span>For: <strong class="text-gray-900">{{ $forName }}</strong> ({{ $relation }})</span>
+                                        <span>For: <strong class="text-gray-900">{{ $booking->beneficiary_display }}</strong></span>
                                     </span>
                                 </div>
                                 <div class="text-right flex flex-col items-start sm:items-end">

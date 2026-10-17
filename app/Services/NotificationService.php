@@ -70,7 +70,7 @@ class NotificationService
             event: 'booking_placed',
             recipientName: 'Admin',
             title: "New Booking #{$booking->booking_reference}",
-            message: "Patient {$patient?->name} placed a booking for ₹".number_format((float) $booking->amount).'.',
+            message: "Booking for {$booking->beneficiary_display} (Amount: ₹".number_format((float) $booking->amount).').',
             actionUrl: route('admin.bookings.index'),
         );
     }
@@ -78,7 +78,7 @@ class NotificationService
     /** Agent assigned — notify customer + agent */
     public function bookingConfirmed(Booking $booking): void
     {
-        $booking->load(['patient', 'agent']);
+        $booking->load(['patient', 'agent', 'familyMember']);
         $patient = $booking->patient;
         $agent = $booking->agent;
 
@@ -97,7 +97,9 @@ class NotificationService
                 event: 'agent_assigned',
                 recipientName: $patient->name,
                 title: "Phlebotomist Assigned (#{$booking->booking_reference})",
-                message: "Phlebotomist {$agent?->name} has been assigned for your home sample collection.",
+                message: $booking->familyMember
+                    ? "Phlebotomist {$agent?->name} has been assigned for {$booking->familyMember->name}'s ({$booking->familyMember->relation}) home sample collection."
+                    : "Phlebotomist {$agent?->name} has been assigned for your home sample collection.",
                 actionUrl: route('patient.bookings'),
             );
         }
@@ -128,7 +130,7 @@ class NotificationService
     /** Sample collected — notify customer + admin */
     public function sampleCollected(Booking $booking): void
     {
-        $booking->load(['patient', 'agent']);
+        $booking->load(['patient', 'agent', 'familyMember']);
         $patient = $booking->patient;
 
         if ($patient) {
@@ -146,7 +148,9 @@ class NotificationService
                 event: 'sample_collected',
                 recipientName: $patient->name,
                 title: "Sample Collected (#{$booking->booking_reference})",
-                message: 'Your lab sample has been successfully collected and safely transported to our reference lab.',
+                message: $booking->familyMember
+                    ? "Diagnostic sample for {$booking->familyMember->name} ({$booking->familyMember->relation}) has been collected and transported to lab."
+                    : 'Your lab sample has been successfully collected and safely transported to our reference lab.',
                 actionUrl: route('patient.bookings'),
             );
         }
@@ -157,7 +161,7 @@ class NotificationService
             event: 'sample_collected',
             recipientName: 'Admin',
             title: "Sample Collected (#{$booking->booking_reference})",
-            message: "Sample for booking #{$booking->booking_reference} was collected.",
+            message: "Sample for {$booking->beneficiary_display} (#{$booking->booking_reference}) was collected.",
             actionUrl: route('admin.bookings.index'),
         );
     }
@@ -165,7 +169,7 @@ class NotificationService
     /** Report ready — notify customer */
     public function reportReady(Booking $booking): void
     {
-        $booking->load('patient');
+        $booking->load(['patient', 'familyMember']);
         $patient = $booking->patient;
 
         if (! $patient) {
@@ -186,7 +190,9 @@ class NotificationService
             event: 'report_ready',
             recipientName: $patient->name,
             title: "Test Report Ready! (#{$booking->booking_reference})",
-            message: 'Your diagnostic test report is now ready. Click here to view and download your report.',
+            message: $booking->familyMember
+                ? "Diagnostic test report for {$booking->familyMember->name} ({$booking->familyMember->relation}) is ready. Click to download."
+                : 'Your diagnostic test report is now ready. Click here to view and download your report.',
             actionUrl: route('patient.reports'),
         );
 
@@ -196,7 +202,7 @@ class NotificationService
             event: 'report_ready',
             recipientName: 'Admin',
             title: "Report Finalized (#{$booking->booking_reference})",
-            message: "Test report generated for patient {$patient->name}.",
+            message: "Test report generated for {$booking->beneficiary_display}.",
             actionUrl: route('admin.bookings.index'),
         );
     }

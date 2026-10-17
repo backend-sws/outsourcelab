@@ -5,7 +5,7 @@
         <span class="badge badge-primary">Phlebotomist Assigned</span>
         <h2 style="margin: 12px 0 6px; color: #0f172a; font-size: 20px;">Phlebotomist Assigned</h2>
         <p style="margin: 0; color: #64748b; font-size: 14px;">
-            Hello <strong>{{ $booking->patient?->name ?? 'Valued Customer' }}</strong>, our phlebotomist has been assigned for your test sample collection.
+            Hello <strong>{{ $booking->patient?->name ?? 'Valued Customer' }}</strong>, our phlebotomist has been assigned for @if($booking->familyMember)<strong>{{ $booking->familyMember->name }}'s ({{ $booking->familyMember->relation }})</strong>@else your @endif home sample collection.
         </p>
     </div>
 

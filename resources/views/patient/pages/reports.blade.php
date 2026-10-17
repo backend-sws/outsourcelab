@@ -169,7 +169,7 @@
                                             </div>
                                             <h3 class="text-base font-extrabold text-gray-900">{{ $mainTitle }}</h3>
                                             <p class="text-xs text-gray-500 font-semibold mt-0.5 flex items-center gap-2 flex-wrap">
-                                                <span>For: <strong class="text-gray-800">{{ $forName }}</strong> ({{ $relation }})</span>
+                                                <span>For: <strong class="text-gray-800">{{ $booking->beneficiary_display }}</strong></span>
                                                 <span>•</span>
                                                 <span><i class="far fa-calendar-alt text-teal-600 mr-1"></i> Sample: {{ $booking->booking_date ? $booking->booking_date->format('d M Y') : $booking->created_at->format('d M Y') }}</span>
                                             </p>

@@ -9,6 +9,34 @@
         <!-- Main Content -->
         <div class="w-full md:w-2/3 lg:w-3/4 space-y-6">
 
+            @php
+                $isProfileIncomplete = empty($profile->name) || strtolower($profile->name) === 'self' || empty($profile->age) || $profile->age === '-' || empty($profile->mobile) || strlen(preg_replace('/[^0-9]/', '', (string)$profile->mobile)) < 10;
+            @endphp
+
+            @if($isProfileIncomplete)
+            <!-- Mandatory Profile Incomplete Alert Banner -->
+            <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-400 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                <div class="flex items-start sm:items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl font-black flex-shrink-0 shadow-sm">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-rose-500 text-white animate-pulse">Action Required</span>
+                            <h4 class="font-black text-sm sm:text-base text-slate-900">Mandatory Details Missing in Your Profile</h4>
+                        </div>
+                        <p class="text-xs text-slate-700 mt-1 font-medium leading-relaxed">
+                            Your <strong class="text-slate-950 underline">Full Name</strong>, <strong class="text-slate-950 underline">Age</strong>, and <strong class="text-slate-950 underline">10-Digit Mobile Number</strong> are mandatory to book diagnostic slots and generate valid lab reports.
+                        </p>
+                    </div>
+                </div>
+                <button type="button" onclick="switchDashboardTab('profile'); const el = document.getElementById('profile-form'); if(el) { el.scrollIntoView({behavior:'smooth', block:'start'}); el.classList.add('ring-4', 'ring-amber-400'); setTimeout(() => el.classList.remove('ring-4', 'ring-amber-400'), 2000); } window.location.hash = 'profile-form';" class="w-full sm:w-auto px-4 py-2.5 bg-brand-dark hover:bg-brand-primary text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer">
+                    <i class="fas fa-edit text-amber-300"></i>
+                    <span>Complete Details Now</span>
+                </button>
+            </div>
+            @endif
+
             <!-- Success Alert -->
             @if(session('success'))
             <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-between shadow-sm animate-fade-in">
@@ -242,7 +270,7 @@
                                     <span>{{ $curInfo['label'] }}</span>
                                 </span>
                                 <span class="text-xs font-bold text-gray-700">
-                                    For: <strong class="text-gray-900">{{ $activeFor }}</strong> ({{ $activeRelation }})
+                                    For: <strong class="text-gray-900">{{ $activeBooking->beneficiary_display }}</strong>
                                 </span>
                             </div>
 
@@ -414,7 +442,7 @@
                                             </div>
                                             <h4 class="text-xs font-black text-gray-800">{{ $repTitle }}</h4>
                                             <p class="text-[11px] text-gray-500 font-medium">
-                                                For: <strong class="text-gray-700">{{ $repFor }}</strong> ({{ $repRelation }}) • 
+                                                For: <strong class="text-gray-700">{{ $rep->beneficiary_display }}</strong> • 
                                                 <span>{{ $rep->booking_date ? $rep->booking_date->format('d M Y') : $rep->created_at->format('d M Y') }}</span>
                                             </p>
                                         </div>
@@ -486,8 +514,8 @@
                                                 #{{ $bk->booking_reference }}
                                             </td>
                                             <td class="py-3.5 px-6">
-                                                <span class="font-bold text-gray-800 block">{{ $bFor }}</span>
-                                                <span class="text-[10px] text-gray-400">{{ $bRel }}</span>
+                                                <span class="font-bold text-gray-800 block">{{ $bk->beneficiary_name }}</span>
+                                                <span class="text-[10px] text-gray-500 font-semibold">{{ $bk->familyMember ? $bk->familyMember->relation . ' of ' . ($profile->name ?? 'Owner') : 'Self' }}</span>
                                             </td>
                                             <td class="py-3.5 px-6">
                                                 <span class="block text-gray-800 font-semibold">{{ $bk->booking_date ? $bk->booking_date->format('d M Y') : $bk->created_at->format('d M Y') }}</span>
@@ -663,10 +691,12 @@
                                     name="name" 
                                     value="{{ old('name', $profile->name) }}" 
                                     placeholder="Enter Full Name" 
+                                    minlength="2"
                                     class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary font-bold text-gray-800 text-sm outline-none transition placeholder-gray-300" 
                                     required
                                 >
                             </div>
+                            @error('name')<p class="text-rose-500 text-xs mt-1 font-semibold">{{ $message }}</p>@enderror
                         </div>
 
                         <!-- Gender Selection -->
@@ -680,7 +710,7 @@
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                 <!-- Female -->
                                 <label class="cursor-pointer">
-                                    <input type="radio" name="gender" value="Female" {{ $selectedGender === 'female' ? 'checked' : '' }} class="peer hidden">
+                                    <input type="radio" name="gender" value="Female" {{ $selectedGender === 'female' ? 'checked' : '' }} class="peer hidden" required>
                                     <div class="border-2 border-gray-200 bg-white rounded-xl py-3 px-4 text-center cursor-pointer font-bold text-gray-500 peer-checked:bg-brand-light/40 peer-checked:text-brand-dark peer-checked:border-brand-dark transition flex items-center justify-center gap-2 hover:border-gray-300 shadow-sm">
                                         <i class="fas fa-female text-lg text-pink-500"></i>
                                         <span>Female</span>
@@ -705,27 +735,30 @@
                                     </div>
                                 </label>
                             </div>
+                            @error('gender')<p class="text-rose-500 text-xs mt-1 font-semibold">{{ $message }}</p>@enderror
                         </div>
 
                         <!-- Age & Date of Birth -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-extrabold text-gray-700 uppercase tracking-wider mb-2">
-                                    Enter Age
+                                    Age (Years) <span class="text-rose-500">*</span>
                                 </label>
                                 <div class="relative">
                                     <input 
                                         type="number" 
                                         id="profile_age" 
                                         name="age" 
-                                        value="{{ old('age', $profile->age !== '-' ? $profile->age : '') }}" 
+                                        value="{{ old('age', ($profile->age && $profile->age !== '-') ? $profile->age : '') }}" 
                                         min="1" 
                                         max="120" 
                                         placeholder="Enter Age (e.g. 28)" 
+                                        required
                                         class="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary font-bold text-gray-800 text-sm outline-none transition placeholder-gray-300"
                                     >
                                     <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">Years</span>
                                 </div>
+                                @error('age')<p class="text-rose-500 text-xs mt-1 font-semibold">{{ $message }}</p>@enderror
                             </div>
 
                             <div>
@@ -788,6 +821,8 @@
                                         name="mobile" 
                                         value="{{ old('mobile', $profile->mobile) }}" 
                                         maxlength="10" 
+                                        pattern="[0-9]{10}"
+                                        title="Please enter a valid 10-digit mobile number"
                                         placeholder="Enter 10-digit Primary Mobile" 
                                         required
                                         class="w-full pl-24 {{ $profile->mobile ? 'pr-24' : 'pr-4' }} py-3.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary font-bold text-gray-800 text-sm outline-none transition placeholder-gray-300"
