@@ -59,6 +59,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::post('/set-city', [HomeController::class, 'setCity'])->name('set.city');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout/check-slots', [CheckoutController::class, 'checkSlots'])->name('checkout.check_slots');
 Route::get('/download-report', [PageController::class, 'downloadReport'])->name('download.report');
 Route::post('/download-report/track', [PageController::class, 'fetchReportTrack'])->name('download.report.track');
 Route::post('/download-report/patient-login', [PageController::class, 'authenticatePatientSso'])->name('download.report.patient_login');
@@ -173,6 +174,8 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::post('/bookings/{id}/modify', [PatientBookingController::class, 'modifyBooking'])->name('bookings.modify');
     Route::post('/bookings/{id}/modify/create-order', [RazorpayController::class, 'createModifyOrder'])->name('bookings.modify.create_order');
     Route::post('/bookings/{id}/modify/verify-payment', [RazorpayController::class, 'verifyModifyPayment'])->name('bookings.modify.verify_payment');
+    Route::get('/bookings/{id}/download-report', [PatientBookingController::class, 'downloadReport'])->name('bookings.download_report');
+    Route::get('/bookings/{id}/invoice', [PatientBookingController::class, 'invoice'])->name('bookings.invoice');
 
     // Payment History & Invoices
     Route::get('/transactions', [PatientPaymentController::class, 'index'])->name('transactions');
@@ -220,8 +223,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Agents / Phlebotomists
         Route::get('/agents', [AdminAgentController::class, 'index'])->name('agents.index');
         Route::post('/agents', [AdminAgentController::class, 'store'])->name('agents.store');
+        Route::put('/agents/{id}', [AdminAgentController::class, 'update'])->name('agents.update');
         Route::post('/agents/{id}/toggle-status', [AdminAgentController::class, 'toggleStatus'])->name('agents.toggle_status');
         Route::delete('/agents/{id}', [AdminAgentController::class, 'destroy'])->name('agents.destroy');
+
+        // Phlebotomist Leaves & Roster Management
+        Route::get('/agents/{id}/leaves', [AdminAgentController::class, 'getLeaves'])->name('agents.leaves.index');
+        Route::post('/agents/{id}/leaves', [AdminAgentController::class, 'storeLeave'])->name('agents.leaves.store');
+        Route::delete('/agents/leaves/{leaveId}', [AdminAgentController::class, 'destroyLeave'])->name('agents.leaves.destroy');
+        Route::post('/agents/{id}/quick-off', [AdminAgentController::class, 'quickToggleOff'])->name('agents.quick_off');
 
         // Registered Customers / Patients
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

@@ -448,9 +448,9 @@
                                         </div>
                                     </div>
 
-                                    <div class="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
+                                    <div class="flex items-center gap-1.5 self-start sm:self-auto flex-shrink-0 flex-wrap">
                                         @if($rep->report_file_path)
-                                            <a href="{{ asset('storage/' . $rep->report_file_path) }}" target="_blank" download class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition">
+                                            <a href="{{ route('patient.bookings.download_report', $rep->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition">
                                                 <i class="fas fa-download text-[10px]"></i>
                                                 <span>Download PDF</span>
                                             </a>
@@ -460,6 +460,10 @@
                                                 <span>View Report Status</span>
                                             </a>
                                         @endif
+                                        <a href="{{ route('patient.bookings.invoice', $rep->id) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 hover:border-teal-300 font-bold text-xs rounded-xl transition shadow-2xs" title="Download Tax Invoice">
+                                            <i class="fas fa-file-invoice text-teal-700 text-[10px]"></i>
+                                            <span>Invoice</span>
+                                        </a>
                                     </div>
                                 </div>
                             @endforeach
@@ -531,10 +535,16 @@
                                                 </span>
                                             </td>
                                             <td class="py-3.5 px-6 text-right">
-                                                <a href="{{ route('patient.bookings') }}" class="inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 font-bold hover:underline">
-                                                    <span>View</span>
-                                                    <i class="fas fa-chevron-right text-[9px]"></i>
-                                                </a>
+                                                <div class="flex items-center justify-end gap-2.5">
+                                                    <a href="{{ route('patient.bookings.invoice', $bk->id) }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-900 border border-slate-200 hover:border-teal-300 text-[11px] font-bold transition shadow-2xs" title="View Tax Invoice">
+                                                        <i class="fas fa-file-invoice text-teal-700 text-[10px]"></i>
+                                                        <span>Invoice</span>
+                                                    </a>
+                                                    <a href="{{ route('patient.bookings') }}" class="inline-flex items-center gap-1 text-teal-600 hover:text-teal-800 font-bold hover:underline text-xs">
+                                                        <span>View</span>
+                                                        <i class="fas fa-chevron-right text-[9px]"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach

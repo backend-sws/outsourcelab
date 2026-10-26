@@ -10,6 +10,7 @@ use App\Models\Patient;
 use App\Models\PatientCoupon;
 use App\Models\Setting;
 use App\Services\NotificationService;
+use GuzzleHttp\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -449,7 +450,7 @@ class PatientAuthController extends Controller
         $caCertPath = storage_path('certs/cacert.pem');
         $verify = file_exists($caCertPath) ? $caCertPath : false;
 
-        $guzzleClient = new \GuzzleHttp\Client([
+        $guzzleClient = new Client([
             'verify' => $verify,
             'timeout' => 30,
         ]);
@@ -479,9 +480,9 @@ class PatientAuthController extends Controller
         try {
             return $this->getGoogleSocialiteDriver()->redirect();
         } catch (\Throwable $e) {
-            Log::error('Google OAuth redirect error: ' . $e->getMessage());
+            Log::error('Google OAuth redirect error: '.$e->getMessage());
 
-            return redirect()->back()->with('error', 'Unable to initialize Google Sign-in: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to initialize Google Sign-in: '.$e->getMessage());
         }
     }
 
@@ -493,9 +494,9 @@ class PatientAuthController extends Controller
         try {
             $googleUser = $this->getGoogleSocialiteDriver()->user();
         } catch (\Throwable $e) {
-            Log::error('Google OAuth callback error: ' . $e->getMessage());
+            Log::error('Google OAuth callback error: '.$e->getMessage());
 
-            return redirect()->route('home')->with('error', 'Google authentication failed: ' . $e->getMessage());
+            return redirect()->route('home')->with('error', 'Google authentication failed: '.$e->getMessage());
         }
 
         $googleId = (string) $googleUser->getId();
@@ -545,19 +546,19 @@ class PatientAuthController extends Controller
                 NotificationService::send(
                     'patient',
                     $patient->id,
-                    'Welcome to ' . Setting::get('site_name', 'Av Wellcare'),
+                    'Welcome to '.Setting::get('site_name', 'Av Wellcare'),
                     "Welcome {$name}! Your account has been created via Google Sign-in. Explore checkups and manage your health records effortlessly.",
                     'account'
                 );
             } catch (\Throwable $t) {
-                Log::warning('Google sign-in welcome notification error: ' . $t->getMessage());
+                Log::warning('Google sign-in welcome notification error: '.$t->getMessage());
             }
         }
 
         session(['patient_id' => $patient->id]);
 
         $redirectTo = session()->pull('google_oauth_redirect');
-        if ($redirectTo && $redirectTo !== '/' && $redirectTo !== route('home') && !str_ends_with($redirectTo, 'localhost:8000/')) {
+        if ($redirectTo && $redirectTo !== '/' && $redirectTo !== route('home') && ! str_ends_with($redirectTo, 'localhost:8000/')) {
             return redirect($redirectTo)->with('success', 'Logged in successfully with Google!');
         }
 
@@ -581,4 +582,3 @@ class PatientAuthController extends Controller
         }
     }
 }
-

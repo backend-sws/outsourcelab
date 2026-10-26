@@ -81,9 +81,20 @@
                     </div>
                     <div class="text-center p-2 border-l border-slate-200">
                         <span class="text-[10px] text-gray-400 uppercase font-bold tracking-wider block">Collection</span>
-                        <span class="text-xs font-bold text-emerald-700 mt-1 flex items-center justify-center gap-1">
-                            <i class="fas fa-house-medical"></i> Free at Home
-                        </span>
+                        @php
+                            $feeEnabled = \App\Models\Setting::get('collection_fee_enabled', '1') == '1';
+                            $feeThreshold = (float) \App\Models\Setting::get('free_collection_threshold', '500');
+                            $isPackageFree = ! $feeEnabled || ((float) $package->price >= $feeThreshold);
+                        @endphp
+                        @if($isPackageFree)
+                            <span class="text-xs font-bold text-emerald-700 mt-1 flex items-center justify-center gap-1">
+                                <i class="fas fa-house-medical"></i> Free at Home
+                            </span>
+                        @else
+                            <span class="text-xs font-bold text-teal-800 mt-1 flex items-center justify-center gap-1" title="Free on orders above ₹{{ number_format($feeThreshold, 0) }}">
+                                <i class="fas fa-truck-medical"></i> Home Pickup <span class="text-[10px] text-slate-500 font-semibold hidden sm:inline">(Free &ge; ₹{{ number_format($feeThreshold, 0) }})</span>
+                            </span>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -95,7 +106,7 @@
                         <i class="fas fa-location-dot text-teal-700"></i>
                         <span>Check Sample Collection Availability</span>
                     </h3>
-                    <p class="text-xs text-gray-500 mt-0.5">Enter your 6-digit area pincode to verify free home pickup slots.</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Enter your 6-digit area pincode to verify home pickup slots.</p>
                 </div>
                 <div class="w-full sm:w-auto">
                     <label for="checkPincodeInput" class="block text-[11px] font-bold text-teal-950 uppercase tracking-wider mb-1">
@@ -336,7 +347,11 @@
 
         if (serviceableArray.includes(code)) {
             res.className = 'text-xs font-semibold px-4 py-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200';
-            res.innerHTML = `<i class="fas fa-circle-check text-emerald-600 mr-1.5"></i> Great news! <strong>Free Home Sample Collection</strong> is available tomorrow at 6:30 AM in pincode <strong>${code}</strong>.`;
+            @if($isPackageFree)
+            res.innerHTML = `<i class="fas fa-circle-check text-emerald-600 mr-1.5"></i> Great news! <strong>Free Home Sample Collection</strong> is available tomorrow in pincode <strong>${code}</strong>.`;
+            @else
+            res.innerHTML = `<i class="fas fa-circle-check text-emerald-600 mr-1.5"></i> Great news! <strong>Home Sample Collection</strong> is available in pincode <strong>${code}</strong> (Free on cart above ₹{{ number_format($feeThreshold, 0) }}).`;
+            @endif
         } else {
             res.className = 'text-xs font-semibold px-4 py-2.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200';
             res.innerHTML = `<i class="fas fa-info-circle text-teal-600 mr-1.5"></i> Pincode <strong>${code}</strong> is currently served on priority phone booking. Proceed to checkout or call support.`;

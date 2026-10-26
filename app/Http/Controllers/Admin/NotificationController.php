@@ -174,11 +174,12 @@ class NotificationController extends Controller
      */
     public function unreadFeed(): JsonResponse
     {
-        $query = NotificationLog::where(function ($q) {
-            $q->where('recipient_name', 'Admin')
-                ->orWhere('notifiable_type', User::class)
-                ->orWhere('channel', 'in_app');
-        })->latest();
+        $query = NotificationLog::where('channel', 'in_app')
+            ->where(function ($q) {
+                $q->where('recipient_name', 'Admin')
+                    ->orWhere('notifiable_type', User::class)
+                    ->orWhereNull('notifiable_type');
+            })->latest();
 
         $unreadCount = (clone $query)->whereNull('read_at')->count();
         $notifications = $query->take(8)->get()->map(function ($notif) {
@@ -212,11 +213,12 @@ class NotificationController extends Controller
                 $notif->markAsRead();
             }
         } else {
-            NotificationLog::where(function ($q) {
-                $q->where('recipient_name', 'Admin')
-                    ->orWhere('notifiable_type', User::class)
-                    ->orWhere('channel', 'in_app');
-            })->whereNull('read_at')->update(['read_at' => now()]);
+            NotificationLog::where('channel', 'in_app')
+                ->where(function ($q) {
+                    $q->where('recipient_name', 'Admin')
+                        ->orWhere('notifiable_type', User::class)
+                        ->orWhereNull('notifiable_type');
+                })->whereNull('read_at')->update(['read_at' => now()]);
         }
 
         if ($request->wantsJson()) {

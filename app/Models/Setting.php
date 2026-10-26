@@ -173,7 +173,7 @@ class Setting extends Model
             return static::getDefaultBannerImages();
         }
 
-        if (!empty($raw)) {
+        if (! empty($raw)) {
             $decoded = is_array($raw) ? $raw : json_decode($raw, true);
             if (is_array($decoded)) {
                 return array_values($decoded);
@@ -202,6 +202,7 @@ class Setting extends Model
                 if (str_starts_with($img, 'http://') || str_starts_with($img, 'https://')) {
                     return $img;
                 }
+
                 return asset(ltrim($img, '/'));
             }, $rawBanners));
         }
@@ -216,10 +217,11 @@ class Setting extends Model
     public static function getLogoUrl(): string
     {
         $logo = static::get('site_logo');
-        if (!empty($logo)) {
+        if (! empty($logo)) {
             if (str_starts_with($logo, 'http://') || str_starts_with($logo, 'https://')) {
                 return $logo;
             }
+
             return asset(ltrim($logo, '/'));
         }
 
@@ -232,10 +234,11 @@ class Setting extends Model
     public static function getFaviconUrl(): string
     {
         $favicon = static::get('site_favicon');
-        if (!empty($favicon)) {
+        if (! empty($favicon)) {
             if (str_starts_with($favicon, 'http://') || str_starts_with($favicon, 'https://')) {
                 return $favicon;
             }
+
             return asset(ltrim($favicon, '/'));
         }
 
@@ -261,10 +264,10 @@ class Setting extends Model
         $videoId = null;
         $autoThumbnail = '';
 
-        if (!empty($uploadedFile)) {
+        if (! empty($uploadedFile)) {
             $type = 'html5';
             $embedUrl = asset(ltrim($uploadedFile, '/'));
-        } elseif (!empty($rawUrl)) {
+        } elseif (! empty($rawUrl)) {
             // Check YouTube: standard watch, youtu.be, shorts, embed
             if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i', $rawUrl, $matches)) {
                 $type = 'youtube';
@@ -285,7 +288,7 @@ class Setting extends Model
         }
 
         $customThumb = static::get('floating_video_thumbnail');
-        $resolvedThumb = !empty($customThumb)
+        $resolvedThumb = ! empty($customThumb)
             ? (str_starts_with($customThumb, 'http') ? $customThumb : asset(ltrim($customThumb, '/')))
             : $autoThumbnail;
 
@@ -307,5 +310,3 @@ class Setting extends Model
         ];
     }
 }
-
-

@@ -29,6 +29,7 @@ class PatientNotificationController extends Controller
 
         $query = NotificationLog::where('notifiable_type', Patient::class)
             ->where('notifiable_id', $patientId)
+            ->where('channel', 'in_app')
             ->latest();
 
         if ($request->get('filter') === 'unread') {
@@ -40,6 +41,7 @@ class PatientNotificationController extends Controller
         $notifications = $query->paginate(15)->withQueryString();
         $unreadCount = NotificationLog::where('notifiable_type', Patient::class)
             ->where('notifiable_id', $patientId)
+            ->where('channel', 'in_app')
             ->whereNull('read_at')
             ->count();
 
@@ -61,6 +63,7 @@ class PatientNotificationController extends Controller
 
         $query = NotificationLog::where('notifiable_type', Patient::class)
             ->where('notifiable_id', $patientId)
+            ->where('channel', 'in_app')
             ->latest();
 
         $unreadCount = (clone $query)->whereNull('read_at')->count();
@@ -97,6 +100,7 @@ class PatientNotificationController extends Controller
         if ($id) {
             $notif = NotificationLog::where('notifiable_type', Patient::class)
                 ->where('notifiable_id', $patientId)
+                ->where('channel', 'in_app')
                 ->where('id', $id)
                 ->first();
 
@@ -106,6 +110,7 @@ class PatientNotificationController extends Controller
         } else {
             NotificationLog::where('notifiable_type', Patient::class)
                 ->where('notifiable_id', $patientId)
+                ->where('channel', 'in_app')
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
         }

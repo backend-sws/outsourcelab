@@ -472,6 +472,24 @@ class NotificationService
         ?string $actionUrl = null,
     ): ?NotificationLog {
         try {
+            // Guard against duplicate in-app notifications created within 15 seconds
+            $recent = NotificationLog::where('channel', 'in_app')
+                ->where('event', $event)
+                ->where('subject', $title)
+                ->where('created_at', '>=', now()->subSeconds(15));
+
+            if ($notifiable) {
+                $recent->where('notifiable_type', get_class($notifiable))
+                    ->where('notifiable_id', $notifiable->id);
+            } else {
+                $recent->where('recipient_name', $recipientName);
+            }
+
+            $existing = $recent->first();
+            if ($existing) {
+                return $existing;
+            }
+
             return NotificationLog::create([
                 'notifiable_type' => $notifiable ? get_class($notifiable) : null,
                 'notifiable_id' => $notifiable?->id,

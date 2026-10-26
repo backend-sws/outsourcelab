@@ -110,7 +110,7 @@ class CityController extends Controller
             'sort_order' => (int) ($request->sort_order ?? ((City::max('sort_order') ?? 0) + 1)),
         ]);
 
-        return back()->with('success', "City '{$city->name}' with " . $city->pincodes_count . " pincode(s) created successfully.");
+        return back()->with('success', "City '{$city->name}' with ".$city->pincodes_count.' pincode(s) created successfully.');
     }
 
     /**
@@ -131,7 +131,7 @@ class CityController extends Controller
 
         $isDefault = $request->boolean('is_default', false);
 
-        if ($isDefault && !$city->is_default) {
+        if ($isDefault && ! $city->is_default) {
             City::where('is_default', true)->update(['is_default' => false]);
         }
 
@@ -160,7 +160,7 @@ class CityController extends Controller
     public function toggle(Request $request, int|string $id): RedirectResponse|JsonResponse
     {
         $city = City::findOrFail($id);
-        $city->is_active = !$city->is_active;
+        $city->is_active = ! $city->is_active;
         $city->save();
 
         $statusStr = $city->is_active ? 'Activated' : 'Disabled';

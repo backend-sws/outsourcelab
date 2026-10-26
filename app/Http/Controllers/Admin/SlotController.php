@@ -152,7 +152,7 @@ class SlotController extends Controller
     public function toggle(Request $request, int|string $id): RedirectResponse|JsonResponse
     {
         $slot = CollectionSlot::findOrFail($id);
-        $slot->is_active = !$slot->is_active;
+        $slot->is_active = ! $slot->is_active;
         $slot->save();
 
         $statusStr = $slot->is_active ? 'Activated' : 'Deactivated';

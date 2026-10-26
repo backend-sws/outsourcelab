@@ -15,9 +15,11 @@ use App\Models\PatientMembership;
 use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\Test;
+use App\Services\AutoAssignPhlebotomistService;
 use App\Services\NotificationService;
 use App\Services\PathologyApiService;
 use App\Services\RazorpayService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -194,8 +196,22 @@ class RazorpayController extends Controller
             }
         }
 
+        // Home Sample Collection Fee calculation (Approach 1: Threshold-based)
+        $collectionFee = 0;
+        $isHomeCollection = str_contains(strtolower((string) $collectionType), 'home');
+        if ($isHomeCollection) {
+            $isVip = ($purchasedPlan !== null) || ($activeVip !== null);
+            $collectionFeeEnabled = Setting::get('collection_fee_enabled', '1') == '1';
+            $standardCollectionFee = (float) Setting::get('home_collection_fee', '100');
+            $freeCollectionThreshold = (float) Setting::get('free_collection_threshold', '500');
+
+            if ($collectionFeeEnabled && ! $isVip && ($subtotalAfterVip < $freeCollectionThreshold)) {
+                $collectionFee = $standardCollectionFee;
+            }
+        }
+
         $totalDiscount = $vipDiscountAmount + $discountAmount + $coinsDiscount;
-        $finalAmount = max(1, round($subtotal - $totalDiscount + $membershipPrice, 2)); // Minimum 1 INR for payment gateway
+        $finalAmount = max(1, round($subtotal - $totalDiscount + $membershipPrice + $collectionFee, 2)); // Minimum 1 INR for payment gateway
 
         $coinsEarned = 0;
         if ($rewardEnabled && $finalAmount >= $minOrderToEarn) {
@@ -270,6 +286,23 @@ class RazorpayController extends Controller
             ], 422);
         }
 
+        // Server-side guard: Prevent booking if phlebotomist is off-duty in this area
+        if (str_contains(strtolower((string) $collectionType), 'home') && ! empty($addressId)) {
+            $selectedAddress = Address::find($addressId);
+            if ($selectedAddress && ! empty($selectedAddress->pincode)) {
+                $slotCheck = app(AutoAssignPhlebotomistService::class)->checkSlotAvailabilityForPincode($selectedAddress->pincode, $bookingDate);
+                if (! empty($slotCheck['slots'])) {
+                    $matchedSlot = collect($slotCheck['slots'])->firstWhere('title', $collectionSlot);
+                    if ($matchedSlot && ! $matchedSlot['is_available'] && ($matchedSlot['reason'] ?? '') === 'Phlebotomist off-duty in your area') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Phlebotomist is off-duty in your area for the selected slot. Please choose another slot or date.',
+                        ], 422);
+                    }
+                }
+            }
+        }
+
         // Guard against duplicate rapid clicks / requests
         $recentPendingBooking = Booking::where('patient_id', $patientId)
             ->where('payment_status', 'Pending')
@@ -282,6 +315,7 @@ class RazorpayController extends Controller
 
         if ($recentPendingBooking) {
             $existingTxn = PaymentTransaction::where('booking_id', $recentPendingBooking->id)->latest()->first();
+
             return response()->json([
                 'success' => true,
                 'key' => $razorpay->getKeyId(),
@@ -305,27 +339,59 @@ class RazorpayController extends Controller
             ]);
         }
 
-        // Create Pending Booking
-        $ref = 'BK-'.strtoupper(substr(uniqid(), -6));
-        $booking = Booking::create([
-            'booking_reference' => $ref,
-            'patient_id' => $patientId,
-            'family_member_id' => $familyMemberId,
-            'address_id' => $addressId,
-            'test_details' => $sanitizedCart,
-            'collection_type' => $collectionType,
-            'collection_slot' => $collectionSlot,
-            'amount' => $finalAmount,
-            'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
-            'discount_amount' => $totalDiscount,
-            'coins_redeemed' => $coinsRedeemed,
-            'coins_discount' => $coinsDiscount,
-            'coins_earned' => $coinsEarned,
-            'payment_method' => 'Online',
-            'payment_status' => 'Pending',
-            'status' => 'Booked',
-            'booking_date' => $bookingDate,
-        ]);
+        // Reuse existing uncompleted pending online booking if exists (prevents phantom duplicate rows)
+        $existingUnpaidBooking = Booking::where('patient_id', $patientId)
+            ->where('payment_method', 'Online')
+            ->where('payment_status', 'Pending')
+            ->whereNull('razorpay_payment_id')
+            ->where('created_at', '>=', now()->subHours(2))
+            ->latest()
+            ->first();
+
+        if ($existingUnpaidBooking) {
+            $booking = $existingUnpaidBooking;
+            $booking->update([
+                'family_member_id' => $familyMemberId,
+                'address_id' => $addressId,
+                'test_details' => $sanitizedCart,
+                'collection_type' => $collectionType,
+                'collection_slot' => $collectionSlot,
+                'amount' => $finalAmount,
+                'collection_fee' => $collectionFee,
+                'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
+                'discount_amount' => $totalDiscount,
+                'coins_redeemed' => $coinsRedeemed,
+                'coins_discount' => $coinsDiscount,
+                'coins_earned' => $coinsEarned,
+                'payment_method' => 'Online',
+                'payment_status' => 'Pending',
+                'status' => 'Pending',
+                'booking_date' => $bookingDate,
+            ]);
+        } else {
+            // Create Pending Booking only if no pending draft exists
+            $ref = 'BK-'.strtoupper(substr(uniqid(), -6));
+            $booking = Booking::create([
+                'booking_reference' => $ref,
+                'patient_id' => $patientId,
+                'family_member_id' => $familyMemberId,
+                'address_id' => $addressId,
+                'test_details' => $sanitizedCart,
+                'collection_type' => $collectionType,
+                'collection_slot' => $collectionSlot,
+                'amount' => $finalAmount,
+                'collection_fee' => $collectionFee,
+                'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
+                'discount_amount' => $totalDiscount,
+                'coins_redeemed' => $coinsRedeemed,
+                'coins_discount' => $coinsDiscount,
+                'coins_earned' => $coinsEarned,
+                'payment_method' => 'Online',
+                'payment_status' => 'Pending',
+                'status' => 'Pending',
+                'booking_date' => $bookingDate,
+            ]);
+        }
 
         // Create Payment Transaction log in 'created' status
         $txn = PaymentTransaction::create([
@@ -474,6 +540,7 @@ class RazorpayController extends Controller
         DB::transaction(function () use ($booking, $txn, $orderId, $paymentId, $signature, $method, $vpa, $bank, $wallet, $paymentDetails) {
             // Update Booking
             $booking->update([
+                'status' => 'Booked',
                 'payment_status' => 'Paid',
                 'payment_method' => 'Online',
                 'razorpay_order_id' => $orderId,
@@ -503,9 +570,7 @@ class RazorpayController extends Controller
                 if ($booking->coins_redeemed > 0) {
                     $patient->debitCoins($booking->coins_redeemed, "Redeemed on booking #{$booking->booking_reference}", $booking->id, $booking->coins_discount);
                 }
-                if ($booking->coins_earned > 0) {
-                    $patient->creditCoins($booking->coins_earned, "Earned from booking #{$booking->booking_reference}", $booking->id, round($booking->coins_earned * $coinValue, 2));
-                }
+                // Note: coins_earned is saved on booking and will be credited once booking status is Completed and Paid
 
                 // If VIP Plan was included in booking
                 if (is_array($booking->test_details)) {
@@ -555,6 +620,16 @@ class RazorpayController extends Controller
             }
         });
 
+        // Auto-assign phlebotomist for home collection if not already assigned
+        if (str_contains(strtolower((string) $booking->collection_type), 'home')) {
+            try {
+                app(AutoAssignPhlebotomistService::class)->assign($booking);
+                $booking->load('agent');
+            } catch (\Throwable $assignErr) {
+                Log::warning('AutoAssignPhlebotomistService failed in Razorpay verify for booking #'.$booking->id.': '.$assignErr->getMessage());
+            }
+        }
+
         // Push verified booking to Pathology SaaS LIS API
         try {
             $apiService = app(PathologyApiService::class);
@@ -582,6 +657,11 @@ class RazorpayController extends Controller
                     $targetMember = $booking->familyMember;
                     $targetAddress = $booking->address;
 
+                    $notes = "Website Order (Paid Online): #{$booking->booking_reference}";
+                    if ($booking->agent) {
+                        $notes .= " | Assigned Phlebo: {$booking->agent->name} ({$booking->agent->phone})";
+                    }
+
                     $lisPayload = [
                         'patient_name' => $targetMember?->name ?: ($patient?->name ?? 'Patient'),
                         'patient_phone' => $patient?->mobile ?? '',
@@ -594,7 +674,10 @@ class RazorpayController extends Controller
                         'preferred_date' => $booking->booking_date ? $booking->booking_date->toDateString() : now()->toDateString(),
                         'preferred_time_slot' => $booking->collection_slot ?: '08:00 AM - 10:00 AM',
                         'branch_id' => (int) config('pathology.default_branch_id', 1),
-                        'notes' => "Website Order (Paid Online): #{$booking->booking_reference}",
+                        'assigned_collector_name' => $booking->agent?->name,
+                        'assigned_collector_phone' => $booking->agent?->phone,
+                        'assigned_collector_id' => $booking->agent?->lis_collector_id,
+                        'notes' => $notes,
                         'items' => $lisItems,
                     ];
 
@@ -626,6 +709,12 @@ class RazorpayController extends Controller
             'message' => 'Payment verified successfully! Your diagnostic tests are booked.',
             'booking_reference' => $booking->booking_reference,
             'booking_id' => $booking->id,
+            'final_amount' => $booking->amount,
+            'collection_slot' => $booking->collection_slot,
+            'booking_date' => $booking->booking_date ? Carbon::parse($booking->booking_date)->format('D, d M Y') : now()->format('D, d M Y'),
+            'patient_name' => $booking->familyMember?->name ?: $booking->patient?->name,
+            'payment_method' => 'Online (Razorpay)',
+            'invoice_url' => route('patient.bookings.invoice', $booking->id),
             'redirect_url' => route('patient.bookings'),
         ]);
     }

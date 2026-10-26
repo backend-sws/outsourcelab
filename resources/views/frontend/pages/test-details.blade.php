@@ -360,9 +360,18 @@
                             <i class="fas fa-check-circle text-teal-600 text-sm"></i>
                             <span>Certified quality standard diagnostic testing</span>
                         </div>
+                        @php
+                            $feeEnabled = \App\Models\Setting::get('collection_fee_enabled', '1') == '1';
+                            $feeThreshold = (float) \App\Models\Setting::get('free_collection_threshold', '500');
+                            $isTestFree = ! $feeEnabled || ((float) $test->price >= $feeThreshold);
+                        @endphp
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-check-circle text-teal-600 text-sm"></i>
-                            <span>Free home sample collection available</span>
+                            @if($isTestFree)
+                                <span>Free home sample collection included</span>
+                            @else
+                                <span>Home sample collection available (Free on orders &ge; ₹{{ number_format($feeThreshold, 0) }})</span>
+                            @endif
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-check-circle text-teal-600 text-sm"></i>

@@ -545,7 +545,7 @@
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-cloud-sun mr-2"></i> Morning</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 @foreach($morningSlots as $slot)
-                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="{{ trim($slot->title) }}">{{ $slot->title }}</div>
                                 @endforeach
                             </div>
                         </div>
@@ -557,7 +557,7 @@
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-sun mr-2"></i> Afternoon</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 @foreach($afternoonSlots as $slot)
-                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="{{ trim($slot->title) }}">{{ $slot->title }}</div>
                                 @endforeach
                             </div>
                         </div>
@@ -569,11 +569,22 @@
                             <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-moon mr-2"></i> Evening</p>
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
                                 @foreach($eveningSlots as $slot)
-                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm">{{ $slot->title }}</div>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="{{ trim($slot->title) }}">{{ $slot->title }}</div>
                                 @endforeach
                             </div>
                         </div>
                         @endif
+
+                        <!-- Notice when phlebos are off or area has no slots -->
+                        <div id="phleboOffDutyNotice" class="hidden p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-slash text-rose-500 text-base flex-shrink-0"></i>
+                                <span id="phleboOffDutyNoticeText">Phlebotomist is off-duty in your area for the selected date. Please choose another date.</span>
+                            </div>
+                            <button type="button" onclick="selectTomorrowDate()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer flex-shrink-0 whitespace-nowrap">
+                                Try Tomorrow
+                            </button>
+                        </div>
 
                         <!-- Empty State Notice for Today if all slots have passed -->
                         <div id="noSlotsAvailableNotice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
@@ -947,6 +958,20 @@
 
                     <!-- Persistent Unified Order Bill Breakdown (Always Visible in Steps 1-4) -->
                     <div id="orderBillBreakdown" class="border border-slate-200/90 rounded-2xl overflow-hidden mb-4 bg-white shadow-sm">
+                        <!-- Free Collection Gamified Progress Banner -->
+                        <div id="freeCollectionProgressBarCard" class="p-3.5 bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50 border-b border-teal-100/90">
+                            <div class="flex items-center justify-between text-xs font-bold mb-1.5">
+                                <span class="text-teal-950 flex items-center gap-1.5">
+                                    <i class="fas fa-truck-medical text-teal-600"></i>
+                                    <span id="collectionProgressText">Checking collection fee...</span>
+                                </span>
+                                <span id="collectionProgressPercent" class="text-[11px] font-mono text-teal-700 font-black">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden shadow-inner">
+                                <div id="collectionProgressBarFill" class="bg-gradient-to-r from-teal-500 to-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+
                         <div class="p-4 sm:p-5 border-b border-slate-100 space-y-3">
                             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                                 <span class="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
@@ -981,11 +1006,14 @@
                                 <span class="font-black">-<span data-bill-vip-discount>₹0</span></span>
                             </div>
 
-                            <!-- Free Home Sample Collection -->
-                            <div class="flex justify-between text-sm font-medium text-slate-600">
-                                <span>Home Sample Collection</span>
-                                <span class="font-bold text-emerald-600 flex items-center gap-1">
-                                    <span class="line-through text-slate-400 text-xs font-normal">₹150</span>
+                            <!-- Home Sample Collection Row -->
+                            <div class="flex justify-between text-sm font-medium text-slate-600" id="billCollectionFeeRow">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fas fa-house-medical text-teal-600 text-xs"></i>
+                                    <span>Home Sample Collection</span>
+                                </span>
+                                <span id="billCollectionFeeValue" class="font-bold text-emerald-600 flex items-center gap-1">
+                                    <span class="line-through text-slate-400 text-xs font-normal">₹100</span>
                                     <span>FREE</span>
                                 </span>
                             </div>
@@ -1189,6 +1217,152 @@
     </div>
 </div>
 
+<!-- Booking Success Celebration Modal -->
+<style>
+@keyframes modalCheckmarkPop {
+    0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+    70% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes modalSparkleFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(10deg); }
+}
+.animate-checkmark-pop {
+    animation: modalCheckmarkPop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.animate-sparkle-float {
+    animation: modalSparkleFloat 3s ease-in-out infinite;
+}
+</style>
+
+<div id="bookingSuccessModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-300">
+        <!-- Festive Top Header -->
+        <div class="bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-950 text-white relative p-6 sm:p-7 text-center overflow-hidden">
+            <!-- Background Decorative Ambient Circles -->
+            <div class="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-emerald-400/20 blur-xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-teal-400/20 blur-xl"></div>
+            <div class="absolute top-4 right-6 text-xl animate-sparkle-float opacity-80">✨</div>
+            <div class="absolute bottom-6 left-6 text-lg animate-sparkle-float opacity-80" style="animation-delay: 1.2s;">🎉</div>
+
+            <!-- Animated Checkmark Badge -->
+            <div class="relative w-20 h-20 mx-auto mb-3.5">
+                <!-- Outer Pulse Ring -->
+                <div class="absolute inset-0 rounded-full bg-emerald-400/35 animate-ping"></div>
+                <!-- Inner Circle with Icon -->
+                <div class="relative w-20 h-20 rounded-full bg-white text-emerald-600 flex items-center justify-center shadow-xl shadow-teal-950/30 ring-4 ring-emerald-300/40 animate-checkmark-pop">
+                    <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-emerald-200 text-[11px] font-black uppercase tracking-wider mb-2 border border-white/15">
+                <i class="fas fa-certificate text-emerald-300"></i> Confirmed &amp; Scheduled
+            </span>
+            <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">Booking Successful! 🎉</h3>
+            <p class="text-xs sm:text-sm text-teal-100 mt-1 max-w-sm mx-auto font-medium">Your diagnostic sample collection appointment has been scheduled.</p>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="p-5 sm:p-6 space-y-4">
+            <!-- Booking Reference Card -->
+            <div class="bg-gradient-to-r from-teal-50/90 to-emerald-50/90 rounded-2xl p-4 border border-teal-200/80 flex items-center justify-between gap-3 shadow-2xs">
+                <div>
+                    <span class="text-[10px] uppercase font-black text-teal-900/60 tracking-wider block">Booking Reference ID</span>
+                    <span id="successModalBookingRef" class="text-lg font-black text-teal-950 font-mono tracking-wide">BK-XXXXXX</span>
+                </div>
+                <button type="button" onclick="copyBookingRef()" id="copyRefBtn" class="px-3 py-1.5 rounded-xl bg-white hover:bg-teal-100/60 text-teal-900 border border-teal-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                    <i class="far fa-copy text-xs text-teal-600"></i>
+                    <span id="copyRefBtnText">Copy</span>
+                </button>
+            </div>
+
+            <!-- Key Summary Details Grid -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <!-- Appointment Slot -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Appointment Slot</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fas fa-calendar-check text-teal-600 text-[11px]"></i>
+                        <span id="successModalSlot" class="truncate">Today • 07:00 AM</span>
+                    </div>
+                </div>
+
+                <!-- Patient Name -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Patient Name</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5 truncate">
+                        <i class="fas fa-user-check text-indigo-600 text-[11px]"></i>
+                        <span id="successModalPatient" class="truncate">Self</span>
+                    </div>
+                </div>
+
+                <!-- Collection Location -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Collection Mode</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fas fa-house-medical text-emerald-600 text-[11px]"></i>
+                        <span>Home Sample Pickup</span>
+                    </div>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Amount / Payment</span>
+                    <div class="font-black text-slate-900 flex items-center gap-1.5">
+                        <i class="fas fa-wallet text-amber-500 text-[11px]"></i>
+                        <span id="successModalAmount">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What's Next 3-Step Pill Road -->
+            <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200 text-slate-600 space-y-2 text-[11px]">
+                <div class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                    <i class="fas fa-route text-teal-600"></i> Next Steps Timeline
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-[10px] pt-1">
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-teal-50 text-teal-700 font-black flex items-center justify-center text-[10px]">1</div>
+                        <p class="font-bold text-slate-700 leading-tight">Phlebo Dispatched</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">Certified agent arrives at slot</p>
+                    </div>
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-emerald-50 text-emerald-700 font-black flex items-center justify-center text-[10px]">2</div>
+                        <p class="font-bold text-slate-700 leading-tight">Cold-Chain Vials</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">Sealed sample transported</p>
+                    </div>
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-[10px]">3</div>
+                        <p class="font-bold text-slate-700 leading-tight">Fast Report</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">PDF on WhatsApp &amp; Portal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+                <a id="successModalViewBookingsBtn" href="{{ route('patient.bookings') }}" class="flex-1 bg-teal-800 hover:bg-teal-900 text-white font-black py-3.5 px-4 rounded-2xl shadow-lg shadow-teal-900/15 text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer">
+                    <span>View My Bookings</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+                <a id="successModalInvoiceBtn" href="#" class="bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition cursor-pointer">
+                    <i class="fas fa-file-invoice text-teal-700"></i>
+                    <span>Download Invoice</span>
+                </a>
+            </div>
+
+            <!-- Auto Redirect Notice -->
+            <p class="text-center text-[11px] text-slate-400 font-medium">
+                Redirecting to your bookings dashboard in <span id="successRedirectCountdown" class="font-bold text-teal-800 font-mono">10</span> seconds...
+            </p>
+        </div>
+    </div>
+</div>
+
     <script id="checkout-patient-data" type="application/json">
         {!! json_encode([
             'patientId' => (string)($patient->id ?? session('patient_id', '')),
@@ -1216,6 +1390,11 @@
                 'max_redeem_value' => 20,
                 'min_order_to_redeem' => 200,
                 'min_coins_to_redeem' => 10,
+            ],
+            'collectionFeeSettings' => $collectionFeeSettings ?? [
+                'enabled' => true,
+                'fee' => 100,
+                'threshold' => 500,
             ],
             'serverCart' => $patient->cart ?? []
         ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
@@ -1864,7 +2043,73 @@
             }
         }
 
-        let payable = Math.max(0, subtotalAfterCoupon - coinsDiscount + vipPlanPrice);
+        // 4. Collection Fee Calculation (Approach 1: Threshold-based)
+        const collectionConfig = checkoutPatientMeta.collectionFeeSettings || { enabled: true, fee: 100, threshold: 500 };
+        let collectionFee = 0;
+        let isVipActive = !!(existingPatientVip || selectedVipPlan);
+        let feeValEl = document.getElementById('billCollectionFeeValue');
+        let progressCard = document.getElementById('freeCollectionProgressBarCard');
+        let progressText = document.getElementById('collectionProgressText');
+        let progressPercent = document.getElementById('collectionProgressPercent');
+        let progressBarFill = document.getElementById('collectionProgressBarFill');
+
+        if (collectionConfig.enabled && !isVipActive) {
+            if (subtotalAfterVip < collectionConfig.threshold) {
+                collectionFee = collectionConfig.fee;
+                if (feeValEl) {
+                    feeValEl.innerHTML = `<span class="font-bold text-slate-900">+₹${collectionFee.toLocaleString('en-IN')}</span>`;
+                }
+                if (progressCard) {
+                    progressCard.classList.remove('hidden');
+                    let diff = Math.max(0, collectionConfig.threshold - subtotalAfterVip);
+                    let pct = Math.min(100, Math.max(0, Math.round((subtotalAfterVip / collectionConfig.threshold) * 100)));
+                    if (progressText) progressText.innerHTML = `Add <strong class="text-teal-900 font-black">₹${diff.toLocaleString('en-IN')}</strong> more for <strong class="text-emerald-700">FREE Home Collection</strong>!`;
+                    if (progressPercent) progressPercent.innerText = pct + '%';
+                    if (progressBarFill) {
+                        progressBarFill.style.width = pct + '%';
+                        progressBarFill.className = 'bg-gradient-to-r from-teal-500 to-amber-500 h-2 rounded-full transition-all duration-500';
+                    }
+                }
+            } else {
+                collectionFee = 0;
+                if (feeValEl) {
+                    feeValEl.innerHTML = `<span class="line-through text-slate-400 text-xs font-normal">₹${collectionConfig.fee}</span> <span class="font-bold text-emerald-600">FREE</span>`;
+                }
+                if (progressCard) {
+                    progressCard.classList.remove('hidden');
+                    if (progressText) progressText.innerHTML = `🎉 <strong>Congratulations!</strong> You unlocked <strong>FREE Home Sample Collection</strong>!`;
+                    if (progressPercent) progressPercent.innerText = '100%';
+                    if (progressBarFill) {
+                        progressBarFill.style.width = '100%';
+                        progressBarFill.className = 'bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-500';
+                    }
+                }
+            }
+        } else if (isVipActive) {
+            collectionFee = 0;
+            if (feeValEl) {
+                feeValEl.innerHTML = `<span class="line-through text-slate-400 text-xs font-normal">₹${collectionConfig.fee}</span> <span class="font-bold text-emerald-600">FREE (VIP)</span>`;
+            }
+            if (progressCard) {
+                progressCard.classList.remove('hidden');
+                if (progressText) progressText.innerHTML = `👑 <strong class="text-amber-800 font-black">VIP Pass Active:</strong> 100% Free Home Sample Collection Unlocked!`;
+                if (progressPercent) progressPercent.innerText = 'VIP';
+                if (progressBarFill) {
+                    progressBarFill.style.width = '100%';
+                    progressBarFill.className = 'bg-gradient-to-r from-amber-400 to-amber-600 h-2 rounded-full transition-all duration-500';
+                }
+            }
+        } else {
+            collectionFee = 0;
+            if (feeValEl) {
+                feeValEl.innerHTML = `<span class="font-bold text-emerald-600">FREE</span>`;
+            }
+            if (progressCard) {
+                progressCard.classList.add('hidden');
+            }
+        }
+
+        let payable = Math.max(0, subtotalAfterCoupon - coinsDiscount + vipPlanPrice + collectionFee);
 
         // Calculate coins earned on this order
         let coinsToEarn = 0;
@@ -1895,7 +2140,8 @@
         let labDiscount = Math.max(0, totalMrp - subtotal);
         document.querySelectorAll('[data-bill-mrp-savings]').forEach(el => el.innerText = '-₹' + labDiscount.toLocaleString('en-IN'));
 
-        let totalOverallSavings = labDiscount + discount + vipDiscount + coinsDiscount + 150 + 299;
+        let savedCollectionFee = (collectionFee === 0) ? (collectionConfig.fee || 100) : 0;
+        let totalOverallSavings = labDiscount + discount + vipDiscount + coinsDiscount + savedCollectionFee + 299;
         document.querySelectorAll('#totalSavingsValueText').forEach(el => el.innerText = '₹' + totalOverallSavings.toLocaleString('en-IN'));
 
         // Update discount rows
@@ -1966,10 +2212,13 @@
         if (isBookingInProgress) {
             return;
         }
+        isBookingInProgress = true;
+        setPaymentButtonsState(true, 'Validating...');
 
         let cart = getCheckoutCart();
         if (cart.length === 0) {
             alert('Your cart is empty!');
+            setPaymentButtonsState(false);
             return;
         }
 
@@ -1979,6 +2228,7 @@
             let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
             if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
                 alert('Patient Full Name is required to place your booking.');
+                setPaymentButtonsState(false);
                 goToStep(2);
                 document.getElementById('checkoutPatientNameInput')?.focus();
                 return;
@@ -1988,6 +2238,7 @@
         // Validate Address
         if (!window.selectedAddressId) {
             alert('Sample collection address is required to place your booking. Please add an address.');
+            setPaymentButtonsState(false);
             goToStep(3);
             if (typeof window.openAddAddressModal === 'function') {
                 window.openAddAddressModal();
@@ -2003,6 +2254,7 @@
         let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
         if (!activeSlotEl) {
             alert('Please select an available collection time slot.');
+            setPaymentButtonsState(false);
             goToStep(3);
             return;
         }
@@ -2038,11 +2290,12 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Clear cart from localStorage
+                // Clear cart from localStorage & server
                 localStorage.removeItem(checkoutCartKey);
                 localStorage.removeItem('cart_guest');
-                // Redirect to bookings
-                window.location.href = "{{ route('patient.bookings') }}";
+                updateCartBadge();
+                // Show celebratory success modal
+                showBookingSuccessModal(data, 'Pay on Collection (Cash)');
             } else {
                 alert('Booking notice: ' + (data.message || 'Unknown error'));
                 setPaymentButtonsState(false);
@@ -2058,10 +2311,13 @@
         if (isBookingInProgress) {
             return;
         }
+        isBookingInProgress = true;
+        setPaymentButtonsState(true, 'Initializing...');
 
         let cart = getCheckoutCart();
         if (cart.length === 0) {
             alert('Your cart is empty!');
+            setPaymentButtonsState(false);
             return;
         }
 
@@ -2071,6 +2327,7 @@
             let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
             if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
                 alert('Patient Full Name is required to place your booking.');
+                setPaymentButtonsState(false);
                 goToStep(2);
                 document.getElementById('checkoutPatientNameInput')?.focus();
                 return;
@@ -2080,6 +2337,7 @@
         // Validate Address
         if (!window.selectedAddressId) {
             alert('Sample collection address is required to place your booking. Please add an address.');
+            setPaymentButtonsState(false);
             goToStep(3);
             if (typeof window.openAddAddressModal === 'function') {
                 window.openAddAddressModal();
@@ -2095,6 +2353,7 @@
         let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
         if (!activeSlotEl) {
             alert('Please select an available collection time slot.');
+            setPaymentButtonsState(false);
             goToStep(3);
             return;
         }
@@ -2103,8 +2362,6 @@
         // Parse slot start time for full datetime
         let slotStart = selectedSlot.split('-')[0].trim();
         let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
-
-        setPaymentButtonsState(true, 'Initializing...');
 
         fetch("{{ route('razorpay.order.create') }}", {
             method: 'POST',
@@ -2164,7 +2421,9 @@
                         if (vData.success) {
                             localStorage.removeItem(checkoutCartKey);
                             localStorage.removeItem('cart_guest');
-                            window.location.href = vData.redirect_url || "{{ route('patient.bookings') }}";
+                            updateCartBadge();
+                            // Show celebratory success modal
+                            showBookingSuccessModal(vData, 'Online (Razorpay)');
                         } else {
                             alert('Payment verification error: ' + (vData.message || 'Please contact customer support.'));
                             window.location.href = "{{ route('patient.bookings') }}";
@@ -2177,7 +2436,9 @@
                 },
                 modal: {
                     ondismiss: function () {
-                        setPaymentButtonsState(false);
+                        setTimeout(() => {
+                            setPaymentButtonsState(false);
+                        }, 400);
                     }
                 }
             };
@@ -2195,6 +2456,97 @@
             setPaymentButtonsState(false);
         });
     }
+
+    // --- Booking Success Modal & Celebration Logic ---
+    let successCountdownInterval = null;
+
+    function showBookingSuccessModal(data, paymentMode) {
+        let modal = document.getElementById('bookingSuccessModal');
+        if (!modal) {
+            window.location.href = "{{ route('patient.bookings') }}";
+            return;
+        }
+
+        // Set Booking Reference
+        let ref = data.booking_reference || (data.booking_id ? ('BK-' + data.booking_id) : 'BK-CONFIRMED');
+        let refEl = document.getElementById('successModalBookingRef');
+        if (refEl) refEl.innerText = ref;
+
+        // Set Slot and Date
+        let slotEl = document.getElementById('successModalSlot');
+        if (slotEl) {
+            let slotText = data.collection_slot || 'Morning Slot';
+            let dateText = data.booking_date || 'Upcoming';
+            slotEl.innerText = dateText + ' • ' + slotText;
+        }
+
+        // Set Patient Name
+        let patientEl = document.getElementById('successModalPatient');
+        if (patientEl) {
+            patientEl.innerText = data.patient_name || "{{ $patient->name ?? 'Patient' }}";
+        }
+
+        // Set Amount and Payment Mode
+        let amountEl = document.getElementById('successModalAmount');
+        if (amountEl) {
+            let amt = data.final_amount !== undefined ? data.final_amount : 0;
+            let mode = paymentMode || data.payment_method || 'Confirmed';
+            amountEl.innerText = '₹' + Number(amt).toLocaleString('en-IN') + ' (' + mode + ')';
+        }
+
+        // Set Invoice URL
+        let invoiceBtn = document.getElementById('successModalInvoiceBtn');
+        if (invoiceBtn) {
+            if (data.invoice_url) {
+                invoiceBtn.href = data.invoice_url;
+                invoiceBtn.classList.remove('hidden');
+            } else if (data.booking_id) {
+                invoiceBtn.href = '/patient/bookings/' + data.booking_id + '/invoice';
+                invoiceBtn.classList.remove('hidden');
+            } else {
+                invoiceBtn.classList.add('hidden');
+            }
+        }
+
+        // Display modal
+        modal.classList.remove('hidden');
+
+        // Countdown timer for automatic transition
+        let secondsLeft = 10;
+        let countEl = document.getElementById('successRedirectCountdown');
+        if (countEl) countEl.innerText = secondsLeft;
+
+        if (successCountdownInterval) clearInterval(successCountdownInterval);
+        successCountdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (countEl) countEl.innerText = secondsLeft;
+            if (secondsLeft <= 0) {
+                clearInterval(successCountdownInterval);
+                window.location.href = "{{ route('patient.bookings') }}";
+            }
+        }, 1000);
+    }
+    window.showBookingSuccessModal = showBookingSuccessModal;
+
+    function copyBookingRef() {
+        let refEl = document.getElementById('successModalBookingRef');
+        if (!refEl) return;
+        let text = refEl.innerText.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            let btnText = document.getElementById('copyRefBtnText');
+            if (btnText) {
+                btnText.innerText = 'Copied!';
+                setTimeout(() => { btnText.innerText = 'Copy'; }, 2000);
+            }
+        }).catch(() => {
+            let btnText = document.getElementById('copyRefBtnText');
+            if (btnText) {
+                btnText.innerText = 'Copied!';
+                setTimeout(() => { btnText.innerText = 'Copy'; }, 2000);
+            }
+        });
+    }
+    window.copyBookingRef = copyBookingRef;
 
 
     @php
@@ -2664,6 +3016,9 @@
             successEl.classList.remove('hidden');
             isPincodeVerified = true;
             document.getElementById('addressAndSlotSection').classList.remove('hidden');
+            if (typeof filterSlotsForSelectedDate === 'function') {
+                filterSlotsForSelectedDate();
+            }
             updateUI(); // Unlock next button
         } else {
             errorEl.classList.remove('hidden');
@@ -2775,7 +3130,42 @@
     }
     window.getTodayDateYmd = getTodayDateYmd;
 
-    // Filter Slots dynamically for the currently selected collection date
+    let currentSlotCheckAbort = null;
+
+    // Synchronize slot section headers (Morning, Afternoon, Evening) based on visible slots
+    function syncSlotSectionsVisibility() {
+        let hasAnyVisible = false;
+        document.querySelectorAll('.slot-section').forEach(section => {
+            const visibleCount = section.querySelectorAll('.slot-item:not(.hidden)').length;
+            if (visibleCount === 0) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                hasAnyVisible = true;
+            }
+        });
+
+        // Ensure one visible slot is actively selected
+        const currentActiveVisible = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!currentActiveVisible && hasAnyVisible) {
+            const firstVisible = document.querySelector('.slot-item:not(.hidden)');
+            if (firstVisible) {
+                firstVisible.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                firstVisible.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            }
+        }
+
+        const activeDateEl = document.querySelector('.date-item.active-date');
+        const selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : getTodayDateYmd();
+        const isToday = (selectedDateYmd === getTodayDateYmd());
+
+        if (!hasAnyVisible && isToday) {
+            document.getElementById('noSlotsAvailableNotice')?.classList.remove('hidden');
+        }
+    }
+    window.syncSlotSectionsVisibility = syncSlotSectionsVisibility;
+
+    // Filter Slots dynamically for the currently selected collection date and area pincode
     function filterSlotsForSelectedDate() {
         const activeDateEl = document.querySelector('.date-item.active-date');
         const selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : getTodayDateYmd();
@@ -2785,52 +3175,113 @@
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
+        const pincodeVal = (document.getElementById('pincodeInput')?.value || '').trim();
+
         const noSlotsNotice = document.getElementById('noSlotsAvailableNotice');
         if (noSlotsNotice) noSlotsNotice.classList.add('hidden');
+        const offDutyNotice = document.getElementById('phleboOffDutyNotice');
+        if (offDutyNotice) offDutyNotice.classList.add('hidden');
 
         const slotItems = document.querySelectorAll('.slot-item');
-        let hasAnyVisibleSlot = false;
 
+        // 1. Initial client-side filter based on elapsed time if date is today
         slotItems.forEach(item => {
-            const slotText = item.innerText.trim();
+            const slotText = (item.getAttribute('data-slot-title') || item.innerText).trim();
             const startStr = slotText.split('-')[0].trim();
             const startMinutes = parseSlotTimeToMinutes(startStr);
 
-            // If selected date is today and slot start time has already passed
             if (isToday && startMinutes !== null && startMinutes <= currentMinutes) {
                 item.classList.add('hidden');
-                // Remove active styling if this slot was previously selected
+                item.setAttribute('data-time-passed', 'true');
                 item.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
                 item.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
             } else {
                 item.classList.remove('hidden');
-                hasAnyVisibleSlot = true;
+                item.removeAttribute('data-time-passed');
             }
         });
 
-        // Hide or show slot section headers (Morning, Afternoon, Evening) based on visible slots
-        document.querySelectorAll('.slot-section').forEach(section => {
-            const visibleCount = section.querySelectorAll('.slot-item:not(.hidden)').length;
-            if (visibleCount === 0) {
-                section.classList.add('hidden');
-            } else {
-                section.classList.remove('hidden');
+        // 2. Query area-wise phlebotomist availability and leave records
+        if (pincodeVal && pincodeVal.length >= 6) {
+            if (currentSlotCheckAbort) {
+                currentSlotCheckAbort.abort();
             }
-        });
+            currentSlotCheckAbort = new AbortController();
 
-        // Ensure one visible slot is actively selected
-        const currentActiveVisible = document.querySelector('.slot-item.active-slot:not(.hidden)');
-        if (!currentActiveVisible && hasAnyVisibleSlot) {
-            const firstVisible = document.querySelector('.slot-item:not(.hidden)');
-            if (firstVisible) {
-                firstVisible.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
-                firstVisible.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
-            }
-        }
+            fetch("{{ route('checkout.check_slots') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ pincode: pincodeVal, date: selectedDateYmd }),
+                signal: currentSlotCheckAbort.signal
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.serviceable) {
+                    slotItems.forEach(item => item.classList.add('hidden'));
+                    if (offDutyNotice) {
+                        const noticeText = document.getElementById('phleboOffDutyNoticeText');
+                        if (noticeText) noticeText.innerText = data.message || 'Home collection is currently not serviceable in this area.';
+                        offDutyNotice.classList.remove('hidden');
+                    }
+                    syncSlotSectionsVisibility();
+                    return;
+                }
 
-        // If today has 0 remaining slots, display the empty notice
-        if (!hasAnyVisibleSlot && isToday) {
-            if (noSlotsNotice) noSlotsNotice.classList.remove('hidden');
+                const slotMap = {};
+                if (Array.isArray(data.slots)) {
+                    data.slots.forEach(s => {
+                        slotMap[s.title.trim()] = s;
+                    });
+                }
+
+                let hasAnyAvailableSlot = false;
+
+                slotItems.forEach(item => {
+                    const title = (item.getAttribute('data-slot-title') || item.innerText).trim();
+                    const slotData = slotMap[title];
+
+                    // If time already passed for today, keep it hidden
+                    if (item.getAttribute('data-time-passed') === 'true') {
+                        return;
+                    }
+
+                    // Requirement 14: If phlebotomist is on leave/off or slot is full, do not show the slot
+                    if (slotData && slotData.is_available === false) {
+                        item.classList.add('hidden');
+                        item.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                        item.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+                    } else {
+                        item.classList.remove('hidden');
+                        hasAnyAvailableSlot = true;
+                    }
+                });
+
+                syncSlotSectionsVisibility();
+
+                if (!hasAnyAvailableSlot) {
+                    if (isToday) {
+                        if (noSlotsNotice) noSlotsNotice.classList.remove('hidden');
+                    } else {
+                        if (offDutyNotice) {
+                            const noticeText = document.getElementById('phleboOffDutyNoticeText');
+                            if (noticeText) noticeText.innerText = 'Phlebotomist is off-duty / on leave in your area for this date. Please select another date.';
+                            offDutyNotice.classList.remove('hidden');
+                        }
+                    }
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.warn('Slot availability check note:', err);
+                    syncSlotSectionsVisibility();
+                }
+            });
+        } else {
+            syncSlotSectionsVisibility();
         }
     }
     window.filterSlotsForSelectedDate = filterSlotsForSelectedDate;

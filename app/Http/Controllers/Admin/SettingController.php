@@ -9,6 +9,7 @@ use App\Services\PathologyApiService;
 use App\Services\PathologyCatalogSyncService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class SettingController extends Controller
@@ -28,11 +29,11 @@ class SettingController extends Controller
 
         // Explicitly remove file & banner keys from generic input array so they never overwrite existing values with null
         unset(
-            $inputs['site_logo'], 
-            $inputs['site_favicon'], 
-            $inputs['banner_images'], 
-            $inputs['existing_banners'], 
-            $inputs['reset_banners'], 
+            $inputs['site_logo'],
+            $inputs['site_favicon'],
+            $inputs['banner_images'],
+            $inputs['existing_banners'],
+            $inputs['reset_banners'],
             $inputs['banner_section_submitted'],
             $inputs['floating_video_file'],
             $inputs['floating_video_thumbnail'],
@@ -44,59 +45,59 @@ class SettingController extends Controller
         if ($request->hasFile('site_logo')) {
             $file = $request->file('site_logo');
             $extension = $file->getClientOriginalExtension() ?: 'png';
-            $filename = 'site_logo_' . time() . '.' . $extension;
+            $filename = 'site_logo_'.time().'.'.$extension;
 
             // Store to public disk
             $file->storeAs('branding', $filename, 'public');
 
             // Guarantee direct physical copy in public/storage/branding for immediate HTTP serving
             $publicBrandingDir = public_path('storage/branding');
-            if (!file_exists($publicBrandingDir)) {
+            if (! file_exists($publicBrandingDir)) {
                 @mkdir($publicBrandingDir, 0755, true);
             }
-            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+            @copy($file->getRealPath(), $publicBrandingDir.DIRECTORY_SEPARATOR.$filename);
 
-            Setting::set('site_logo', 'storage/branding/' . $filename, 'general', 'image');
+            Setting::set('site_logo', 'storage/branding/'.$filename, 'general', 'image');
         }
 
         if ($request->hasFile('site_favicon')) {
             $file = $request->file('site_favicon');
             $extension = $file->getClientOriginalExtension() ?: 'png';
-            $filename = 'site_favicon_' . time() . '.' . $extension;
+            $filename = 'site_favicon_'.time().'.'.$extension;
 
             // Store to public disk
             $file->storeAs('branding', $filename, 'public');
 
             // Guarantee direct physical copy in public/storage/branding for immediate HTTP serving
             $publicBrandingDir = public_path('storage/branding');
-            if (!file_exists($publicBrandingDir)) {
+            if (! file_exists($publicBrandingDir)) {
                 @mkdir($publicBrandingDir, 0755, true);
             }
-            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+            @copy($file->getRealPath(), $publicBrandingDir.DIRECTORY_SEPARATOR.$filename);
 
-            Setting::set('site_favicon', 'storage/branding/' . $filename, 'general', 'image');
+            Setting::set('site_favicon', 'storage/branding/'.$filename, 'general', 'image');
         }
 
         // Handle Multiple Homepage Hero Banner Images
         $newBanners = [];
         if ($request->hasFile('banner_images')) {
             $publicBannerDir = public_path('storage/banners');
-            if (!file_exists($publicBannerDir)) {
+            if (! file_exists($publicBannerDir)) {
                 @mkdir($publicBannerDir, 0755, true);
             }
 
             foreach ($request->file('banner_images') as $idx => $bannerFile) {
                 if ($bannerFile && $bannerFile->isValid()) {
                     $ext = $bannerFile->getClientOriginalExtension() ?: 'jpg';
-                    $filename = 'banner_' . time() . '_' . $idx . '_' . uniqid() . '.' . $ext;
+                    $filename = 'banner_'.time().'_'.$idx.'_'.uniqid().'.'.$ext;
 
                     // Store to public disk
                     $bannerFile->storeAs('banners', $filename, 'public');
 
                     // Direct copy for immediate web serving
-                    @copy($bannerFile->getRealPath(), $publicBannerDir . DIRECTORY_SEPARATOR . $filename);
+                    @copy($bannerFile->getRealPath(), $publicBannerDir.DIRECTORY_SEPARATOR.$filename);
 
-                    $newBanners[] = 'storage/banners/' . $filename;
+                    $newBanners[] = 'storage/banners/'.$filename;
                 }
             }
         }
@@ -106,7 +107,7 @@ class SettingController extends Controller
                 Setting::set('banner_images', json_encode(Setting::getDefaultBannerImages()), 'general', 'json');
             } else {
                 $existingBanners = $request->input('existing_banners', []);
-                if (!is_array($existingBanners)) {
+                if (! is_array($existingBanners)) {
                     $existingBanners = [];
                 }
                 $finalBanners = array_values(array_unique(array_merge($existingBanners, $newBanners)));
@@ -122,17 +123,17 @@ class SettingController extends Controller
         if ($request->hasFile('floating_video_file')) {
             $file = $request->file('floating_video_file');
             $extension = strtolower($file->getClientOriginalExtension() ?: 'mp4');
-            $filename = 'floating_video_' . time() . '_' . uniqid() . '.' . $extension;
+            $filename = 'floating_video_'.time().'_'.uniqid().'.'.$extension;
 
             $file->storeAs('videos', $filename, 'public');
 
             $publicVideosDir = public_path('storage/videos');
-            if (!file_exists($publicVideosDir)) {
+            if (! file_exists($publicVideosDir)) {
                 @mkdir($publicVideosDir, 0755, true);
             }
-            @copy($file->getRealPath(), $publicVideosDir . DIRECTORY_SEPARATOR . $filename);
+            @copy($file->getRealPath(), $publicVideosDir.DIRECTORY_SEPARATOR.$filename);
 
-            Setting::set('floating_video_file_path', 'storage/videos/' . $filename, 'video', 'video');
+            Setting::set('floating_video_file_path', 'storage/videos/'.$filename, 'video', 'video');
         } elseif ($request->boolean('delete_floating_video_file')) {
             $currentVideo = Setting::get('floating_video_file_path');
             if ($currentVideo) {
@@ -148,17 +149,17 @@ class SettingController extends Controller
         if ($request->hasFile('floating_video_thumbnail')) {
             $file = $request->file('floating_video_thumbnail');
             $extension = strtolower($file->getClientOriginalExtension() ?: 'jpg');
-            $filename = 'video_thumb_' . time() . '_' . uniqid() . '.' . $extension;
+            $filename = 'video_thumb_'.time().'_'.uniqid().'.'.$extension;
 
             $file->storeAs('branding', $filename, 'public');
 
             $publicBrandingDir = public_path('storage/branding');
-            if (!file_exists($publicBrandingDir)) {
+            if (! file_exists($publicBrandingDir)) {
                 @mkdir($publicBrandingDir, 0755, true);
             }
-            @copy($file->getRealPath(), $publicBrandingDir . DIRECTORY_SEPARATOR . $filename);
+            @copy($file->getRealPath(), $publicBrandingDir.DIRECTORY_SEPARATOR.$filename);
 
-            Setting::set('floating_video_thumbnail', 'storage/branding/' . $filename, 'video', 'image');
+            Setting::set('floating_video_thumbnail', 'storage/branding/'.$filename, 'video', 'image');
         } elseif ($request->boolean('delete_floating_video_thumb')) {
             $currentThumb = Setting::get('floating_video_thumbnail');
             if ($currentThumb) {
@@ -202,9 +203,14 @@ class SettingController extends Controller
                     'working_hours',
                     'company_legal_name',
                     'registered_address',
-                    'reference_lab_address'
+                    'reference_lab_address',
                 ]) => 'contact',
-                $key === 'serviceable_pincodes' => 'service',
+                in_array($key, [
+                    'serviceable_pincodes',
+                    'collection_fee_enabled',
+                    'home_collection_fee',
+                    'free_collection_threshold',
+                ]) => 'service',
                 default => 'general',
             };
 
@@ -212,7 +218,7 @@ class SettingController extends Controller
         }
 
         Setting::clearSettingCache();
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         NotificationService::applyMailConfig();
 
         return back()
@@ -301,4 +307,3 @@ class SettingController extends Controller
         ]);
     }
 }
-

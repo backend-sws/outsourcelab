@@ -12,16 +12,22 @@ use App\Models\Package;
 use App\Models\Patient;
 use App\Models\PatientCoupon;
 use App\Models\PatientMembership;
+use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\Test;
+use App\Services\AutoAssignPhlebotomistService;
 use App\Services\NotificationService;
 use App\Services\PathologyApiService;
+use App\Services\ReportPdfService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class PatientBookingController extends Controller
 {
@@ -220,8 +226,22 @@ class PatientBookingController extends Controller
             }
         }
 
+        // Home Sample Collection Fee calculation (Approach 1: Threshold-based)
+        $collectionFee = 0;
+        $isHomeCollection = str_contains(strtolower((string) $collectionType), 'home');
+        if ($isHomeCollection) {
+            $isVip = ($purchasedPlan !== null) || ($activeVip !== null);
+            $collectionFeeEnabled = Setting::get('collection_fee_enabled', '1') == '1';
+            $standardCollectionFee = (float) Setting::get('home_collection_fee', '100');
+            $freeCollectionThreshold = (float) Setting::get('free_collection_threshold', '500');
+
+            if ($collectionFeeEnabled && ! $isVip && ($subtotalAfterVip < $freeCollectionThreshold)) {
+                $collectionFee = $standardCollectionFee;
+            }
+        }
+
         $totalDiscount = $vipDiscountAmount + $discountAmount + $coinsDiscount;
-        $finalAmount = max(0, $subtotal - $totalDiscount + $membershipPrice);
+        $finalAmount = max(0, $subtotal - $totalDiscount + $membershipPrice + $collectionFee);
 
         // Calculate earned coins on this booking
         $coinsEarned = 0;
@@ -303,23 +323,68 @@ class PatientBookingController extends Controller
             ], 422);
         }
 
-        // Idempotency check: prevent duplicate bookings submitted within 20 seconds
+        // Server-side guard: Prevent booking if phlebotomist is off-duty in this area
+        if (str_contains(strtolower($collectionType), 'home') && ! empty($addressId)) {
+            $selectedAddress = Address::find($addressId);
+            if ($selectedAddress && ! empty($selectedAddress->pincode)) {
+                $slotCheck = app(AutoAssignPhlebotomistService::class)->checkSlotAvailabilityForPincode($selectedAddress->pincode, $bookingDate);
+                if (! empty($slotCheck['slots'])) {
+                    $matchedSlot = collect($slotCheck['slots'])->firstWhere('title', $collectionSlot);
+                    if ($matchedSlot && ! $matchedSlot['is_available'] && ($matchedSlot['reason'] ?? '') === 'Phlebotomist off-duty in your area') {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Phlebotomist is off-duty in your area for the selected slot. Please choose another slot or date.',
+                        ], 422);
+                    }
+                }
+            }
+        }
+
+        // Idempotency check: prevent duplicate bookings submitted within 30 seconds
         $recentDuplicate = Booking::where('patient_id', $patientId)
             ->where('amount', $finalAmount)
-            ->where('booking_date', $bookingDate)
-            ->where('created_at', '>=', now()->subSeconds(20))
+            ->where('collection_slot', $collectionSlot)
+            ->where('payment_method', 'Cash')
+            ->whereNotIn('status', ['Cancelled'])
+            ->where('created_at', '>=', now()->subSeconds(30))
+            ->latest()
             ->first();
 
         if ($recentDuplicate) {
+            Log::info("Duplicate placeBooking call suppressed for patient #{$patientId}, returning booking #{$recentDuplicate->booking_reference}");
+
             return response()->json([
                 'success' => true,
                 'booking_id' => $recentDuplicate->id,
                 'booking_reference' => $recentDuplicate->booking_reference,
                 'final_amount' => $recentDuplicate->amount,
+                'collection_fee' => $recentDuplicate->collection_fee,
                 'coins_redeemed' => $recentDuplicate->coins_redeemed ?? 0,
                 'coins_earned' => $recentDuplicate->coins_earned ?? 0,
+                'collection_slot' => $recentDuplicate->collection_slot,
+                'booking_date' => $recentDuplicate->booking_date ? Carbon::parse($recentDuplicate->booking_date)->format('D, d M Y') : now()->format('D, d M Y'),
+                'patient_name' => $beneficiaryName,
+                'payment_method' => $recentDuplicate->payment_method,
+                'invoice_url' => route('patient.bookings.invoice', $recentDuplicate->id),
                 'message' => 'Booking was already placed.',
             ]);
+        }
+
+        // Clean up any abandoned uncompleted online booking attempt from this patient (prevents duplicate ghost bookings if user opened Razorpay and switched to Cash)
+        $abandonedOnlineBookings = Booking::where('patient_id', $patientId)
+            ->where('payment_method', 'Online')
+            ->where('payment_status', 'Pending')
+            ->whereNull('razorpay_payment_id')
+            ->where('created_at', '>=', now()->subHours(2))
+            ->get();
+
+        foreach ($abandonedOnlineBookings as $abandoned) {
+            try {
+                PaymentTransaction::where('booking_id', $abandoned->id)->delete();
+                $abandoned->delete();
+            } catch (\Throwable $delErr) {
+                Log::warning('Cleanup abandoned online booking error: '.$delErr->getMessage());
+            }
         }
 
         // Generate unique booking reference
@@ -327,9 +392,9 @@ class PatientBookingController extends Controller
 
         $booking = DB::transaction(function () use (
             $ref, $patient, $patientId, $familyMemberId, $addressId, $sanitizedCart,
-            $collectionType, $collectionSlot, $finalAmount, $appliedCoupon,
+            $collectionType, $collectionSlot, $finalAmount, $collectionFee, $appliedCoupon,
             $vipDiscountAmount, $totalDiscount, $coinsRedeemed, $coinsDiscount,
-            $coinsEarned, $paymentMethod, $bookingDate, $coinValue, $purchasedPlan
+            $coinsEarned, $paymentMethod, $bookingDate, $purchasedPlan
         ) {
             $booking = Booking::create([
                 'booking_reference' => $ref,
@@ -340,6 +405,7 @@ class PatientBookingController extends Controller
                 'collection_type' => $collectionType,
                 'collection_slot' => $collectionSlot,
                 'amount' => $finalAmount,
+                'collection_fee' => $collectionFee,
                 'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
                 'discount_amount' => $totalDiscount,
                 'coins_redeemed' => $coinsRedeemed,
@@ -356,10 +422,7 @@ class PatientBookingController extends Controller
                 $patient->debitCoins($coinsRedeemed, "Redeemed on booking #{$ref}", $booking->id, $coinsDiscount);
             }
 
-            // Credit earned coins to patient
-            if ($coinsEarned > 0) {
-                $patient->creditCoins($coinsEarned, "Earned from booking #{$ref}", $booking->id, round($coinsEarned * $coinValue, 2));
-            }
+            // Note: coins_earned is recorded on the booking record and will be credited once booking is Completed and Paid
 
             // If VIP Membership was purchased, activate membership record
             if ($purchasedPlan) {
@@ -401,6 +464,16 @@ class PatientBookingController extends Controller
             return $booking;
         });
 
+        // Auto-assign phlebotomist for home collection based on pincode, date, and slot
+        if (str_contains(strtolower($collectionType), 'home')) {
+            try {
+                app(AutoAssignPhlebotomistService::class)->assign($booking);
+                $booking->load('agent');
+            } catch (\Throwable $assignErr) {
+                Log::warning('AutoAssignPhlebotomistService failed for booking #'.$booking->id.': '.$assignErr->getMessage());
+            }
+        }
+
         // Push order to Pathology SaaS LIS API
         try {
             $apiService = app(PathologyApiService::class);
@@ -425,6 +498,11 @@ class PatientBookingController extends Controller
                     $targetAddress = $addressId ? Address::find($addressId) : null;
                     $targetMember = $familyMemberId ? FamilyMember::find($familyMemberId) : null;
 
+                    $notes = "Website Order: #{$booking->booking_reference}";
+                    if ($booking->agent) {
+                        $notes .= " | Assigned Phlebo: {$booking->agent->name} ({$booking->agent->phone})";
+                    }
+
                     $lisPayload = [
                         'patient_name' => $targetMember?->name ?: $patient->name,
                         'patient_phone' => $patient->mobile,
@@ -437,7 +515,10 @@ class PatientBookingController extends Controller
                         'preferred_date' => date('Y-m-d', strtotime($bookingDate)),
                         'preferred_time_slot' => $collectionSlot ?: '08:00 AM - 10:00 AM',
                         'branch_id' => (int) config('pathology.default_branch_id', 1),
-                        'notes' => "Website Order: #{$booking->booking_reference}",
+                        'assigned_collector_name' => $booking->agent?->name,
+                        'assigned_collector_phone' => $booking->agent?->phone,
+                        'assigned_collector_id' => $booking->agent?->lis_collector_id,
+                        'notes' => $notes,
                         'items' => $lisItems,
                     ];
 
@@ -466,8 +547,14 @@ class PatientBookingController extends Controller
             'booking_id' => $booking->id,
             'booking_reference' => $booking->booking_reference,
             'final_amount' => $finalAmount,
+            'collection_fee' => $collectionFee,
             'coins_redeemed' => $coinsRedeemed,
             'coins_earned' => $coinsEarned,
+            'collection_slot' => $booking->collection_slot,
+            'booking_date' => $booking->booking_date ? Carbon::parse($booking->booking_date)->format('D, d M Y') : now()->format('D, d M Y'),
+            'patient_name' => $beneficiaryName,
+            'payment_method' => $paymentMethod,
+            'invoice_url' => route('patient.bookings.invoice', $booking->id),
         ]);
     }
 
@@ -793,5 +880,90 @@ class PatientBookingController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'Patient not found'], 404);
+    }
+
+    /**
+     * Securely download or stream the diagnostic report.
+     */
+    public function downloadReport(int $id)
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return redirect('/');
+        }
+
+        $booking = Booking::where('patient_id', $patientId)->findOrFail($id);
+        $downloadFileName = 'Report-'.($booking->booking_reference ?: $booking->id).'.pdf';
+
+        // 1. If report is an external URL (e.g. from Ojaselab / LIS or Cloud)
+        if (! empty($booking->report_file_path) && (str_starts_with($booking->report_file_path, 'http://') || str_starts_with($booking->report_file_path, 'https://'))) {
+            try {
+                $response = Http::timeout(10)->get($booking->report_file_path);
+                if ($response->successful()) {
+                    return response($response->body(), 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'attachment; filename="'.$downloadFileName.'"',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // If fetch fails, redirect
+                return redirect()->away($booking->report_file_path);
+            }
+
+            return redirect()->away($booking->report_file_path);
+        }
+
+        // 2. Local storage file handling
+        $cleanPath = ltrim((string) $booking->report_file_path, '/');
+        if (str_starts_with($cleanPath, 'storage/')) {
+            $cleanPath = substr($cleanPath, 8);
+        }
+
+        if (! empty($cleanPath) && Storage::disk('public')->exists($cleanPath)) {
+            return Storage::disk('public')->download($cleanPath, $downloadFileName, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$downloadFileName.'"',
+            ]);
+        }
+
+        // 3. Fallback: If public asset file exists
+        if (! empty($cleanPath) && file_exists(public_path('storage/'.$cleanPath))) {
+            return response()->download(public_path('storage/'.$cleanPath), $downloadFileName, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$downloadFileName.'"',
+            ]);
+        }
+
+        // 4. Resilient Fallback: If file is missing or not yet generated, generate it on the fly!
+        $pdfContent = ReportPdfService::generateForBooking($booking);
+
+        if (empty($cleanPath)) {
+            $cleanPath = "reports/booking-{$booking->id}/report-{$booking->id}.pdf";
+            $booking->update(['report_file_path' => $cleanPath]);
+        }
+
+        Storage::disk('public')->put($cleanPath, $pdfContent);
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$downloadFileName.'"',
+        ]);
+    }
+
+    /**
+     * Render the official booking tax invoice / bill for the patient.
+     */
+    public function invoice(int $id): View|RedirectResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return redirect('/');
+        }
+
+        $booking = Booking::with(['patient', 'familyMember', 'address', 'agent', 'latestPaymentTransaction'])
+            ->where('patient_id', $patientId)
+            ->findOrFail($id);
+
+        return view('patient.pages.invoice', compact('booking'));
     }
 }

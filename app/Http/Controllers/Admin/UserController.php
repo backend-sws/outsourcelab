@@ -142,4 +142,3 @@ class UserController extends Controller
         return redirect('/')->with('info', 'Exited patient dashboard.');
     }
 }
-

@@ -10,8 +10,11 @@ use App\Models\Patient;
 use App\Models\PatientCoupon;
 use App\Models\Setting;
 use App\Models\Test;
+use App\Services\AutoAssignPhlebotomistService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
@@ -96,6 +99,12 @@ class CheckoutController extends Controller
             ->get()
             ->groupBy('period');
 
+        $collectionFeeSettings = [
+            'enabled' => Setting::get('collection_fee_enabled', '1') == '1',
+            'fee' => (float) Setting::get('home_collection_fee', '100'),
+            'threshold' => (float) Setting::get('free_collection_threshold', '500'),
+        ];
+
         return view('frontend.pages.checkout', compact(
             'patient',
             'myCoupons',
@@ -106,7 +115,37 @@ class CheckoutController extends Controller
             'patientVipData',
             'allVipPlansData',
             'rewardSettings',
-            'collectionSlots'
+            'collectionSlots',
+            'collectionFeeSettings'
         ));
+    }
+
+    /**
+     * Check collection slot availability based on area pincode and selected date.
+     * Evaluates phlebotomist assignments, leaves/weekly offs, and slot capacity.
+     */
+    public function checkSlots(Request $request): JsonResponse
+    {
+        $pincode = trim((string) $request->input('pincode', ''));
+        $date = trim((string) $request->input('date', ''));
+
+        if (empty($pincode)) {
+            return response()->json([
+                'serviceable' => false,
+                'message' => 'Please provide a valid pincode.',
+                'slots' => [],
+            ], 422);
+        }
+
+        if (empty($date) || ! strtotime($date)) {
+            $date = now()->format('Y-m-d');
+        } else {
+            $date = date('Y-m-d', strtotime($date));
+        }
+
+        $service = app(AutoAssignPhlebotomistService::class);
+        $result = $service->checkSlotAvailabilityForPincode($pincode, $date);
+
+        return response()->json($result);
     }
 }

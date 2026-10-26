@@ -34,7 +34,7 @@ class City extends Model
         parent::boot();
 
         static::saving(function ($city) {
-            if (empty($city->slug) && !empty($city->name)) {
+            if (empty($city->slug) && ! empty($city->name)) {
                 $city->slug = Str::slug($city->name);
             }
         });
@@ -119,7 +119,7 @@ class City extends Model
 
         // Also merge with legacy Setting if exists
         $legacySetting = Setting::get('serviceable_pincodes', '');
-        if (!empty($legacySetting)) {
+        if (! empty($legacySetting)) {
             $legacyParts = preg_split('/[,\r\n]+/', $legacySetting);
             $pincodes = array_merge($pincodes, array_filter(array_map('trim', $legacyParts)));
         }

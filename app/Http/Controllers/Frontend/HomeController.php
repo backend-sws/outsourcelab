@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\City;
 use App\Models\Package;
 use App\Models\Review;
 use App\Models\Test;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
@@ -53,10 +56,10 @@ class HomeController extends Controller
     /**
      * Store selected city in user session.
      */
-    public function setCity(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    public function setCity(Request $request): JsonResponse
     {
         $cityId = $request->input('city_id');
-        $city = \App\Models\City::active()->find($cityId);
+        $city = City::active()->find($cityId);
 
         if ($city) {
             session([

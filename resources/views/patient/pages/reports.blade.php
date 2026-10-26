@@ -206,12 +206,12 @@
                                 <div class="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         @if($booking->report_file_path)
-                                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" target="_blank" download class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition">
+                                            <a href="{{ route('patient.bookings.download_report', $booking->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition">
                                                 <i class="fas fa-file-pdf"></i>
                                                 <span>Download PDF Report</span>
                                             </a>
-                                            <a href="{{ asset('storage/' . $booking->report_file_path) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 hover:border-teal-300 text-gray-700 hover:text-brand-dark font-extrabold text-xs rounded-xl transition shadow-2xs">
-                                                <i class="far fa-eye"></i>
+                                            <a href="{{ $booking->report_url }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 hover:border-teal-300 text-gray-700 hover:text-brand-dark font-extrabold text-xs rounded-xl transition shadow-2xs">
+                                                <i class="far fa-eye text-teal-700"></i>
                                                 <span>View Online</span>
                                             </a>
                                         @else
@@ -220,6 +220,11 @@
                                                 <span>Digital report undergoing final verification</span>
                                             </span>
                                         @endif
+
+                                        <a href="{{ route('patient.bookings.invoice', $booking->id) }}" target="_blank" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-950 border border-slate-200 hover:border-teal-300 font-extrabold text-xs rounded-xl transition shadow-2xs">
+                                            <i class="fas fa-file-invoice text-teal-700"></i>
+                                            <span>Download Invoice</span>
+                                        </a>
                                     </div>
 
                                     <div class="flex items-center gap-3">

@@ -46,7 +46,7 @@
                 <i class="fas fa-share-nodes"></i> Social Links
             </button>
             <button type="button" onclick="switchSettingsTab('pincodes')" class="settings-tab-btn px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/[0.04]" data-tab="pincodes">
-                <i class="fas fa-truck-medical"></i> Pincodes
+                <i class="fas fa-truck-medical text-teal-600"></i> Collection Fee & Pincodes
             </button>
 
             <!-- Gateways & API Credentials -->
@@ -560,9 +560,67 @@
                 </div>
             </div>
 
-            <!-- TAB 5: Serviceable Pincodes -->
-            <div id="settings-panel-pincodes" class="settings-tab-content space-y-5 hidden">
+            <!-- TAB 5: Serviceable Pincodes & Collection Fee -->
+            <div id="settings-panel-pincodes" class="settings-tab-content space-y-6 hidden">
                 <input type="hidden" name="settings_group" value="service">
+
+                <!-- Collection Fee Configuration Card -->
+                <div class="p-5 rounded-2xl bg-gradient-to-r from-teal-500/10 via-emerald-500/5 to-slate-50 dark:to-white/[0.02] border border-teal-500/30">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black shadow-sm">
+                            <i class="fas fa-hand-holding-dollar text-base"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-slate-900 dark:text-white">Home Sample Collection Fee & Threshold</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Automate collection fees for low-value orders with a free delivery threshold.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 pt-3 border-t border-slate-200/80 dark:border-white/[0.08]">
+                        <!-- Collection Fee Enable/Disable -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Collection Fee Status</label>
+                            <select name="collection_fee_enabled" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 transition">
+                                <option value="1" {{ ($settings['collection_fee_enabled'] ?? '1') == '1' ? 'selected' : '' }}>Enabled (Threshold Rule Active)</option>
+                                <option value="0" {{ ($settings['collection_fee_enabled'] ?? '1') == '0' ? 'selected' : '' }}>Disabled (Always 100% Free)</option>
+                            </select>
+                        </div>
+
+                        <!-- Standard Collection Fee Amount -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Standard Collection Fee (₹)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-slate-400 font-bold text-sm">₹</span>
+                                <input type="number" step="1" min="0" name="home_collection_fee" value="{{ $settings['home_collection_fee'] ?? '100' }}" class="w-full pl-8 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 transition">
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Fee charged when cart value is under the minimum threshold.</p>
+                        </div>
+
+                        <!-- Free Collection Minimum Order Threshold -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Free Collection Min. Order (₹)</label>
+                            <div class="relative">
+                                <span class="absolute left-4 top-3 text-slate-400 font-bold text-sm">₹</span>
+                                <input type="number" step="1" min="0" name="free_collection_threshold" value="{{ $settings['free_collection_threshold'] ?? '500' }}" class="w-full pl-8 pr-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-teal-500 transition">
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-1">Orders at or above this amount get Free Home Pickup.</p>
+                        </div>
+                    </div>
+
+                    <!-- Rule Logic Callout -->
+                    <div class="mt-4 p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-teal-200/60 dark:border-teal-800/60 text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                        <div class="font-bold text-teal-800 dark:text-teal-400 flex items-center gap-1.5">
+                            <i class="fas fa-circle-info"></i> How Collection Fees Apply:
+                        </div>
+                        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            <li><strong>Cart &lt; Free Threshold:</strong> Patient pays standard collection fee (e.g., ₹{{ $settings['home_collection_fee'] ?? '100' }}).</li>
+                            <li><strong>Cart &ge; Free Threshold:</strong> Collection fee is automatically <strong>FREE (₹0)</strong>.</li>
+                            <li><strong>VIP Pass Members:</strong> Always enjoy <strong>100% Free Home Sample Collection</strong> on every order regardless of cart value.</li>
+                            <li><strong>Lab Walk-in:</strong> Collection fee is never applied for walk-in patients.</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Serviceable Pincodes (Comma Separated)</label>
                     <textarea name="serviceable_pincodes" rows="4" class="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-white/[0.1] text-sm text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-teal-500 transition" placeholder="800001, 800002, 110001, 201301, 201309...">{{ $settings['serviceable_pincodes'] ?? '800001, 800002, 110001, 201301, 201309, 400001, 560001' }}</textarea>

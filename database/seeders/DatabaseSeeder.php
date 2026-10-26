@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Seed Sample Reviews if empty               
+        // Seed Sample Reviews if empty
         if (Review::count() === 0) {
             Review::create([
                 'author_name' => 'Rahul Sharma',

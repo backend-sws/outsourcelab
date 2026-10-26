@@ -138,16 +138,22 @@
 
     <!-- Bottom Actions: Download Report & Track Booking -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-gray-100">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
             @if($booking->report_file_path)
                 <a 
-                    href="{{ asset('storage/' . $booking->report_file_path) }}" 
-                    target="_blank" 
-                    download 
+                    href="{{ route('patient.bookings.download_report', $booking->id) }}" 
                     class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition"
                 >
                     <i class="fas fa-file-pdf"></i>
                     <span>Download PDF Report</span>
+                </a>
+                <a 
+                    href="{{ $booking->report_url }}" 
+                    target="_blank" 
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-teal-900 border border-slate-200 text-xs font-bold transition shadow-2xs"
+                >
+                    <i class="far fa-eye text-teal-700"></i>
+                    <span>View Online</span>
                 </a>
             @else
                 <span class="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-xl">
@@ -155,6 +161,15 @@
                     <span>Report under analysis at certified lab</span>
                 </span>
             @endif
+
+            <a 
+                href="{{ route('patient.bookings.invoice', $booking->id) }}" 
+                target="_blank" 
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-950 border border-slate-200 hover:border-teal-300 text-xs font-bold transition shadow-2xs"
+            >
+                <i class="fas fa-file-invoice text-teal-700"></i>
+                <span>Download Invoice</span>
+            </a>
         </div>
 
         <div class="flex items-center gap-3">

@@ -100,7 +100,8 @@ class Test extends Model
         }
 
         $text = strtolower($this->preparation_instructions ?? '');
-        return str_contains($text, 'fasting') && !str_contains($text, 'no fasting') && !str_contains($text, 'non-fasting');
+
+        return str_contains($text, 'fasting') && ! str_contains($text, 'no fasting') && ! str_contains($text, 'non-fasting');
     }
 
     /**
@@ -110,10 +111,11 @@ class Test extends Model
     {
         $text = strtolower($this->preparation_instructions ?? '');
 
-        if ($this->fasting_required || (str_contains($text, 'fasting') && !str_contains($text, 'no fasting') && !str_contains($text, 'non-fasting'))) {
+        if ($this->fasting_required || (str_contains($text, 'fasting') && ! str_contains($text, 'no fasting') && ! str_contains($text, 'non-fasting'))) {
             if (preg_match('/(10[\s\-–to]+12|12[\s\-–to]+14|8[\s\-–to]+10|\d+\s*(?:hrs?|hours?))/i', $this->preparation_instructions ?? '', $matches)) {
                 return "Overnight Fasting ({$matches[0]})";
             }
+
             return 'Overnight Fasting (8-10 Hrs)';
         }
 
@@ -134,6 +136,7 @@ class Test extends Model
                     'Morning sample collection between 7:00 AM and 10:00 AM is recommended.',
                 ];
             }
+
             return [
                 'No special fasting required. Can be done at any convenient time of the day.',
                 'Maintain normal hydration and diet prior to sample collection.',
@@ -149,7 +152,7 @@ class Test extends Model
             // Strip leading bullet characters or numbers: •, -, *, 1., 1), etc.
             $cleaned = preg_replace('/^([•\-\*■►✔✓]|\d+[\.\)])\s*/u', '', $line);
             $cleaned = trim($cleaned);
-            if (!empty($cleaned)) {
+            if (! empty($cleaned)) {
                 $points[] = $cleaned;
             }
         }
@@ -160,7 +163,7 @@ class Test extends Model
             $splitPoints = [];
             foreach ($parts as $p) {
                 $p = trim($p);
-                if (!empty($p)) {
+                if (! empty($p)) {
                     $splitPoints[] = $p;
                 }
             }
@@ -169,8 +172,8 @@ class Test extends Model
             }
         }
 
-        return !empty($points) ? $points : [
-            'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.'
+        return ! empty($points) ? $points : [
+            'Standard diagnostic blood investigation verified by MD Pathologists according to certified laboratory protocols.',
         ];
     }
 }

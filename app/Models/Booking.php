@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Booking extends Model
 {
     protected $fillable = [
         'booking_reference', 'lis_booking_reference', 'lis_bill_number', 'lis_status',
         'patient_id', 'family_member_id', 'address_id', 'agent_id',
-        'test_details', 'collection_type', 'collection_slot', 'amount', 'coupon_code', 'discount_amount',
+        'test_details', 'collection_type', 'collection_slot', 'amount', 'collection_fee', 'coupon_code', 'discount_amount',
         'coins_redeemed', 'coins_discount', 'coins_earned',
         'payment_method', 'payment_status', 'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature',
         'status', 'sample_status', 'sample_collected_at',
@@ -24,6 +26,7 @@ class Booking extends Model
         'money_collected_at' => 'datetime',
         'lis_synced_at' => 'datetime',
         'amount' => 'float',
+        'collection_fee' => 'float',
         'discount_amount' => 'float',
         'coins_redeemed' => 'integer',
         'coins_discount' => 'float',
@@ -153,7 +156,7 @@ class Booking extends Model
         }
 
         try {
-            $parsedDate = \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+            $parsedDate = Carbon::parse($dateStr)->format('Y-m-d');
             $todayDate = now()->format('Y-m-d');
 
             if ($parsedDate < $todayDate) {
@@ -168,11 +171,85 @@ class Booking extends Model
             $parts = explode('-', $slotStr);
             $startTimeStr = trim($parts[0]);
 
-            $slotDateTime = \Carbon\Carbon::parse($todayDate . ' ' . $startTimeStr);
+            $slotDateTime = Carbon::parse($todayDate.' '.$startTimeStr);
 
             return $slotDateTime->lessThanOrEqualTo(now());
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    /**
+     * Resolves the proper report URL whether it is a remote link or a stored local file.
+     */
+    public function getReportUrlAttribute(): ?string
+    {
+        if (empty($this->report_file_path)) {
+            return null;
+        }
+
+        if (str_starts_with($this->report_file_path, 'http://') || str_starts_with($this->report_file_path, 'https://')) {
+            return $this->report_file_path;
+        }
+
+        $clean = ltrim($this->report_file_path, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            return asset($clean);
+        }
+
+        return asset('storage/'.$clean);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Booking $booking) {
+            if ($booking->status === 'Completed' && $booking->payment_status === 'Paid') {
+                $booking->awardEarnedCoinsIfEligible();
+            }
+        });
+    }
+
+    /**
+     * Award earned coins to patient once booking is Completed AND payment is Paid.
+     * Guaranteed idempotent: executes at most once per booking.
+     */
+    public function awardEarnedCoinsIfEligible(): bool
+    {
+        if ((int) $this->coins_earned <= 0) {
+            return false;
+        }
+
+        // Must be both Completed and Paid
+        if ($this->status !== 'Completed' || $this->payment_status !== 'Paid') {
+            return false;
+        }
+
+        // Prevent duplicate crediting
+        $alreadyCredited = RewardTransaction::where('booking_id', $this->id)
+            ->where('type', 'credit')
+            ->exists();
+
+        if ($alreadyCredited) {
+            return false;
+        }
+
+        $patient = $this->patient;
+        if (! $patient) {
+            return false;
+        }
+
+        $coinValue = (float) Setting::get('reward_coin_value', '1.00');
+        $amountEquivalent = round($this->coins_earned * $coinValue, 2);
+
+        $patient->creditCoins(
+            $this->coins_earned,
+            "Earned from completed booking #{$this->booking_reference}",
+            $this->id,
+            $amountEquivalent
+        );
+
+        Log::info("Awarded {$this->coins_earned} reward coins to patient #{$patient->id} for completed & paid booking #{$this->booking_reference}.");
+
+        return true;
     }
 }

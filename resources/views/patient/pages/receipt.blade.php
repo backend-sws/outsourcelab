@@ -155,6 +155,16 @@
                         <span>Net Paid Amount:</span>
                         <span class="font-bold">₹{{ number_format($transaction->amount, 2) }}</span>
                     </div>
+                    @if($transaction->booking && str_contains(strtolower((string) $transaction->booking->collection_type), 'home'))
+                        <div class="flex justify-between items-center text-xs text-gray-600 mb-1.5">
+                            <span>Home Sample Collection:</span>
+                            @if(($transaction->booking->collection_fee ?? 0) > 0)
+                                <span class="font-bold text-gray-900">+₹{{ number_format($transaction->booking->collection_fee, 2) }}</span>
+                            @else
+                                <span class="font-bold text-emerald-700">FREE</span>
+                            @endif
+                        </div>
+                    @endif
                     <div class="flex justify-between items-center text-xs text-gray-600 mb-2">
                         <span>Tax / GST:</span>
                         <span class="font-bold text-emerald-700">Included (0% Medical Diagnostic Exemption)</span>

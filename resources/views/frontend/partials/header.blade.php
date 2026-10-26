@@ -217,35 +217,40 @@
                                     <i class="fas fa-times"></i>
                                 </button>
                             </div>
+
+                            <!-- Dynamic Pincode Availability Notification Box -->
+                            <div id="headerPincodeResultBox" class="hidden mt-3 sm:mt-3.5 mb-2.5 sm:mb-3"></div>
+
                             <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1 font-medium">
-                                <span>Showing <strong id="headerCityFilteredCount" class="text-teal-700 font-extrabold">{{ $activeHeaderCities->count() }}</strong> serviceable regions</span>
+                                <span>Showing <strong id="headerCityFilteredCount" class="text-teal-700 font-extrabold">{{ $activeHeaderCities->count() }}</strong> serviceable cities</span>
                                 <span class="text-emerald-700 font-bold flex items-center gap-1">
                                     <i class="fas fa-check-circle text-[10px]"></i> Free Sample Pickup
                                 </span>
                             </div>
                         </div>
 
-                        <!-- List of Cities with Pincodes as Distinct Interactive Cards -->
-                        <div id="headerCityList" class="flex-1 max-h-[58vh] sm:max-h-80 overflow-y-auto p-3 sm:p-4 space-y-2.5 overscroll-contain bg-slate-50/40">
+                        <!-- List of Cities (Clean, Compact, Pincode-Free Cards) -->
+                        <div id="headerCityList" class="flex-1 max-h-[58vh] sm:max-h-80 overflow-y-auto p-3 sm:p-4 space-y-2 overscroll-contain bg-slate-50/40">
                             @foreach($activeHeaderCities as $cItem)
                                 @php
                                     $isSelected = ($selectedHeaderCity?->id === $cItem->id);
                                     $cPinList = $cItem->pincode_list;
                                 @endphp
-                                <div class="city-item header-city-option group relative p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer {{ $isSelected ? 'bg-gradient-to-br from-teal-50/95 via-emerald-50/60 to-white border-2 border-teal-600 shadow-sm ring-2 ring-teal-500/10' : 'bg-white hover:bg-teal-50/30 border border-slate-200/90 hover:border-teal-300 shadow-2xs hover:shadow-xs' }}"
+                                <div onclick="selectHeaderCity({{ $cItem->id }}, '{{ addslashes($cItem->name) }}')"
+                                     class="city-item header-city-option group relative p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer {{ $isSelected ? 'bg-gradient-to-br from-teal-50/95 via-emerald-50/60 to-white border-2 border-teal-600 shadow-sm ring-2 ring-teal-500/10' : 'bg-white hover:bg-teal-50/40 border border-slate-200/90 hover:border-teal-300 shadow-2xs hover:shadow-xs' }}"
                                      data-city-id="{{ $cItem->id }}"
                                      data-city-name="{{ strtolower($cItem->name) }}"
                                      data-display-name="{{ $cItem->name }}"
                                      data-city-state="{{ strtolower((string)$cItem->state) }}"
                                      data-city-pincodes="{{ implode(' ', $cPinList) }}">
                                     
-                                    <!-- City Header Row -->
+                                    <!-- City Header Row (Pure City Display) -->
                                     <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2 flex-wrap">
-                                            <div class="w-7 h-7 rounded-xl {{ $isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-teal-50 group-hover:text-teal-600' }} flex items-center justify-center text-xs font-bold transition-colors">
+                                        <div class="flex items-center gap-2.5 flex-wrap min-w-0">
+                                            <div class="city-icon-box w-8 h-8 rounded-xl {{ $isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-teal-50 group-hover:text-teal-600' }} flex items-center justify-center text-xs font-bold transition-colors flex-shrink-0">
                                                 <i class="fas fa-city"></i>
                                             </div>
-                                            <span class="font-black text-sm sm:text-base text-slate-900 group-hover:text-teal-700 transition-colors">
+                                            <span class="font-black text-sm sm:text-base text-slate-900 group-hover:text-teal-700 transition-colors block truncate">
                                                 {{ $cItem->name }}
                                             </span>
                                             @if($cItem->state)
@@ -261,38 +266,16 @@
                                         </div>
 
                                         <!-- Status Badge / Select Action -->
-                                        <div>
+                                        <div class="city-status-box flex-shrink-0">
                                             @if($isSelected)
-                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-teal-600 text-white shadow-xs">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-teal-600 text-white shadow-xs">
                                                     <i class="fas fa-check-circle text-xs"></i>
                                                     <span>Selected</span>
                                                 </span>
                                             @else
-                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 group-hover:text-teal-700 bg-slate-100 group-hover:bg-teal-100/70 border border-slate-200 group-hover:border-teal-300 transition-all">
+                                                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold text-slate-600 group-hover:text-teal-700 bg-slate-100 group-hover:bg-teal-100/70 border border-slate-200 group-hover:border-teal-300 transition-all">
                                                     <span>Select</span>
-                                                    <i class="fas fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <!-- Covered Pincodes section -->
-                                    <div class="mt-2.5 pt-2 border-t border-slate-100/80">
-                                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                                            <span>Serviceable Pincodes ({{ count($cPinList) }})</span>
-                                            <span class="text-teal-600 font-semibold lowercase">tap to select</span>
-                                        </div>
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @forelse(array_slice($cPinList, 0, 8) as $p)
-                                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold {{ $isSelected ? 'bg-white text-teal-950 border border-teal-200 shadow-2xs' : 'bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs' }}">
-                                                    {{ $p }}
-                                                </span>
-                                            @empty
-                                                <span class="text-[11px] text-slate-400 italic">All city pincodes covered</span>
-                                            @endforelse
-                                            @if(count($cPinList) > 8)
-                                                <span class="px-2 py-0.5 rounded-lg text-[10px] font-black {{ $isSelected ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
-                                                    +{{ count($cPinList) - 8 }} more
+                                                    <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
                                                 </span>
                                             @endif
                                         </div>
@@ -821,28 +804,116 @@
         }
 
         function filterHeaderCities(query) {
-            const q = (query || '').toLowerCase().trim();
+            const rawQ = (query || '').trim();
+            const q = rawQ.toLowerCase();
             const items = document.querySelectorAll('#headerCityList .city-item');
             const clearBtn = document.getElementById('headerCityClearSearchBtn');
             const emptyState = document.getElementById('headerCityEmptyState');
             const countEl = document.getElementById('headerCityFilteredCount');
+            const pincodeBox = document.getElementById('headerPincodeResultBox');
 
             if (clearBtn) {
-                clearBtn.classList.toggle('hidden', !q);
+                clearBtn.classList.toggle('hidden', !rawQ);
             }
 
+            // Check if query is primarily digits (pincode search)
+            const isPincodeSearch = /^\d{2,6}$/.test(rawQ);
+
+            let matchingCityForPincode = null;
             let visibleCount = 0;
+
             items.forEach(item => {
-                const name = item.getAttribute('data-city-name') || '';
-                const state = item.getAttribute('data-city-state') || '';
+                const name = (item.getAttribute('data-city-name') || '').toLowerCase();
+                const state = (item.getAttribute('data-city-state') || '').toLowerCase();
                 const pins = item.getAttribute('data-city-pincodes') || '';
-                if (!q || name.includes(q) || state.includes(q) || pins.includes(q)) {
+                const pinArray = pins.split(/\s+/).filter(Boolean);
+
+                let matches = false;
+                if (!q) {
+                    matches = true;
+                } else if (isPincodeSearch) {
+                    // Check if any pincode matches
+                    const matchedPin = pinArray.find(p => p.startsWith(rawQ) || p === rawQ);
+                    if (matchedPin) {
+                        matches = true;
+                        if (!matchingCityForPincode && (matchedPin === rawQ || rawQ.length >= 4)) {
+                            matchingCityForPincode = {
+                                id: item.getAttribute('data-city-id'),
+                                name: item.getAttribute('data-display-name'),
+                                pincode: matchedPin
+                            };
+                        }
+                    }
+                } else {
+                    matches = name.includes(q) || state.includes(q);
+                }
+
+                if (matches) {
                     item.style.display = '';
                     visibleCount++;
                 } else {
                     item.style.display = 'none';
                 }
             });
+
+            // Pincode Search Availability Banner
+            if (pincodeBox) {
+                if (isPincodeSearch && rawQ.length >= 3) {
+                    if (visibleCount > 0) {
+                        const targetCity = matchingCityForPincode || {
+                            id: document.querySelector('#headerCityList .city-item:not([style*="display: none"])')?.getAttribute('data-city-id'),
+                            name: document.querySelector('#headerCityList .city-item:not([style*="display: none"])')?.getAttribute('data-display-name')
+                        };
+
+                        pincodeBox.innerHTML = `
+                            <div class="p-2.5 sm:p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center justify-between gap-2 shadow-2xs">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs flex-shrink-0 shadow-2xs">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    <div class="min-w-0">
+                                        <span class="block truncate text-emerald-950 font-black">
+                                            Service Available in Pincode <span class="font-mono text-emerald-800 bg-white px-1.5 py-0.5 rounded border border-emerald-200">${rawQ}</span>
+                                        </span>
+                                        <span class="text-[11px] text-emerald-700 font-semibold block truncate">
+                                            Doorstep sample collection available in <strong>${targetCity.name}</strong>
+                                        </span>
+                                    </div>
+                                </div>
+                                ${targetCity.id ? `
+                                    <button type="button" onclick="selectHeaderCity(${targetCity.id}, '${targetCity.name}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex-shrink-0 shadow-xs cursor-pointer whitespace-nowrap">
+                                        Select ${targetCity.name}
+                                    </button>
+                                ` : ''}
+                            </div>
+                        `;
+                        pincodeBox.classList.remove('hidden');
+                    } else if (rawQ.length === 6) {
+                        pincodeBox.innerHTML = `
+                            <div class="p-2.5 sm:p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs font-bold flex items-center gap-2.5 shadow-2xs">
+                                <span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs flex-shrink-0 shadow-2xs">
+                                    <i class="fas fa-times"></i>
+                                </span>
+                                <div class="min-w-0">
+                                    <span class="block text-rose-950 font-black">
+                                        Pincode <span class="font-mono bg-white px-1.5 py-0.5 rounded border border-rose-200">${rawQ}</span> is Not Serviceable
+                                    </span>
+                                    <span class="text-[11px] text-rose-700 font-medium block">
+                                        Doorstep sample collection is currently not available in this area.
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                        pincodeBox.classList.remove('hidden');
+                    } else {
+                        pincodeBox.classList.add('hidden');
+                        pincodeBox.innerHTML = '';
+                    }
+                } else {
+                    pincodeBox.classList.add('hidden');
+                    pincodeBox.innerHTML = '';
+                }
+            }
 
             if (emptyState) {
                 emptyState.classList.toggle('hidden', visibleCount > 0);
@@ -861,6 +932,43 @@
             }
         }
 
+        function updateCitySelectionUI(selectedId) {
+            const selectedIdInt = parseInt(selectedId, 10);
+            document.querySelectorAll('#headerCityList .city-item').forEach(item => {
+                const itemId = parseInt(item.getAttribute('data-city-id'), 10);
+                const iconBox = item.querySelector('.city-icon-box');
+                const statusBox = item.querySelector('.city-status-box');
+
+                if (itemId === selectedIdInt) {
+                    item.className = 'city-item header-city-option group relative p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer bg-gradient-to-br from-teal-50/95 via-emerald-50/60 to-white border-2 border-teal-600 shadow-sm ring-2 ring-teal-500/10';
+                    if (iconBox) {
+                        iconBox.className = 'city-icon-box w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center text-xs font-bold transition-colors flex-shrink-0';
+                    }
+                    if (statusBox) {
+                        statusBox.innerHTML = `
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-teal-600 text-white shadow-xs">
+                                <i class="fas fa-check-circle text-xs"></i>
+                                <span>Selected</span>
+                            </span>
+                        `;
+                    }
+                } else {
+                    item.className = 'city-item header-city-option group relative p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer bg-white hover:bg-teal-50/40 border border-slate-200/90 hover:border-teal-300 shadow-2xs hover:shadow-xs';
+                    if (iconBox) {
+                        iconBox.className = 'city-icon-box w-8 h-8 rounded-xl bg-slate-100 text-slate-600 group-hover:bg-teal-50 group-hover:text-teal-600 flex items-center justify-center text-xs font-bold transition-colors flex-shrink-0';
+                    }
+                    if (statusBox) {
+                        statusBox.innerHTML = `
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold text-slate-600 group-hover:text-teal-700 bg-slate-100 group-hover:bg-teal-100/70 border border-slate-200 group-hover:border-teal-300 transition-all">
+                                <span>Select</span>
+                                <i class="fas fa-chevron-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                            </span>
+                        `;
+                    }
+                }
+            });
+        }
+
         function selectHeaderCity(id, name) {
             const nameEl = document.getElementById('headerSelectedCityName');
             if (nameEl) nameEl.innerText = name;
@@ -869,6 +977,9 @@
                 localStorage.setItem('selected_city_id', id);
                 localStorage.setItem('selected_city_name', name);
             } catch (err) {}
+
+            // Instantly update UI selection badge & active card style
+            updateCitySelectionUI(id);
 
             fetch("{{ route('set.city') }}", {
                 method: 'POST',
@@ -879,30 +990,16 @@
                 },
                 body: JSON.stringify({ city_id: id })
             }).then(res => res.json()).then(data => {
-                document.querySelectorAll('#headerCityList .city-item').forEach(item => {
-                    const itemId = parseInt(item.getAttribute('data-city-id'), 10);
-                    if (itemId === id) {
-                        item.classList.add('bg-gradient-to-br', 'from-teal-50/95', 'via-emerald-50/60', 'to-white', 'border-2', 'border-teal-600', 'shadow-sm', 'ring-2', 'ring-teal-500/10');
-                        item.classList.remove('bg-white', 'border-slate-200/90', 'shadow-2xs');
-                    } else {
-                        item.classList.remove('bg-gradient-to-br', 'from-teal-50/95', 'via-emerald-50/60', 'to-white', 'border-2', 'border-teal-600', 'shadow-sm', 'ring-2', 'ring-teal-500/10');
-                        item.classList.add('bg-white', 'border-slate-200/90', 'shadow-2xs');
-                    }
-                });
+                // Successfully stored in session
             }).catch(err => console.error('Error saving city', err));
 
-            closeHeaderCityDropdown();
+            // Smooth close so user sees the checkmark state
+            setTimeout(() => {
+                closeHeaderCityDropdown();
+            }, 250);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.header-city-option').forEach(item => {
-                item.addEventListener('click', () => {
-                    const id = parseInt(item.getAttribute('data-city-id'), 10);
-                    const name = item.getAttribute('data-display-name') || '';
-                    selectHeaderCity(id, name);
-                });
-            });
-
             document.addEventListener('click', (e) => {
                 const container = document.getElementById('headerCityDropdownContainer');
                 const menu = document.getElementById('headerCityDropdownMenu');

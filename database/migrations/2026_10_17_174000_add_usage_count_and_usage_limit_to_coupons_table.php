@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('coupons', function (Blueprint $table) {
-            if (!Schema::hasColumn('coupons', 'usage_count')) {
+            if (! Schema::hasColumn('coupons', 'usage_count')) {
                 $table->unsignedInteger('usage_count')->default(0)->after('usage_limit_per_user');
             }
-            if (!Schema::hasColumn('coupons', 'usage_limit')) {
+            if (! Schema::hasColumn('coupons', 'usage_limit')) {
                 $table->unsignedInteger('usage_limit')->nullable()->after('usage_count');
             }
         });
