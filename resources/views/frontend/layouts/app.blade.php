@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="overflow-x-hidden">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics') }} - {{ \App\Models\Setting::get('site_tagline', 'Fast, Reliable Diagnostics') }}</title>
     @include('frontend.partials.style')
 </head>
-<body class="bg-gray-50 text-gray-800 m-0 p-0">
+<body class="bg-gray-50 text-gray-800 m-0 p-0 overflow-x-hidden w-full max-w-full">
     @if(session('impersonated_by_admin'))
     <!-- Super Admin Impersonation Top Banner -->
     <div class="bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 text-white px-4 py-2.5 shadow-md sticky top-0 z-[9999] border-b border-white/20">

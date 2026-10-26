@@ -113,10 +113,10 @@
     @endif
 
     <!-- Top Header -->
-    <div class="bg-white py-3 px-4 border-b">
-        <div class="container mx-auto flex justify-between items-center text-sm">
+    <div class="bg-white py-2 sm:py-2.5 px-2.5 sm:px-4 border-b">
+        <div class="container mx-auto flex justify-between items-center text-sm gap-2">
             <!-- Brand Logo & City Selector -->
-            <div class="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+            <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-3 min-w-0 flex-1">
                 @php
                     $headerLogoUrl = \App\Models\Setting::getLogoUrl();
                     $siteName = \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics');
@@ -126,108 +126,172 @@
                     $selectedHeaderCity = $activeHeaderCities->firstWhere('id', $selectedHeaderCityId) ?? $defaultHeaderCity;
                 @endphp
                 <a href="{{ route('home') }}" class="block flex-shrink-0">
-                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-10 sm:h-12 md:h-16 w-auto object-contain">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-8 min-[360px]:h-8.5 sm:h-10 md:h-12 w-auto max-w-[105px] min-[360px]:max-w-[130px] sm:max-w-[170px] md:max-w-none object-contain">
                 </a>
 
                 @if($activeHeaderCities->isNotEmpty())
-                <!-- City Selector Dropdown (Logo Ke Bagal Me) -->
-                <div class="relative" id="headerCityDropdownContainer">
+                <!-- City Selector Button (Logo Ke Bagal Me) -->
+                <div class="relative flex-shrink-0" id="headerCityDropdownContainer">
                     <button type="button" 
                             id="headerCityDropdownBtn"
                             onclick="toggleHeaderCityDropdown(event)"
-                            class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-gray-200 hover:border-teal-500 bg-gray-50/80 hover:bg-teal-50/40 transition shadow-2xs group cursor-pointer focus:outline-none"
+                            class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border border-teal-200/90 hover:border-teal-500 bg-teal-50/70 hover:bg-teal-100/70 text-slate-800 transition shadow-2xs group cursor-pointer focus:outline-none"
                             title="Select Your City & View Pincodes">
-                        <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                            <i class="fas fa-map-marker-alt text-xs sm:text-sm"></i>
+                        <div class="w-5 h-5 rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform text-[10px] sm:text-xs">
+                            <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div class="text-left leading-tight">
-                            <span class="hidden sm:block text-[9px] font-bold text-gray-400 uppercase tracking-wider">City</span>
+                            <span class="hidden sm:block text-[8px] font-bold text-teal-700/80 uppercase tracking-wider">City</span>
                             <div class="flex items-center gap-1">
-                                <span id="headerSelectedCityName" class="text-xs sm:text-sm font-extrabold text-gray-800 tracking-tight">
+                                <span id="headerSelectedCityName" class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight max-w-[65px] min-[360px]:max-w-[85px] sm:max-w-none truncate">
                                     {{ $selectedHeaderCity?->name ?? 'Select City' }}
                                 </span>
-                                <i class="fas fa-chevron-down text-[10px] text-gray-400 group-hover:text-teal-600 transition-transform duration-200" id="headerCityChevron"></i>
+                                <i class="fas fa-chevron-down text-[9px] text-teal-600 group-hover:text-teal-800 transition-transform duration-200" id="headerCityChevron"></i>
                             </div>
                         </div>
                     </button>
 
-                    <!-- Dropdown Menu -->
+                    <!-- Mobile Backdrop Overlay for City Dropdown -->
+                    <div id="headerCityBackdrop" 
+                         onclick="toggleHeaderCityDropdown(event)" 
+                         class="hidden fixed inset-0 bg-slate-950/60 z-[99] backdrop-blur-xs transition-opacity sm:hidden"></div>
+
+                    <!-- Dropdown Menu / Bottom Sheet Modal -->
                     <div id="headerCityDropdownMenu" 
-                         class="hidden absolute left-0 top-full mt-2 w-72 sm:w-80 md:w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden text-left">
+                         class="hidden fixed inset-x-0 bottom-0 z-[100] w-full max-w-full max-h-[88vh] rounded-t-[28px] sm:rounded-2xl sm:absolute sm:inset-x-auto sm:bottom-auto sm:top-full sm:left-0 sm:mt-2.5 sm:w-[450px] sm:min-w-[420px] sm:max-w-none sm:max-h-[580px] sm:z-50 bg-white shadow-2xl border border-slate-200/90 overflow-hidden text-left flex flex-col">
                         
-                        <!-- Header -->
-                        <div class="p-3.5 bg-gradient-to-r from-teal-50 to-emerald-50/60 border-b border-teal-100/60 flex items-center justify-between">
-                            <div>
-                                <div class="text-xs font-black text-gray-800 flex items-center gap-1.5">
-                                    <i class="fas fa-city text-teal-600 text-xs"></i>
-                                    <span>Select Diagnostic City</span>
-                                </div>
-                                <p class="text-[10px] text-gray-500 mt-0.5">Serviceable pincodes are shown inside each city</p>
-                            </div>
-                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-600 text-white shadow-2xs">
-                                {{ $activeHeaderCities->count() }} Cities
-                            </span>
+                        <!-- Mobile Drag Handle Bar -->
+                        <div class="pt-2.5 pb-1 flex justify-center sm:hidden bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800">
+                            <span class="w-12 h-1.5 bg-white/35 rounded-full"></span>
                         </div>
 
-                        <!-- Search -->
-                        <div class="p-2.5 border-b border-gray-100 bg-gray-50/60">
+                        <!-- Header with Gradient & Glowing Glass Badge -->
+                        <div class="px-3.5 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 text-white flex items-center justify-between border-b border-white/10 relative overflow-hidden gap-2">
+                            <!-- Background subtle ambient circles -->
+                            <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
+                            
+                            <div class="flex items-center gap-2.5 sm:gap-3 relative z-10 min-w-0 flex-1">
+                                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-white flex items-center justify-center text-sm sm:text-base shadow-inner flex-shrink-0">
+                                    <i class="fas fa-map-marked-alt text-teal-200"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-xs sm:text-base font-black text-white tracking-tight truncate">
+                                        Select Diagnostic City
+                                    </h4>
+                                    <p class="text-[10px] sm:text-[11px] text-teal-100/90 font-medium leading-snug truncate">
+                                        Serviceable pincodes & sample collection
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 sm:gap-2 relative z-10 flex-shrink-0">
+                                <span class="hidden min-[380px]:inline-flex text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-white/20 text-teal-50 border border-white/20 shadow-2xs backdrop-blur-xs flex-shrink-0">
+                                    {{ $activeHeaderCities->count() }} Cities
+                                </span>
+                                <button type="button" 
+                                        onclick="toggleHeaderCityDropdown(event)" 
+                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white active:scale-95 transition flex-shrink-0 border border-white/30"
+                                        aria-label="Close City Selector">
+                                    <i class="fas fa-times text-xs sm:text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Search Section with Floating Input & Clear Button -->
+                        <div class="p-3 sm:p-4 bg-slate-50/90 border-b border-slate-200/80">
                             <div class="relative">
-                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <div class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded bg-teal-50 text-teal-600 flex items-center justify-center text-[10px] pointer-events-none">
+                                    <i class="fas fa-search"></i>
+                                </div>
                                 <input type="text" 
                                        id="headerCitySearchInput" 
                                        oninput="filterHeaderCities(this.value)" 
-                                       placeholder="Search city or pincode..." 
-                                       class="w-full pl-8 pr-3 py-1.5 text-xs font-medium bg-white border border-gray-200 rounded-xl outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition">
+                                       placeholder="Search by city name, state, or 6-digit pincode..." 
+                                       autocomplete="off"
+                                       class="w-full pl-9 pr-8 py-2 text-xs sm:text-sm font-semibold bg-white border border-slate-200 hover:border-teal-400 focus:border-teal-600 rounded-xl outline-none focus:ring-4 focus:ring-teal-500/15 transition shadow-2xs text-slate-800 placeholder:text-slate-400 placeholder:font-normal">
+                                <button type="button" 
+                                        id="headerCityClearSearchBtn"
+                                        onclick="clearHeaderCitySearch()" 
+                                        class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center text-[10px] transition"
+                                        title="Clear search">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1 font-medium">
+                                <span>Showing <strong id="headerCityFilteredCount" class="text-teal-700 font-extrabold">{{ $activeHeaderCities->count() }}</strong> serviceable regions</span>
+                                <span class="text-emerald-700 font-bold flex items-center gap-1">
+                                    <i class="fas fa-check-circle text-[10px]"></i> Free Sample Pickup
+                                </span>
                             </div>
                         </div>
 
-                        <!-- List of Cities with Pincodes -->
-                        <div id="headerCityList" class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                        <!-- List of Cities with Pincodes as Distinct Interactive Cards -->
+                        <div id="headerCityList" class="flex-1 max-h-[58vh] sm:max-h-80 overflow-y-auto p-3 sm:p-4 space-y-2.5 overscroll-contain bg-slate-50/40">
                             @foreach($activeHeaderCities as $cItem)
                                 @php
                                     $isSelected = ($selectedHeaderCity?->id === $cItem->id);
                                     $cPinList = $cItem->pincode_list;
                                 @endphp
-                                <div class="city-item header-city-option p-3 hover:bg-teal-50/50 transition cursor-pointer flex flex-col gap-1.5 {{ $isSelected ? 'bg-teal-50/70 border-l-4 border-teal-600' : '' }}"
+                                <div class="city-item header-city-option group relative p-3 sm:p-3.5 rounded-2xl transition-all cursor-pointer {{ $isSelected ? 'bg-gradient-to-br from-teal-50/95 via-emerald-50/60 to-white border-2 border-teal-600 shadow-sm ring-2 ring-teal-500/10' : 'bg-white hover:bg-teal-50/30 border border-slate-200/90 hover:border-teal-300 shadow-2xs hover:shadow-xs' }}"
                                      data-city-id="{{ $cItem->id }}"
                                      data-city-name="{{ strtolower($cItem->name) }}"
                                      data-display-name="{{ $cItem->name }}"
                                      data-city-state="{{ strtolower((string)$cItem->state) }}"
                                      data-city-pincodes="{{ implode(' ', $cPinList) }}">
                                     
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="font-extrabold text-xs sm:text-sm text-gray-900">{{ $cItem->name }}</span>
+                                    <!-- City Header Row -->
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <div class="w-7 h-7 rounded-xl {{ $isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-teal-50 group-hover:text-teal-600' }} flex items-center justify-center text-xs font-bold transition-colors">
+                                                <i class="fas fa-city"></i>
+                                            </div>
+                                            <span class="font-black text-sm sm:text-base text-slate-900 group-hover:text-teal-700 transition-colors">
+                                                {{ $cItem->name }}
+                                            </span>
                                             @if($cItem->state)
-                                                <span class="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">{{ $cItem->state }}</span>
+                                                <span class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/70">
+                                                    {{ $cItem->state }}
+                                                </span>
                                             @endif
                                             @if($cItem->is_default)
-                                                <span class="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded-full">Default</span>
+                                                <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200 shadow-2xs">
+                                                    Default
+                                                </span>
                                             @endif
                                         </div>
-                                        @if($isSelected)
-                                            <span class="text-teal-600 font-bold text-xs flex items-center gap-1">
-                                                <i class="fas fa-check-circle"></i>
-                                                <span class="text-[10px]">Selected</span>
-                                            </span>
-                                        @endif
+
+                                        <!-- Status Badge / Select Action -->
+                                        <div>
+                                            @if($isSelected)
+                                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-teal-600 text-white shadow-xs">
+                                                    <i class="fas fa-check-circle text-xs"></i>
+                                                    <span>Selected</span>
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 group-hover:text-teal-700 bg-slate-100 group-hover:bg-teal-100/70 border border-slate-200 group-hover:border-teal-300 transition-all">
+                                                    <span>Select</span>
+                                                    <i class="fas fa-chevron-right text-[9px] group-hover:translate-x-0.5 transition-transform"></i>
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <!-- Covered Pincodes displayed right inside this city item -->
-                                    <div class="text-[11px] text-gray-500">
-                                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
-                                            Pincodes ({{ count($cPinList) }}):
-                                        </span>
-                                        <div class="flex flex-wrap gap-1">
+                                    <!-- Covered Pincodes section -->
+                                    <div class="mt-2.5 pt-2 border-t border-slate-100/80">
+                                        <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                                            <span>Serviceable Pincodes ({{ count($cPinList) }})</span>
+                                            <span class="text-teal-600 font-semibold lowercase">tap to select</span>
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5">
                                             @forelse(array_slice($cPinList, 0, 8) as $p)
-                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white border border-gray-200 text-gray-700">
+                                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-mono font-bold {{ $isSelected ? 'bg-white text-teal-950 border border-teal-200 shadow-2xs' : 'bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs' }}">
                                                     {{ $p }}
                                                 </span>
                                             @empty
-                                                <span class="text-[10px] text-gray-400 italic">All city areas</span>
+                                                <span class="text-[11px] text-slate-400 italic">All city pincodes covered</span>
                                             @endforelse
                                             @if(count($cPinList) > 8)
-                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600">
+                                                <span class="px-2 py-0.5 rounded-lg text-[10px] font-black {{ $isSelected ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                                     +{{ count($cPinList) - 8 }} more
                                                 </span>
                                             @endif
@@ -235,11 +299,31 @@
                                     </div>
                                 </div>
                             @endforeach
+
+                            <!-- No search results placeholder -->
+                            <div id="headerCityEmptyState" class="hidden text-center py-8 px-4 bg-white rounded-2xl border border-dashed border-slate-200">
+                                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-2 text-xl">
+                                    <i class="fas fa-search-location"></i>
+                                </div>
+                                <h5 class="text-sm font-bold text-slate-800">No matching city or pincode found</h5>
+                                <p class="text-xs text-slate-500 mt-1">Please try searching with another city name or 6-digit pincode</p>
+                                <button type="button" onclick="clearHeaderCitySearch()" class="mt-3 px-3 py-1.5 rounded-xl bg-teal-50 text-teal-700 hover:bg-teal-100 text-xs font-bold border border-teal-200 transition">
+                                    Clear Search & View All
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Footer -->
-                        <div class="p-2.5 bg-gray-50 border-t border-gray-100 text-center text-[11px] text-gray-400">
-                            <i class="fas fa-truck text-teal-600 mr-1"></i> Doorstep sample collection available in all listed pincodes
+                        <div class="p-3 sm:p-3.5 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xs flex-shrink-0">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <span class="font-medium text-slate-600">Doorstep sample collection by verified phlebotomists</span>
+                            </div>
+                            <span class="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                <i class="fas fa-check-circle"></i> NABL Certified
+                            </span>
                         </div>
 
                     </div>
@@ -253,14 +337,14 @@
             @endphp
             
             <!-- Actions -->
-            <div class="flex items-center space-x-2 md:space-x-4">
-                <!-- Mobile Quick Contact Icons (Visible on Mobile Screens) -->
-                <div class="flex lg:hidden items-center gap-1.5">
-                    <a href="tel:{{ $helplineClean }}" class="w-9 h-9 rounded-full bg-amber-50 text-amber-700 border border-amber-300 flex items-center justify-center shadow-xs active:scale-95 transition" title="Call Helpline {{ $helplinePrimary }}">
-                        <i class="fas fa-phone-alt text-xs animate-pulse"></i>
+            <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 md:gap-3 flex-shrink-0">
+                <!-- Mobile Quick Contact Icons (Hidden on <360px to prevent overflow, helpline available in drawer) -->
+                <div class="hidden min-[360px]:flex lg:hidden items-center gap-1.5">
+                    <a href="tel:{{ $helplineClean }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-50 text-amber-700 border border-amber-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Call Helpline {{ $helplinePrimary }}">
+                        <i class="fas fa-phone-alt text-[11px] sm:text-xs animate-pulse"></i>
                     </a>
-                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 flex items-center justify-center shadow-xs active:scale-95 transition" title="Chat on WhatsApp">
-                        <i class="fab fa-whatsapp text-lg"></i>
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="hidden min-[420px]:flex sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Chat on WhatsApp">
+                        <i class="fab fa-whatsapp text-sm sm:text-base"></i>
                     </a>
                 </div>
 
@@ -282,18 +366,18 @@
                 </div>
 
                 <!-- Cart Button (Responsive) -->
-                <button onclick="proceedToCheckout()" class="flex items-center font-semibold lg:border lg:border-gray-200 rounded-full p-2 lg:px-5 lg:py-2 shadow-none lg:shadow-sm hover:lg:shadow-md hover:bg-gray-50 transition text-sm relative">
-                    <i class="fas fa-shopping-cart text-gray-500 lg:mr-2 text-xl lg:text-base"></i> 
+                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border border-gray-200 rounded-full w-8 h-8 sm:w-9 sm:h-9 lg:w-auto lg:h-auto p-0 lg:px-5 lg:py-2 justify-center shadow-2xs lg:shadow-xs hover:bg-gray-50 transition text-sm relative flex-shrink-0" title="View Cart">
+                    <i class="fas fa-shopping-cart text-gray-600 lg:mr-2 text-sm lg:text-base"></i> 
                     <span class="hidden lg:inline">Cart</span> 
-                    <span id="cartCount" class="bg-brand-secondary text-white text-[10px] lg:text-xs rounded-full px-1.5 py-0.5 lg:px-2 lg:ml-1 font-bold absolute lg:static -top-1 -right-1 lg:top-auto lg:right-auto {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span>
+                    <span id="cartCount" class="bg-brand-secondary text-white text-[9px] min-[360px]:text-[10px] lg:text-xs rounded-full px-1.5 py-0.2 lg:px-2 lg:ml-1 font-bold absolute lg:static -top-1 -right-1 lg:top-auto lg:right-auto {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span>
                 </button>
 
                 @if($loggedInPatient)
                     <!-- Patient Notification Bell & Dropdown -->
                     <div class="relative" id="patientNotifDropdownContainer">
-                        <button id="patientNotifBtn" type="button" aria-label="My Notifications" class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 flex items-center justify-center text-gray-600 hover:text-teal-700 transition focus:outline-none shadow-xs">
-                            <i class="fas fa-bell text-sm"></i>
-                            <span id="patientNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[9px] font-black flex items-center justify-center ring-2 ring-white shadow-sm animate-pulse">0</span>
+                        <button id="patientNotifBtn" type="button" aria-label="My Notifications" class="relative w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 flex items-center justify-center text-gray-600 hover:text-teal-700 transition focus:outline-none shadow-xs">
+                            <i class="fas fa-bell text-xs sm:text-sm"></i>
+                            <span id="patientNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center ring-2 ring-white shadow-sm animate-pulse">0</span>
                         </button>
 
                         <!-- Patient Notification Dropdown Menu -->
@@ -342,8 +426,8 @@
                 </div>
 
                 <!-- Mobile Menu Hamburger -->
-                <button id="mobileMenuBtn" class="lg:hidden text-gray-700 font-bold flex items-center p-2 hover:text-brand-primary transition focus:outline-none">
-                    <i class="fas fa-bars text-2xl"></i>
+                <button id="mobileMenuBtn" class="lg:hidden text-slate-700 font-bold flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-slate-100 hover:text-brand-primary transition focus:outline-none flex-shrink-0" aria-label="Open Navigation Menu">
+                    <i class="fas fa-bars text-base sm:text-lg"></i>
                 </button>
             </div>
         </div>
@@ -438,6 +522,32 @@
                         </button>
                     @endif
                 </div>
+
+                @if($activeHeaderCities->isNotEmpty())
+                <!-- City Selector (Mobile Drawer) -->
+                <div class="pb-5 border-b border-gray-100">
+                    <p class="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider px-1">Diagnostic City</p>
+                    <button type="button" 
+                            onclick="closeMobileMenu(); setTimeout(() => toggleHeaderCityDropdown(), 200);"
+                            class="w-full flex items-center justify-between p-3 rounded-2xl bg-teal-50/70 border border-teal-200/80 hover:bg-teal-50 active:scale-[0.99] transition text-left group">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
+                                <i class="fas fa-map-marker-alt text-xs"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] uppercase font-bold text-teal-700 block leading-tight">Selected City</span>
+                                <span class="text-sm font-extrabold text-gray-900 group-hover:text-teal-700 transition-colors">
+                                    {{ $selectedHeaderCity?->name ?? 'Select City' }}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold text-teal-700 bg-white px-2.5 py-1 rounded-lg border border-teal-200/70 shadow-2xs flex items-center gap-1">
+                            <span>Change</span>
+                            <i class="fas fa-chevron-right text-[10px]"></i>
+                        </span>
+                    </button>
+                </div>
+                @endif
 
                 <!-- New Header Options -->
                 <div class="flex flex-col gap-2 pb-5 border-b border-gray-100">
@@ -675,37 +785,80 @@
         function toggleHeaderCityDropdown(e) {
             if (e) e.stopPropagation();
             const menu = document.getElementById('headerCityDropdownMenu');
+            const backdrop = document.getElementById('headerCityBackdrop');
             const chevron = document.getElementById('headerCityChevron');
             if (!menu) return;
 
             const isHidden = menu.classList.contains('hidden');
-            menu.classList.toggle('hidden', !isHidden);
-            if (chevron) {
-                chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-            }
             if (isHidden) {
+                menu.classList.remove('hidden');
+                if (backdrop) backdrop.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+                if (window.innerWidth < 640) {
+                    document.body.classList.add('overflow-hidden');
+                }
                 const input = document.getElementById('headerCitySearchInput');
                 if (input) {
                     input.value = '';
                     filterHeaderCities('');
-                    setTimeout(() => input.focus(), 50);
+                    if (window.innerWidth >= 640) {
+                        setTimeout(() => input.focus(), 50);
+                    }
                 }
+            } else {
+                closeHeaderCityDropdown();
             }
+        }
+
+        function closeHeaderCityDropdown() {
+            const menu = document.getElementById('headerCityDropdownMenu');
+            const backdrop = document.getElementById('headerCityBackdrop');
+            const chevron = document.getElementById('headerCityChevron');
+            if (menu) menu.classList.add('hidden');
+            if (backdrop) backdrop.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            document.body.classList.remove('overflow-hidden');
         }
 
         function filterHeaderCities(query) {
             const q = (query || '').toLowerCase().trim();
             const items = document.querySelectorAll('#headerCityList .city-item');
+            const clearBtn = document.getElementById('headerCityClearSearchBtn');
+            const emptyState = document.getElementById('headerCityEmptyState');
+            const countEl = document.getElementById('headerCityFilteredCount');
+
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', !q);
+            }
+
+            let visibleCount = 0;
             items.forEach(item => {
                 const name = item.getAttribute('data-city-name') || '';
                 const state = item.getAttribute('data-city-state') || '';
                 const pins = item.getAttribute('data-city-pincodes') || '';
                 if (!q || name.includes(q) || state.includes(q) || pins.includes(q)) {
                     item.style.display = '';
+                    visibleCount++;
                 } else {
                     item.style.display = 'none';
                 }
             });
+
+            if (emptyState) {
+                emptyState.classList.toggle('hidden', visibleCount > 0);
+            }
+            if (countEl) {
+                countEl.innerText = visibleCount;
+            }
+        }
+
+        function clearHeaderCitySearch() {
+            const input = document.getElementById('headerCitySearchInput');
+            if (input) {
+                input.value = '';
+                filterHeaderCities('');
+                input.focus();
+            }
         }
 
         function selectHeaderCity(id, name) {
@@ -729,17 +882,16 @@
                 document.querySelectorAll('#headerCityList .city-item').forEach(item => {
                     const itemId = parseInt(item.getAttribute('data-city-id'), 10);
                     if (itemId === id) {
-                        item.classList.add('bg-teal-50/70', 'border-l-4', 'border-teal-600');
+                        item.classList.add('bg-gradient-to-br', 'from-teal-50/95', 'via-emerald-50/60', 'to-white', 'border-2', 'border-teal-600', 'shadow-sm', 'ring-2', 'ring-teal-500/10');
+                        item.classList.remove('bg-white', 'border-slate-200/90', 'shadow-2xs');
                     } else {
-                        item.classList.remove('bg-teal-50/70', 'border-l-4', 'border-teal-600');
+                        item.classList.remove('bg-gradient-to-br', 'from-teal-50/95', 'via-emerald-50/60', 'to-white', 'border-2', 'border-teal-600', 'shadow-sm', 'ring-2', 'ring-teal-500/10');
+                        item.classList.add('bg-white', 'border-slate-200/90', 'shadow-2xs');
                     }
                 });
             }).catch(err => console.error('Error saving city', err));
 
-            const menu = document.getElementById('headerCityDropdownMenu');
-            const chevron = document.getElementById('headerCityChevron');
-            if (menu) menu.classList.add('hidden');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            closeHeaderCityDropdown();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -754,10 +906,14 @@
             document.addEventListener('click', (e) => {
                 const container = document.getElementById('headerCityDropdownContainer');
                 const menu = document.getElementById('headerCityDropdownMenu');
-                const chevron = document.getElementById('headerCityChevron');
-                if (container && !container.contains(e.target)) {
-                    if (menu) menu.classList.add('hidden');
-                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                if (container && !container.contains(e.target) && menu && !menu.contains(e.target)) {
+                    closeHeaderCityDropdown();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeHeaderCityDropdown();
                 }
             });
         });

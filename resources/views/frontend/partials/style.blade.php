@@ -33,6 +33,11 @@
         }
     </script>
     <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
         body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; letter-spacing: -0.01em; }
         .swiper-button-next, .swiper-button-prev {
             color: #115e59;
