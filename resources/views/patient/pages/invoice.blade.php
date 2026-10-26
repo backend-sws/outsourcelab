@@ -1,337 +1,355 @@
-@extends('frontend.layouts.app')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice #{{ $booking->booking_reference }} - Av Wellcare Diagnostics</title>
+    @include('partials.favicon')
 
-@section('title', 'Tax Invoice #' . $booking->booking_reference . ' - Av Wellcare Diagnostics')
-
-@section('content')
-<style>
-    @media print {
-        header, footer, nav, .site-header, .site-footer, .no-print, #headerCityDropdownContainer, .coupon-marquee-wrapper {
-            display: none !important;
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+                    }
+                }
+            }
         }
+    </script>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
         body {
-            background: #ffffff !important;
-            color: #0f172a !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            font-size: 11pt !important;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
-        .invoice-card {
-            border: none !important;
-            box-shadow: none !important;
-            max-width: 100% !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        .print-break-inside-avoid {
-            break-inside: avoid;
-        }
-    }
-</style>
 
-<div class="container mx-auto px-3 sm:px-4 py-6 sm:py-10 max-w-4xl">
-    <!-- Action Bar (Hidden in Print) -->
-    <div class="flex items-center justify-between gap-3 mb-6 no-print">
-        <a href="{{ route('patient.bookings') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 hover:text-teal-800 font-bold text-xs transition shadow-2xs hover:shadow-xs">
-            <i class="fas fa-arrow-left"></i>
-            <span>Back to My Bookings</span>
-        </a>
-        <div class="flex items-center gap-2">
-            @if($booking->report_file_path)
-                <a href="{{ route('patient.bookings.download_report', $booking->id) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs transition shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                    <span>Download Lab Report</span>
-                </a>
-            @endif
-            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-800 hover:bg-teal-900 text-white font-black text-xs transition shadow-sm active:scale-95 cursor-pointer">
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 8mm 10mm 8mm 10mm;
+        }
+
+        @media print {
+            html, body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                font-size: 10.5pt !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .invoice-wrapper {
+                background: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: auto !important;
+            }
+
+            .invoice-sheet {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 text-xs selection:bg-teal-100 selection:text-teal-900">
+
+@php
+    $testsList = is_array($booking->test_details) ? $booking->test_details : [];
+    $subtotalCalculated = 0;
+    foreach ($testsList as $t) {
+        $subtotalCalculated += (float) (is_array($t) ? ($t['price'] ?? 0) : 0);
+    }
+    if ($subtotalCalculated <= 0) {
+        $subtotalCalculated = (float) $booking->amount + (float) ($booking->discount_amount ?? 0) + (float) ($booking->coins_discount ?? 0);
+    }
+
+    $isPaid = in_array(strtolower((string)$booking->payment_status), ['paid', 'captured', 'completed', 'success']) || $booking->money_collected_at !== null;
+
+    $amountInWords = 'Rupees ' . number_format($booking->amount, 0) . ' Only';
+    if (class_exists('\NumberFormatter')) {
+        try {
+            $f = new \NumberFormatter('en_IN', \NumberFormatter::SPELLOUT);
+            $amountInWords = ucwords($f->format(round($booking->amount))) . ' Rupees Only';
+        } catch (\Throwable $e) {}
+    }
+@endphp
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SCREEN ACTION BAR (STRICTLY HIDDEN IN PRINT & PDF EXPORT) -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<aside class="no-print bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-50 shadow-md">
+    <div class="max-w-4xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" onclick="window.history.length > 1 ? window.history.back() : window.close()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition cursor-pointer">
+                <i class="fas fa-arrow-left text-[11px]"></i>
+                <span>Back</span>
+            </button>
+            <div class="h-4 w-px bg-slate-700"></div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-400">Invoice:</span>
+                <span class="font-mono text-xs font-black text-teal-400">#{{ $booking->booking_reference }}</span>
+                @if($isPaid)
+                    <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase">
+                        Paid
+                    </span>
+                @else
+                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase">
+                        {{ $booking->payment_status ?: 'Payment Due' }}
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition active:scale-95 cursor-pointer">
                 <i class="fas fa-print"></i>
                 <span>Print / Save as PDF</span>
             </button>
         </div>
     </div>
+</aside>
 
-    <!-- Official Printable Diagnostic Tax Invoice -->
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden invoice-card">
-        <!-- Top Lab Letterhead Banner -->
-        <div class="bg-gradient-to-r from-teal-950 via-teal-900 to-slate-900 text-white p-6 sm:p-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div class="flex items-start sm:items-center gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xl shadow-md flex-shrink-0">
-                        <i class="fas fa-microscope"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white">Av Wellcare Diagnostics</h1>
-                            <span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
-                                NABL & ICMR Approved
-                            </span>
-                        </div>
-                        <p class="text-xs text-teal-200/90 font-medium mt-0.5">High-Precision Pathology, Preventive Health & Molecular Diagnostic Center</p>
-                        <p class="text-[11px] text-teal-300/80 font-normal mt-0.5">
-                            Helpline: {{ \App\Models\Setting::get('helpline_primary', '898 898 8787') }} • Email: support@avwellcarediagnostics.com
-                        </p>
-                    </div>
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<!-- SINGLE-PAGE A4 TAX INVOICE -->
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<div class="invoice-wrapper py-6 px-3 flex justify-center">
+    <main class="invoice-sheet bg-white max-w-3xl w-full rounded-xl shadow-lg border border-slate-200 p-6 sm:p-7 text-slate-800 text-[11px] leading-relaxed">
+
+        <!-- 1. Header (Clean White Letterhead) -->
+        <header class="flex items-start justify-between pb-4 border-b border-slate-200">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-teal-700 text-white flex items-center justify-center font-bold text-lg shadow-sm flex-shrink-0">
+                    <i class="fas fa-flask"></i>
                 </div>
-
-                <div class="sm:text-right flex-shrink-0 border-t sm:border-t-0 pt-4 sm:pt-0 border-white/10">
-                    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-white/10 text-teal-100 border border-white/20 mb-1.5">
-                        TAX INVOICE & BILL OF SUPPLY
-                    </span>
-                    <p class="text-sm font-mono font-black text-amber-300">#{{ $booking->booking_reference }}</p>
-                    <p class="text-[11px] text-slate-300 mt-0.5 font-medium">
-                        {{ $booking->booking_date ? $booking->booking_date->format('d M Y, h:i A') : $booking->created_at->format('d M Y, h:i A') }}
+                <div>
+                    <h1 class="text-lg font-black text-slate-900 tracking-tight leading-tight">Av Wellcare Diagnostics</h1>
+                    <p class="text-[11px] text-slate-600 font-medium">Pathology & Preventive Health Diagnostic Center</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">
+                        Moradabad, Uttar Pradesh • Helpline: {{ \App\Models\Setting::get('helpline_primary', '9311229458') }} • support@avwellcarediagnostics.com
                     </p>
                 </div>
             </div>
-        </div>
 
-        <div class="p-6 sm:p-8 space-y-6">
-            <!-- Patient, Beneficiary & Service Details -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-slate-200/80">
-                <!-- Primary Patient Info -->
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Billed To (Account Owner)</h4>
-                    <p class="text-sm font-black text-slate-900">{{ $booking->patient->name ?? 'Patient' }}</p>
-                    <p class="text-xs text-slate-600 mt-0.5">
-                        <i class="fas fa-phone-alt text-teal-700 text-[10px] mr-1"></i> {{ $booking->patient->mobile ?? 'N/A' }}
-                    </p>
-                    @if($booking->patient && $booking->patient->email)
-                        <p class="text-xs text-slate-600 mt-0.5 truncate">
-                            <i class="fas fa-envelope text-teal-700 text-[10px] mr-1"></i> {{ $booking->patient->email }}
-                        </p>
-                    @endif
+            <div class="text-right flex-shrink-0">
+                <span class="inline-block px-2.5 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 font-black text-[10px] uppercase tracking-wider mb-1">
+                    TAX INVOICE
+                </span>
+                <div class="font-mono text-sm font-black text-slate-900">
+                    #{{ $booking->booking_reference }}
                 </div>
-
-                <!-- Patient / Beneficiary -->
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Sample Collection Beneficiary</h4>
-                    <p class="text-sm font-black text-slate-900">{{ $booking->beneficiary_name }}</p>
-                    <p class="text-xs text-slate-600 mt-0.5">
-                        <span class="font-bold text-slate-700">Relation:</span> {{ $booking->beneficiary_relation }}
-                        @if($booking->beneficiary_age) • <span class="font-bold text-slate-700">Age:</span> {{ $booking->beneficiary_age }} Yrs @endif
-                        @if($booking->beneficiary_gender) • <span class="font-bold text-slate-700">Gender:</span> {{ $booking->beneficiary_gender }} @endif
-                    </p>
-                    <p class="text-xs text-teal-800 font-bold mt-1">
-                        <i class="fas fa-calendar-check text-[10px] mr-1"></i> Slot: {{ $booking->display_slot }}
-                    </p>
-                </div>
-
-                <!-- Collection Address & Phlebotomist -->
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Collection Location & Staff</h4>
-                    @if($booking->collection_type === 'home' || $booking->collection_type === 'Home Collection')
-                        <div class="text-xs text-slate-700 leading-relaxed">
-                            <span class="inline-flex items-center gap-1 font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200 mb-1">
-                                <i class="fas fa-home text-[10px]"></i> Home Sample Pickup
-                            </span>
-                            @if($booking->address)
-                                <p class="text-slate-600 text-[11px] leading-snug">
-                                    {{ $booking->address->address_line1 }}, {{ $booking->address->city }} - {{ $booking->address->pincode }}
-                                </p>
-                            @else
-                                <p class="text-slate-500 text-[11px]">Home collection at registered address</p>
-                            @endif
-                        </div>
+                <p class="text-[10px] text-slate-500 mt-0.5">
+                    Date: {{ $booking->booking_date ? $booking->booking_date->format('d M Y, h:i A') : $booking->created_at->format('d M Y, h:i A') }}
+                </p>
+                <div class="mt-1">
+                    @if($isPaid)
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            <i class="fas fa-check-circle text-[8px]"></i> Paid Online
+                        </span>
                     @else
-                        <span class="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 text-xs">
-                            <i class="fas fa-clinic-medical text-[10px] text-teal-700"></i> Walk-in Lab Visit
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300">
+                            <i class="fas fa-clock text-[8px]"></i> {{ $booking->payment_status ?: 'Payment Due' }}
                         </span>
                     @endif
-
-                    @if($booking->agent)
-                        <div class="mt-2 pt-2 border-t border-slate-100 text-[11px] text-slate-700">
-                            <span class="font-bold text-teal-900">Assigned Phlebotomist:</span>
-                            <span class="font-semibold block">{{ $booking->agent->name }} ({{ $booking->agent->phone }})</span>
-                        </div>
-                    @endif
                 </div>
             </div>
+        </header>
 
-            <!-- Itemized Diagnostic Tests Table -->
-            <div class="print-break-inside-avoid">
-                <div class="flex items-center justify-between mb-2.5">
-                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-wider">Booked Diagnostic Tests & Health Packages</h4>
-                    <span class="text-xs text-slate-500 font-semibold">{{ is_array($booking->test_details) ? count($booking->test_details) : 1 }} Item(s)</span>
-                </div>
-                
-                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-black tracking-wider text-[10px]">
-                            <tr>
-                                <th class="p-3.5 w-12 text-center">#</th>
-                                <th class="p-3.5">Diagnostic Test / Health Package</th>
-                                <th class="p-3.5 text-center">Type</th>
-                                <th class="p-3.5 text-right">Standard MRP</th>
-                                <th class="p-3.5 text-right">Offer Price</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-800 font-medium">
-                            @php
-                                $testsList = is_array($booking->test_details) ? $booking->test_details : [];
-                                $subtotalCalc = 0;
-                            @endphp
-
-                            @if(count($testsList) > 0)
-                                @foreach($testsList as $idx => $tItem)
-                                    @php
-                                        $tName = is_array($tItem) ? ($tItem['name'] ?? 'Diagnostic Test') : (string)$tItem;
-                                        $tPrice = is_array($tItem) ? (float)($tItem['price'] ?? 0) : 0;
-                                        $tType = is_array($tItem) ? ($tItem['type'] ?? 'Test') : 'Test';
-                                        $tCategory = is_array($tItem) ? ($tItem['category_name'] ?? ($tItem['category'] ?? 'Laboratory')) : 'Pathology';
-                                        $subtotalCalc += $tPrice;
-                                    @endphp
-                                    <tr class="hover:bg-slate-50/50">
-                                        <td class="p-3.5 text-center text-slate-400 font-mono">{{ $idx + 1 }}</td>
-                                        <td class="p-3.5">
-                                            <div class="font-extrabold text-slate-900 text-xs sm:text-sm">{{ $tName }}</div>
-                                            <div class="text-[10px] text-teal-700 font-semibold mt-0.5">
-                                                <i class="fas fa-vial text-[9px] mr-1"></i> Category: {{ $tCategory }}
-                                            </div>
-                                        </td>
-                                        <td class="p-3.5 text-center">
-                                            <span class="px-2 py-0.5 rounded-md {{ strtolower($tType) === 'package' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-teal-50 text-teal-800 border border-teal-200' }} font-bold text-[10px] uppercase">
-                                                {{ ucfirst($tType) }}
-                                            </span>
-                                        </td>
-                                        <td class="p-3.5 text-right font-mono text-slate-400">
-                                            ₹{{ number_format($tPrice > 0 ? $tPrice * 1.25 : $booking->amount, 0) }}
-                                        </td>
-                                        <td class="p-3.5 text-right font-bold font-mono text-slate-900">
-                                            ₹{{ number_format($tPrice > 0 ? $tPrice : $booking->amount, 2) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @else
-                                <tr>
-                                    <td class="p-3.5 text-center text-slate-400 font-mono">1</td>
-                                    <td class="p-3.5">
-                                        <div class="font-bold text-slate-900">Diagnostic Health Services</div>
-                                        <div class="text-[10px] text-slate-500">Booking Reference #{{ $booking->booking_reference }}</div>
-                                    </td>
-                                    <td class="p-3.5 text-center">
-                                        <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-700 font-bold text-[10px] uppercase">Package</span>
-                                    </td>
-                                    <td class="p-3.5 text-right font-mono text-slate-400">₹{{ number_format($booking->amount, 2) }}</td>
-                                    <td class="p-3.5 text-right font-black font-mono text-slate-900">₹{{ number_format($booking->amount, 2) }}</td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
+        <!-- 2. Patient, Beneficiary & Service Details Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 py-3 border-b border-slate-200 text-[11px]">
+            <!-- Patient Info -->
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Patient Details</span>
+                <p class="font-extrabold text-slate-900">{{ $booking->beneficiary_name }}</p>
+                <p class="text-slate-600">
+                    @if($booking->beneficiary_age) {{ $booking->beneficiary_age }} Yrs @endif
+                    @if($booking->beneficiary_gender) / {{ ucfirst($booking->beneficiary_gender) }} @endif
+                    @if($booking->familyMember) • {{ $booking->familyMember->relation }} @endif
+                </p>
+                <p class="text-slate-600">Phone: <strong class="text-slate-800">{{ $booking->patient->mobile ?? 'N/A' }}</strong></p>
             </div>
 
-            <!-- Payment & Price Settlement Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 print-break-inside-avoid">
-                <!-- Payment Mode & Security Card -->
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Payment Mode:</span>
-                        <span class="font-black text-slate-800 uppercase px-2 py-0.5 rounded bg-white border border-slate-200 shadow-2xs">
-                            {{ $booking->payment_method ?: 'ONLINE' }}
-                        </span>
-                    </div>
-
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                        <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Payment Status:</span>
-                        @php
-                            $isPaid = in_array(strtolower((string)$booking->payment_status), ['paid', 'captured', 'completed', 'success']) || $booking->money_collected_at !== null;
-                        @endphp
-                        <span class="font-black text-xs px-2.5 py-0.5 rounded-full {{ $isPaid ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300' }}">
-                            {{ $isPaid ? 'PAID IN FULL' : 'PAYMENT DUE / CASH ON PICKUP' }}
-                        </span>
-                    </div>
-
-                    @if($booking->razorpay_payment_id)
-                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2 font-mono text-[11px]">
-                            <span class="font-bold font-sans text-slate-500">Transaction ID:</span>
-                            <span class="text-teal-900 font-bold">{{ $booking->razorpay_payment_id }}</span>
-                        </div>
-                    @endif
-
-                    @if($booking->money_collected_at)
-                        <div class="flex items-center justify-between text-[11px]">
-                            <span class="font-bold text-slate-500">Cash Received On:</span>
-                            <span class="font-semibold text-slate-800">{{ $booking->money_collected_at->format('d M Y, h:i A') }}</span>
-                        </div>
-                    @endif
-
-                    <div class="pt-1 text-[11px] text-slate-500 flex items-center gap-1.5">
-                        <i class="fas fa-shield-alt text-emerald-600"></i>
-                        <span>GST Exemption Notification No. 12/2017 (Health Care Services).</span>
-                    </div>
-                </div>
-
-                <!-- Price Breakdown Calculation Card -->
-                <div class="bg-gradient-to-br from-teal-50 via-emerald-50/70 to-slate-50 rounded-2xl p-5 border border-teal-200 shadow-2xs space-y-2 text-xs">
-                    <div class="flex justify-between items-center text-slate-600">
-                        <span>Items Subtotal:</span>
-                        <span class="font-bold font-mono">₹{{ number_format($subtotalCalc > 0 ? $subtotalCalc : $booking->amount + $booking->discount_amount + $booking->coins_discount, 2) }}</span>
-                    </div>
-
-                    @if($booking->discount_amount > 0)
-                        <div class="flex justify-between items-center text-emerald-700 font-semibold">
-                            <span>Promotional Coupon Discount @if($booking->coupon_code) ({{ $booking->coupon_code }}) @endif:</span>
-                            <span class="font-mono font-bold">- ₹{{ number_format($booking->discount_amount, 2) }}</span>
-                        </div>
-                    @endif
-
-                    @if($booking->coins_discount > 0)
-                        <div class="flex justify-between items-center text-amber-800 font-semibold">
-                            <span>Health Coins Redeemed ({{ $booking->coins_redeemed }} coins):</span>
-                            <span class="font-mono font-bold">- ₹{{ number_format($booking->coins_discount, 2) }}</span>
-                        </div>
-                    @endif
-
-                    @if(str_contains(strtolower((string) $booking->collection_type), 'home'))
-                        <div class="flex justify-between items-center text-slate-700 font-semibold">
-                            <span>Home Sample Collection Fee:</span>
-                            @if(($booking->collection_fee ?? 0) > 0)
-                                <span class="font-mono font-bold text-slate-900">+ ₹{{ number_format($booking->collection_fee, 2) }}</span>
-                            @else
-                                <span class="font-bold text-emerald-700">₹0.00 (FREE)</span>
-                            @endif
-                        </div>
-                    @endif
-
-                    <div class="flex justify-between items-center text-slate-500 text-[11px]">
-                        <span>Diagnostic Healthcare Tax (GST):</span>
-                        <span class="font-bold text-emerald-800 font-mono">₹0.00 (Exempt)</span>
-                    </div>
-
-                    <div class="flex justify-between items-center pt-3 border-t border-teal-200">
-                        <span class="font-black text-sm text-teal-950 uppercase tracking-tight">Net Amount:</span>
-                        <span class="font-black text-2xl text-teal-900 font-mono">₹{{ number_format($booking->amount, 2) }}</span>
-                    </div>
-                </div>
+            <!-- Appointment & Slot -->
+            <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Appointment Details</span>
+                <p class="font-bold text-slate-800">Date: {{ $booking->booking_date ? $booking->booking_date->format('d M Y') : $booking->created_at->format('d M Y') }}</p>
+                <p class="font-bold text-teal-800">Time Slot: {{ $booking->display_slot }}</p>
+                <p class="text-slate-600">Type: <span class="font-semibold">{{ $booking->collection_type ?: 'Home Collection' }}</span></p>
             </div>
 
-            <!-- Terms, Verification & Digital Signature -->
-            <div class="pt-6 border-t border-slate-200 print-break-inside-avoid">
-                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-                    <div class="text-[11px] text-slate-500 space-y-1 max-w-lg">
-                        <p class="font-bold text-slate-700">Important Terms & Laboratory Policy:</p>
-                        <p>1. This is a computer-generated tax invoice and bill of supply issued in accordance with clinical establishment guidelines.</p>
-                        <p>2. Phlebotomists follow standard cold-chain sample transport protocols with verified barcoding.</p>
-                        <p>3. Digitally signed laboratory reports certified by an MD Pathologist will be accessible directly on the patient portal upon completion.</p>
-                    </div>
-
-                    <!-- Digital Stamp & Seal -->
-                    <div class="text-center sm:text-right flex flex-col items-center sm:items-end">
-                        <div class="w-32 h-14 border border-dashed border-teal-300 rounded-xl bg-teal-50/50 flex flex-col items-center justify-center text-[10px] text-teal-900 font-black p-1 shadow-2xs mb-1">
-                            <i class="fas fa-certificate text-teal-600 mb-0.5"></i>
-                            <span>Av Wellcare Verified</span>
-                            <span class="text-[9px] font-mono text-teal-700">Electronic Bill</span>
-                        </div>
-                        <p class="text-[10px] font-bold text-slate-500">Authorized Digital Billing Officer</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer Contact Notice -->
-            <div class="pt-4 border-t border-slate-100 text-center text-slate-400 text-[10px] space-y-0.5 no-print">
-                <p>For billing inquiries or report downloads, visit <strong>www.avwellcarediagnostics.com</strong> or call <strong>{{ \App\Models\Setting::get('helpline_primary', '898 898 8787') }}</strong></p>
-                <p>Thank you for choosing Av Wellcare Diagnostics for your healthcare.</p>
+            <!-- Collection Address & Staff -->
+            <div class="col-span-2 sm:col-span-1">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-0.5">Collection Location</span>
+                <p class="text-slate-700 leading-snug">
+                    {{ $booking->address ? $booking->address->full_address . ', ' . $booking->address->city . ' ' . $booking->address->pincode : 'Central Diagnostic Lab' }}
+                </p>
+                @if($booking->agent)
+                    <p class="text-[10px] text-teal-800 mt-0.5 font-bold">
+                        Phlebotomist: {{ $booking->agent->name }} ({{ $booking->agent->phone }})
+                    </p>
+                @endif
             </div>
         </div>
-    </div>
+
+        <!-- 3. Diagnostic Tests & Packages Table -->
+        <div class="py-3 space-y-1.5">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Investigations / Tests Included</span>
+                <span class="text-[10px] font-bold text-slate-400">{{ count($testsList) }} Item(s)</span>
+            </div>
+
+            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                <table class="w-full text-left text-[11px] border-collapse">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-black tracking-wider text-[9px]">
+                        <tr>
+                            <th class="py-2 px-3 w-8 text-center">#</th>
+                            <th class="py-2 px-3">Test / Package Description</th>
+                            <th class="py-2 px-3 text-center">Type</th>
+                            <th class="py-2 px-3 text-right">Price (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-800">
+                        @if(count($testsList) > 0)
+                            @foreach($testsList as $idx => $item)
+                                @php
+                                    $tName = is_array($item) ? ($item['name'] ?? ($item['title'] ?? 'Diagnostic Test')) : (string)$item;
+                                    $tPrice = is_array($item) ? (float)($item['price'] ?? 0) : 0;
+                                    $tType = is_array($item) ? ($item['type'] ?? 'test') : 'test';
+                                @endphp
+                                <tr class="hover:bg-slate-50/50">
+                                    <td class="py-2 px-3 text-center text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                                    <td class="py-2 px-3">
+                                        <span class="font-extrabold text-slate-900">{{ $tName }}</span>
+                                        @if(is_array($item) && !empty($item['sample_type']))
+                                            <span class="text-[9px] text-slate-400 ml-1">({{ $item['sample_type'] }})</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-2 px-3 text-center">
+                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase {{ $tType === 'package' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700' }}">
+                                            {{ ucfirst($tType) }}
+                                        </span>
+                                    </td>
+                                    <td class="py-2 px-3 text-right font-black font-mono text-slate-900">
+                                        ₹{{ number_format($tPrice, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td class="py-2 px-3 text-center text-slate-400 font-mono">1</td>
+                                <td class="py-2 px-3 font-bold text-slate-900">General Diagnostic Health Investigations</td>
+                                <td class="py-2 px-3 text-center"><span class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-700">Test</span></td>
+                                <td class="py-2 px-3 text-right font-black font-mono text-slate-900">₹{{ number_format($booking->amount, 2) }}</td>
+                            </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Payment Settlement & Pricing Calculation -->
+        <div class="grid grid-cols-2 gap-4 py-3 border-t border-slate-200 text-[11px]">
+            <!-- Left Side: Payment Details & Amount in Words -->
+            <div class="space-y-1.5">
+                <p><span class="font-bold text-slate-500">Payment Mode:</span> <strong class="text-slate-800 uppercase">{{ $booking->payment_method ?: 'Online' }}</strong></p>
+                <p><span class="font-bold text-slate-500">Payment Status:</span> <strong class="{{ $isPaid ? 'text-emerald-700' : 'text-amber-700' }}">{{ $isPaid ? 'Paid' : ($booking->payment_status ?: 'Pending') }}</strong></p>
+                @if($booking->razorpay_payment_id)
+                    <p class="font-mono text-[10px] text-slate-500">Ref: {{ $booking->razorpay_payment_id }}</p>
+                @endif
+                <div class="pt-1 text-[10px] text-slate-600">
+                    <span class="font-bold text-slate-400 uppercase block text-[9px]">Amount in Words:</span>
+                    <span class="italic font-bold text-slate-800">{{ $amountInWords }}</span>
+                </div>
+                <p class="text-[9px] text-slate-400 pt-1 leading-snug">
+                    Healthcare diagnostic services are exempt from GST under Notification No. 12/2017.
+                </p>
+            </div>
+
+            <!-- Right Side: Totals Block -->
+            <div class="space-y-1 text-right">
+                <div class="flex justify-between text-slate-600">
+                    <span>Subtotal:</span>
+                    <span class="font-mono font-bold">₹{{ number_format($subtotalCalculated, 2) }}</span>
+                </div>
+
+                @if(str_contains(strtolower((string) $booking->collection_type), 'home'))
+                    <div class="flex justify-between text-slate-600">
+                        <span>Collection Fee:</span>
+                        @if(($booking->collection_fee ?? 0) > 0)
+                            <span class="font-mono font-bold text-slate-800">+ ₹{{ number_format($booking->collection_fee, 2) }}</span>
+                        @else
+                            <span class="font-bold text-emerald-700">₹0.00 (Free)</span>
+                        @endif
+                    </div>
+                @endif
+
+                @if(($booking->discount_amount ?? 0) > 0)
+                    <div class="flex justify-between text-emerald-700 font-semibold">
+                        <span>Discount @if($booking->coupon_code) ({{ $booking->coupon_code }}) @endif:</span>
+                        <span class="font-mono font-bold">- ₹{{ number_format($booking->discount_amount, 2) }}</span>
+                    </div>
+                @endif
+
+                @if(($booking->coins_discount ?? 0) > 0)
+                    <div class="flex justify-between text-amber-800 font-semibold">
+                        <span>Coins Discount:</span>
+                        <span class="font-mono font-bold">- ₹{{ number_format($booking->coins_discount, 2) }}</span>
+                    </div>
+                @endif
+
+                <div class="flex justify-between items-center pt-2 mt-1 border-t-2 border-slate-900 text-xs sm:text-sm">
+                    <span class="font-black text-slate-900 uppercase">Total Amount:</span>
+                    <span class="font-mono font-black text-slate-900 text-base">₹{{ number_format($booking->amount, 2) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Simple Footer & Signatory -->
+        <footer class="pt-3 mt-3 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-400">
+            <div>
+                <p class="font-semibold text-slate-600">Av Wellcare Diagnostics</p>
+                <p>Computer generated invoice, requires no physical signature.</p>
+            </div>
+            <div class="text-right">
+                <div class="h-6"></div>
+                <p class="font-bold text-slate-700 border-t border-slate-300 pt-0.5">Authorized Signatory</p>
+            </div>
+        </footer>
+
+    </main>
 </div>
-@endsection
+
+<script>
+    if (new URLSearchParams(window.location.search).get('print') === '1') {
+        window.addEventListener('load', () => window.print());
+    }
+</script>
+
+</body>
+</html>

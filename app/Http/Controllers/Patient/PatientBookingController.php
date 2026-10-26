@@ -956,13 +956,18 @@ class PatientBookingController extends Controller
     public function invoice(int $id): View|RedirectResponse
     {
         $patientId = session('patient_id');
-        if (! $patientId) {
+        $isAdmin = auth()->check();
+
+        if (! $patientId && ! $isAdmin) {
             return redirect('/');
         }
 
-        $booking = Booking::with(['patient', 'familyMember', 'address', 'agent', 'latestPaymentTransaction'])
-            ->where('patient_id', $patientId)
-            ->findOrFail($id);
+        $query = Booking::with(['patient', 'familyMember', 'address', 'agent', 'latestPaymentTransaction']);
+        if (! $isAdmin) {
+            $query->where('patient_id', $patientId);
+        }
+
+        $booking = $query->findOrFail($id);
 
         return view('patient.pages.invoice', compact('booking'));
     }

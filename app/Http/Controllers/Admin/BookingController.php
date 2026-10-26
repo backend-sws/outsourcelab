@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Booking;
 use App\Models\Package;
+use App\Models\Setting;
 use App\Models\Test;
 use App\Services\NotificationService;
 use App\Services\PathologyApiService;
@@ -42,8 +43,14 @@ class BookingController extends Controller
     {
         $booking = Booking::with(['patient', 'familyMember', 'address', 'agent'])->findOrFail($id);
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
+        $allTests = Test::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'price', 'original_price', 'sample_type']);
+        $allPackages = Package::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'price', 'original_price', 'sample_type']);
 
-        return view('admin.pages.bookings.show', compact('booking', 'agents'));
+        return view('admin.pages.bookings.show', compact('booking', 'agents', 'allTests', 'allPackages'));
     }
 
     public function assignAgent(Request $request, int $id)
@@ -115,9 +122,9 @@ class BookingController extends Controller
 
     public function print(int $id)
     {
-        $booking = Booking::with(['patient', 'familyMember', 'address', 'agent'])->findOrFail($id);
+        $booking = Booking::with(['patient', 'familyMember', 'address', 'agent', 'latestPaymentTransaction'])->findOrFail($id);
 
-        return view('admin.pages.bookings.print', compact('booking'));
+        return view('patient.pages.invoice', compact('booking'));
     }
 
     /**
@@ -288,5 +295,118 @@ class BookingController extends Controller
         $booking->save();
 
         return back()->with('success', "Booking #{$booking->booking_reference} details updated successfully.");
+    }
+
+    /**
+     * Update tests, packages, and pricing for a booking by Admin.
+     */
+    public function updateTests(Request $request, int $id): RedirectResponse
+    {
+        $booking = Booking::findOrFail($id);
+
+        $request->validate([
+            'tests' => 'required',
+            'collection_fee' => 'nullable|numeric|min:0',
+            'amount' => 'nullable|numeric|min:0',
+            'payment_status' => 'nullable|string',
+            'payment_method' => 'nullable|string',
+        ]);
+
+        $rawTests = is_array($request->input('tests'))
+            ? $request->input('tests')
+            : json_decode($request->input('tests'), true);
+
+        if (empty($rawTests) || ! is_array($rawTests)) {
+            return back()->with('error', 'At least one diagnostic test or package is required.');
+        }
+
+        $sanitizedItems = [];
+        $calculatedSubtotal = 0.0;
+
+        foreach ($rawTests as $item) {
+            $type = $item['type'] ?? 'test';
+            $itemId = $item['id'] ?? null;
+            if (! $itemId) {
+                continue;
+            }
+
+            if ($type === 'package') {
+                $pkg = Package::find($itemId);
+                if ($pkg) {
+                    $itemPrice = isset($item['price']) && is_numeric($item['price'])
+                        ? (float) $item['price']
+                        : (float) $pkg->price;
+                    $sanitizedItems[] = [
+                        'id' => $pkg->id,
+                        'name' => $pkg->name,
+                        'title' => $pkg->name,
+                        'type' => 'package',
+                        'price' => $itemPrice,
+                        'parameters_count' => is_array($pkg->parameters) ? count($pkg->parameters) : 0,
+                    ];
+                    $calculatedSubtotal += $itemPrice;
+                }
+            } else {
+                $test = Test::find($itemId);
+                if ($test) {
+                    $itemPrice = isset($item['price']) && is_numeric($item['price'])
+                        ? (float) $item['price']
+                        : (float) $test->price;
+                    $sanitizedItems[] = [
+                        'id' => $test->id,
+                        'name' => $test->name,
+                        'title' => $test->name,
+                        'type' => 'test',
+                        'price' => $itemPrice,
+                        'sample_type' => $test->sample_type ?? 'Blood',
+                    ];
+                    $calculatedSubtotal += $itemPrice;
+                }
+            }
+        }
+
+        if (empty($sanitizedItems)) {
+            return back()->with('error', 'No valid diagnostic tests or packages were selected.');
+        }
+
+        // Collection fee calculation
+        $isHomeCollection = str_contains(strtolower((string) $booking->collection_type), 'home');
+        if ($request->has('collection_fee') && $request->collection_fee !== null && $request->collection_fee !== '') {
+            $collectionFee = (float) $request->collection_fee;
+        } else {
+            $collectionFee = 0;
+            if ($isHomeCollection) {
+                $collectionFeeEnabled = Setting::get('collection_fee_enabled', '1') == '1';
+                $standardCollectionFee = (float) Setting::get('home_collection_fee', '100');
+                $freeThreshold = (float) Setting::get('free_collection_threshold', '500');
+                if ($collectionFeeEnabled && $calculatedSubtotal < $freeThreshold) {
+                    $collectionFee = $standardCollectionFee;
+                }
+            }
+        }
+
+        $existingDiscount = (float) ($booking->discount_amount ?? 0);
+        $coinsDiscount = (float) ($booking->coins_discount ?? 0);
+
+        if ($request->filled('amount')) {
+            $finalAmount = (float) $request->amount;
+        } else {
+            $finalAmount = max(0, $calculatedSubtotal - $existingDiscount - $coinsDiscount + $collectionFee);
+        }
+
+        $booking->test_details = $sanitizedItems;
+        $booking->collection_fee = $collectionFee;
+        $booking->amount = $finalAmount;
+
+        if ($request->filled('payment_status')) {
+            $booking->payment_status = $request->payment_status;
+        }
+        if ($request->filled('payment_method')) {
+            $booking->payment_method = $request->payment_method;
+        }
+
+        $booking->save();
+
+        return back()->with('success', "Tests and pricing for booking #{$booking->booking_reference} have been updated successfully.");
     }
 }

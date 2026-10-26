@@ -102,8 +102,9 @@ class ReportDownloadAndInvoiceTest extends TestCase
             'email' => 'ajay_'.$rand.'@example.com',
         ]);
 
+        $ref = 'BK-'.strtoupper(bin2hex(random_bytes(3)));
         $booking = Booking::create([
-            'booking_reference' => 'BK-7E0B15',
+            'booking_reference' => $ref,
             'patient_id' => $patient->id,
             'collection_type' => 'Home Collection',
             'booking_date' => now()->toDateString(),
@@ -122,7 +123,7 @@ class ReportDownloadAndInvoiceTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TAX INVOICE');
-        $response->assertSee('BK-7E0B15');
+        $response->assertSee($ref);
         $response->assertSee('Ajay Verma');
         $response->assertSee('Liver Function Test (LFT)');
         $response->assertSee('Vitamin D (25-OH)');

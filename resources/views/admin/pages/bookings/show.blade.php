@@ -164,15 +164,69 @@
         
         <!-- Tests Included -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-bold text-gray-800 border-b pb-3 mb-4">Tests Included</h3>
+            <div class="flex items-center justify-between border-b pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-lg font-bold text-gray-800">Tests Included</h3>
+                    <span class="text-xs bg-teal-50 text-teal-800 font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200">
+                        {{ is_array($booking->test_details) ? count($booking->test_details) : 0 }} {{ Str::plural('Item', is_array($booking->test_details) ? count($booking->test_details) : 0) }}
+                    </span>
+                </div>
+                <button type="button" onclick="openAdminModifyTestsModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                    <i class="fas fa-edit text-xs"></i>
+                    <span>Manage / Add Tests</span>
+                </button>
+            </div>
+
             <ul class="space-y-3">
-                @foreach($booking->test_details as $test)
-                <li class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <span class="font-medium text-gray-800">{{ $test['name'] ?? 'Test' }}</span>
-                    <span class="text-gray-600 font-semibold">₹{{ isset($test['price']) ? $test['price'] : 0 }}</span>
-                </li>
-                @endforeach
+                @if(!empty($booking->test_details) && is_array($booking->test_details))
+                    @foreach($booking->test_details as $test)
+                    <li class="flex justify-between items-center bg-gray-50/80 hover:bg-gray-100/70 p-3.5 rounded-xl border border-gray-100 transition">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-8 h-8 rounded-lg {{ ($test['type'] ?? 'test') === 'package' ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700' }} flex items-center justify-center text-xs flex-shrink-0 font-bold">
+                                <i class="fas {{ ($test['type'] ?? 'test') === 'package' ? 'fa-box-open' : 'fa-flask' }}"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-extrabold text-gray-800 text-xs sm:text-sm truncate">{{ $test['name'] ?? ($test['title'] ?? 'Diagnostic Test') }}</span>
+                                    <span class="text-[10px] font-black px-2 py-0.5 rounded-full {{ ($test['type'] ?? 'test') === 'package' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-blue-50 text-blue-800 border border-blue-200' }}">
+                                        {{ ucfirst($test['type'] ?? 'test') }}
+                                    </span>
+                                    @if(!empty($test['sample_type']))
+                                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                            {{ $test['sample_type'] }}
+                                        </span>
+                                    @endif
+                                    @if(!empty($test['parameters_count']))
+                                        <span class="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                                            {{ $test['parameters_count'] }} Parameters
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <span class="text-gray-900 font-black text-sm flex-shrink-0">₹{{ number_format($test['price'] ?? 0, 0) }}</span>
+                    </li>
+                    @endforeach
+                @else
+                    <li class="text-xs text-gray-500 italic p-3">No tests recorded for this booking.</li>
+                @endif
             </ul>
+
+            <!-- Breakdown in tests card -->
+            <div class="mt-4 pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between text-xs text-gray-600 gap-2">
+                <div class="flex items-center gap-4 flex-wrap">
+                    <span>Subtotal: <strong class="text-gray-900">₹{{ number_format(is_array($booking->test_details) ? array_sum(array_column($booking->test_details, 'price')) : 0, 0) }}</strong></span>
+                    @if($booking->collection_fee > 0)
+                        <span>Collection Fee: <strong class="text-gray-900">₹{{ number_format($booking->collection_fee, 0) }}</strong></span>
+                    @endif
+                    @if(($booking->discount_amount ?? 0) > 0 || ($booking->coins_discount ?? 0) > 0)
+                        <span class="text-emerald-700">Discount: <strong class="text-emerald-700">-₹{{ number_format(($booking->discount_amount ?? 0) + ($booking->coins_discount ?? 0), 0) }}</strong></span>
+                    @endif
+                </div>
+                <div>
+                    <span class="font-bold text-gray-800">Total: <span class="text-sm font-black text-teal-700">₹{{ number_format($booking->amount, 0) }}</span></span>
+                </div>
+            </div>
         </div>
         
     </div>
@@ -546,6 +600,209 @@
 
     </div>
 </div>
+
+<!-- Admin Modify Tests Modal -->
+<div id="adminModifyTestsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <!-- Backdrop with blur -->
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeAdminModifyTestsModal()"></div>
+
+    <div class="flex min-h-full items-center justify-center p-3 sm:p-4 text-center">
+        <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all w-full max-w-3xl border border-slate-100 my-8">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-teal-900 via-teal-800 to-slate-900 px-6 py-4 text-white flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h3 class="text-base sm:text-lg font-black tracking-tight flex items-center gap-2">
+                            <i class="fas fa-flask-vial text-teal-400"></i>
+                            <span>Manage Diagnostic Tests & Packages</span>
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-lg bg-white/10 font-mono text-xs font-bold text-teal-200 border border-white/10">
+                            #{{ $booking->booking_reference }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider {{ $booking->payment_status === 'Paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-amber-500/20 text-amber-300 border border-amber-400/30' }}">
+                            {{ $booking->payment_status === 'Paid' ? 'Paid' : 'Payment: ' . $booking->payment_status }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-teal-100/80 mt-1">Add tests, remove existing tests, and customize booking pricing.</p>
+                </div>
+                <button type="button" onclick="closeAdminModifyTestsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer flex-shrink-0">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <form id="adminUpdateTestsForm" action="{{ route('admin.bookings.updateTests', $booking->id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="tests" id="adminTestsPayloadInput">
+
+                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto bg-slate-50/50">
+
+                    <!-- 1. Search & Add Test or Package -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-3 relative">
+                        <label class="block text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fas fa-search-plus text-teal-700"></i>
+                            <span>Search & Add Test / Package</span>
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                id="adminCatalogSearchInput" 
+                                placeholder="Search by name (e.g. CBC, Liver, Lipid, Thyroid, Fever, Vitamin D, Full Body)..." 
+                                class="w-full px-4 py-2.5 pl-10 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-700 transition"
+                                oninput="filterAdminCatalog(this.value)"
+                                autocomplete="off"
+                            >
+                            <i class="fas fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+                            <button type="button" onclick="clearAdminSearch()" id="adminClearSearchBtn" class="hidden absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+
+                        <!-- Search Results Dropdown -->
+                        <div id="adminCatalogSearchResults" class="hidden absolute left-4 right-4 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl z-40 max-h-64 overflow-y-auto divide-y divide-slate-100"></div>
+                    </div>
+
+                    <!-- 2. Currently Selected Tests List -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                <i class="fas fa-list-check text-teal-700"></i>
+                                <span>Included Tests & Packages</span>
+                            </label>
+                            <span id="adminSelectedCountBadge" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                                0 items
+                            </span>
+                        </div>
+
+                        <div id="adminSelectedTestsContainer" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                            <!-- Injected dynamically via JS -->
+                        </div>
+
+                        <div id="adminEmptyTestsWarning" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-center font-bold">
+                            <i class="fas fa-exclamation-triangle text-amber-600 mr-1.5"></i>
+                            At least one test or package must be included in the booking.
+                        </div>
+                    </div>
+
+                    <!-- 3. Financial Calculation & Fee Adjustments -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <i class="fas fa-calculator text-teal-700"></i>
+                            <span>Pricing & Payment Calculation</span>
+                        </h4>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                                <span class="font-bold text-slate-600">Tests Subtotal:</span>
+                                <span class="text-sm font-black text-slate-900" id="adminSubtotalDisplay">₹0</span>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-600 mb-1 flex items-center justify-between">
+                                    <span>Collection Fee (₹):</span>
+                                    <span class="text-[10px] text-teal-700 font-semibold">Free threshold: ₹{{ number_format(\App\Models\Setting::get('free_collection_threshold', 500), 0) }}</span>
+                                </label>
+                                <input 
+                                    type="number" 
+                                    step="1" 
+                                    min="0" 
+                                    id="adminCollectionFeeInput" 
+                                    name="collection_fee" 
+                                    value="{{ (float) $booking->collection_fee }}"
+                                    class="w-full px-3 py-2 font-bold text-xs bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-700"
+                                    oninput="recalculateAdminTotals()"
+                                >
+                            </div>
+
+                            @php
+                                $totalDiscount = ($booking->discount_amount ?? 0) + ($booking->coins_discount ?? 0);
+                            @endphp
+                            @if($totalDiscount > 0)
+                            <div class="p-3 bg-emerald-50/70 rounded-xl border border-emerald-100 flex justify-between items-center sm:col-span-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-tag text-emerald-600"></i>
+                                    <span class="font-bold text-emerald-900">Applied Discount (Coupon & Coins):</span>
+                                </div>
+                                <span class="text-sm font-black text-emerald-800">-₹{{ number_format($totalDiscount, 0) }}</span>
+                            </div>
+                            @endif
+
+                            <div class="p-3 bg-teal-50/80 rounded-xl border border-teal-200 flex justify-between items-center sm:col-span-2">
+                                <div>
+                                    <span class="font-black text-teal-950 text-sm block">Final Total Booking Amount:</span>
+                                    <span class="text-[11px] text-teal-700 font-medium">Subtotal + Collection Fee - Discounts</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-teal-800">₹</span>
+                                    <input 
+                                        type="number" 
+                                        step="0.01" 
+                                        min="0" 
+                                        id="adminFinalAmountInput" 
+                                        name="amount" 
+                                        value="{{ (float) $booking->amount }}"
+                                        class="w-32 px-3 py-1.5 text-base font-black text-teal-900 bg-white border border-teal-300 rounded-xl text-right outline-none focus:ring-2 focus:ring-teal-600"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Payment Status Setting -->
+                        <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Payment Status</label>
+                                <select 
+                                    name="payment_status" 
+                                    id="adminPaymentStatusSelect" 
+                                    class="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-700"
+                                >
+                                    <option value="Paid" {{ $booking->payment_status === 'Paid' ? 'selected' : '' }}>Paid</option>
+                                    <option value="Partial Online / Cash on Collection" {{ $booking->payment_status === 'Partial Online / Cash on Collection' ? 'selected' : '' }}>Partial Online / Cash on Collection</option>
+                                    <option value="Pending" {{ $booking->payment_status === 'Pending' ? 'selected' : '' }}>Pending</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Payment Method</label>
+                                <input 
+                                    type="text" 
+                                    name="payment_method" 
+                                    value="{{ $booking->payment_method }}" 
+                                    placeholder="e.g. Online, Cash, UPI" 
+                                    class="w-full px-3 py-2 text-xs font-bold bg-slate-50 border border-slate-300 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-teal-700"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Helper banner for paid booking amount difference -->
+                        <div id="adminDiffAlert" class="hidden p-3 rounded-xl border text-xs"></div>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3">
+                    <button 
+                        type="button" 
+                        onclick="closeAdminModifyTestsModal()" 
+                        class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        type="submit" 
+                        id="adminSaveTestsBtn" 
+                        class="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-black rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer"
+                    >
+                        <i class="fas fa-check-circle"></i>
+                        <span>Save Tests & Update Booking</span>
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -565,6 +822,327 @@
             btn.classList.toggle('border-gray-300',!isActive);
         });
     }
+
+    // Admin Tests Modification State
+    const adminCatalogTests = @json($allTests ?? []);
+    const adminCatalogPackages = @json($allPackages ?? []);
+    let adminCurrentTests = @json($booking->test_details ?? []);
+    const adminIsHomeCollection = {{ str_contains(strtolower((string) $booking->collection_type), 'home') ? 'true' : 'false' }};
+    const adminExistingDiscount = {{ (float) (($booking->discount_amount ?? 0) + ($booking->coins_discount ?? 0)) }};
+    const adminOriginalAmount = {{ (float) $booking->amount }};
+    const adminOriginalPaymentStatus = @json($booking->payment_status);
+    const adminFeeEnabled = {{ \App\Models\Setting::get('collection_fee_enabled', '1') == '1' ? 'true' : 'false' }};
+    const adminStandardFee = {{ (float) \App\Models\Setting::get('home_collection_fee', '100') }};
+    const adminFreeThreshold = {{ (float) \App\Models\Setting::get('free_collection_threshold', '500') }};
+    let adminCollectionFeeManualOverride = false;
+
+    function openAdminModifyTestsModal() {
+        const raw = @json($booking->test_details ?? []);
+        adminCurrentTests = Array.isArray(raw) ? JSON.parse(JSON.stringify(raw)) : [];
+        adminCollectionFeeManualOverride = false;
+        renderAdminTestsList();
+        recalculateAdminTotals();
+        document.getElementById('adminModifyTestsModal').classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeAdminModifyTestsModal() {
+        document.getElementById('adminModifyTestsModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        clearAdminSearch();
+    }
+
+    function renderAdminTestsList() {
+        const container = document.getElementById('adminSelectedTestsContainer');
+        const countBadge = document.getElementById('adminSelectedCountBadge');
+        const emptyWarning = document.getElementById('adminEmptyTestsWarning');
+        const saveBtn = document.getElementById('adminSaveTestsBtn');
+
+        container.innerHTML = '';
+        countBadge.innerText = `${adminCurrentTests.length} ${adminCurrentTests.length === 1 ? 'item' : 'items'}`;
+
+        if (adminCurrentTests.length === 0) {
+            emptyWarning.classList.remove('hidden');
+            saveBtn.disabled = true;
+            saveBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return;
+        }
+
+        emptyWarning.classList.add('hidden');
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+        adminCurrentTests.forEach((item, index) => {
+            const isPackage = (item.type || 'test') === 'package';
+            const price = parseFloat(item.price || 0);
+
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between gap-3 p-3 bg-slate-50 hover:bg-slate-100/80 rounded-xl border border-slate-200 transition';
+            row.innerHTML = `
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-8 h-8 rounded-lg ${isPackage ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700'} flex items-center justify-center text-xs flex-shrink-0 font-bold">
+                        <i class="fas ${isPackage ? 'fa-box-open' : 'fa-flask'}"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-extrabold text-slate-800 text-xs truncate">${item.name || item.title || 'Diagnostic Test'}</span>
+                            <span class="text-[9px] font-black px-1.5 py-0.2 rounded-full ${isPackage ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800 border border-blue-200'}">
+                                ${isPackage ? 'Package' : 'Test'}
+                            </span>
+                            ${item.sample_type ? `<span class="text-[9px] font-bold text-slate-500 bg-white px-1.5 py-0.2 rounded border border-slate-200">${item.sample_type}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-1 bg-white border border-slate-300 rounded-lg px-2 py-1">
+                        <span class="text-xs font-bold text-slate-500">₹</span>
+                        <input 
+                            type="number" 
+                            step="1" 
+                            min="0" 
+                            value="${price}" 
+                            class="w-16 text-xs font-black text-slate-800 text-right outline-none bg-transparent"
+                            onchange="updateAdminItemPrice(${index}, this.value)"
+                            oninput="updateAdminItemPrice(${index}, this.value)"
+                        >
+                    </div>
+
+                    <button 
+                        type="button" 
+                        onclick="removeAdminTest(${index})" 
+                        class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-xs transition cursor-pointer"
+                        title="Remove Test"
+                    >
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function updateAdminItemPrice(index, newPrice) {
+        const p = parseFloat(newPrice);
+        if (!isNaN(p) && p >= 0 && adminCurrentTests[index]) {
+            adminCurrentTests[index].price = p;
+            recalculateAdminTotals();
+        }
+    }
+
+    function removeAdminTest(index) {
+        adminCurrentTests.splice(index, 1);
+        renderAdminTestsList();
+        recalculateAdminTotals();
+    }
+
+    function addAdminItem(item, type) {
+        const exists = adminCurrentTests.some(t => String(t.id) === String(item.id) && (t.type || 'test') === type);
+        if (exists) {
+            alert(`'${item.name}' is already included in this booking.`);
+            return;
+        }
+
+        const isPackage = type === 'package';
+        const price = parseFloat(item.price || 0);
+
+        adminCurrentTests.push({
+            id: item.id,
+            name: item.name,
+            title: item.name,
+            type: type,
+            price: price,
+            sample_type: item.sample_type || (isPackage ? null : 'Blood'),
+            parameters_count: isPackage ? (item.parameters_count || 0) : null
+        });
+
+        clearAdminSearch();
+        renderAdminTestsList();
+        recalculateAdminTotals();
+    }
+
+    function filterAdminCatalog(query) {
+        const resultsBox = document.getElementById('adminCatalogSearchResults');
+        const clearBtn = document.getElementById('adminClearSearchBtn');
+        const q = (query || '').trim().toLowerCase();
+
+        if (q.length < 1) {
+            resultsBox.classList.add('hidden');
+            resultsBox.innerHTML = '';
+            clearBtn.classList.add('hidden');
+            return;
+        }
+
+        clearBtn.classList.remove('hidden');
+
+        const matchingTests = adminCatalogTests.filter(t => (t.name || '').toLowerCase().includes(q));
+        const matchingPackages = adminCatalogPackages.filter(p => (p.name || '').toLowerCase().includes(q));
+        const totalResults = matchingTests.length + matchingPackages.length;
+
+        if (totalResults === 0) {
+            resultsBox.innerHTML = `
+                <div class="p-4 text-center text-xs text-slate-500 font-bold">
+                    <i class="fas fa-search text-slate-400 mb-1 block text-base"></i>
+                    No tests or health packages match "${q}".
+                </div>
+            `;
+            resultsBox.classList.remove('hidden');
+            return;
+        }
+
+        let html = '';
+
+        if (matchingPackages.length > 0) {
+            html += `<div class="px-3.5 py-1.5 bg-amber-50 text-[10px] font-black uppercase tracking-wider text-amber-800">Health Packages (${matchingPackages.length})</div>`;
+            matchingPackages.forEach(pkg => {
+                const isSelected = adminCurrentTests.some(t => String(t.id) === String(pkg.id) && t.type === 'package');
+                const pkgJson = JSON.stringify(pkg).replace(/'/g, "&apos;");
+                html += `
+                    <div class="p-3 hover:bg-slate-50 flex items-center justify-between gap-3 transition">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs flex-shrink-0 font-bold">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 truncate">${pkg.name}</p>
+                                <span class="text-[10px] text-slate-400">Health Package</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5 flex-shrink-0">
+                            <span class="text-xs font-black text-slate-800">₹${pkg.price}</span>
+                            ${isSelected ? `
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-bold">Added</span>
+                            ` : `
+                                <button type="button" onclick='addAdminItem(${pkgJson}, "package")' class="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-black shadow-2xs transition cursor-pointer">
+                                    + Add
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        if (matchingTests.length > 0) {
+            html += `<div class="px-3.5 py-1.5 bg-teal-50 text-[10px] font-black uppercase tracking-wider text-teal-800">Individual Tests (${matchingTests.length})</div>`;
+            matchingTests.forEach(test => {
+                const isSelected = adminCurrentTests.some(t => String(t.id) === String(test.id) && (t.type || 'test') === 'test');
+                const testJson = JSON.stringify(test).replace(/'/g, "&apos;");
+                html += `
+                    <div class="p-3 hover:bg-slate-50 flex items-center justify-between gap-3 transition">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-7 h-7 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center text-xs flex-shrink-0 font-bold">
+                                <i class="fas fa-flask"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 truncate">${test.name}</p>
+                                ${test.sample_type ? `<span class="text-[10px] text-slate-400">${test.sample_type}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2.5 flex-shrink-0">
+                            <span class="text-xs font-black text-slate-800">₹${test.price}</span>
+                            ${isSelected ? `
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-bold">Added</span>
+                            ` : `
+                                <button type="button" onclick='addAdminItem(${testJson}, "test")' class="px-2.5 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-black shadow-2xs transition cursor-pointer">
+                                    + Add
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        resultsBox.innerHTML = html;
+        resultsBox.classList.remove('hidden');
+    }
+
+    function clearAdminSearch() {
+        const input = document.getElementById('adminCatalogSearchInput');
+        const resultsBox = document.getElementById('adminCatalogSearchResults');
+        const clearBtn = document.getElementById('adminClearSearchBtn');
+        if (input) input.value = '';
+        if (resultsBox) {
+            resultsBox.classList.add('hidden');
+            resultsBox.innerHTML = '';
+        }
+        if (clearBtn) clearBtn.classList.add('hidden');
+    }
+
+    function recalculateAdminTotals() {
+        const subtotal = adminCurrentTests.reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+        const subtotalDisplay = document.getElementById('adminSubtotalDisplay');
+        if (subtotalDisplay) subtotalDisplay.innerText = '₹' + subtotal.toLocaleString('en-IN');
+
+        const feeInput = document.getElementById('adminCollectionFeeInput');
+        let collectionFee = parseFloat(feeInput ? (feeInput.value || 0) : 0);
+
+        if (!adminCollectionFeeManualOverride && feeInput) {
+            if (adminIsHomeCollection && adminFeeEnabled) {
+                collectionFee = (subtotal < adminFreeThreshold && subtotal > 0) ? adminStandardFee : 0;
+                feeInput.value = collectionFee;
+            } else {
+                collectionFee = 0;
+                feeInput.value = 0;
+            }
+        }
+
+        const finalAmount = Math.max(0, subtotal - adminExistingDiscount + collectionFee);
+        const amountInput = document.getElementById('adminFinalAmountInput');
+        if (amountInput) amountInput.value = finalAmount;
+
+        const diffAlert = document.getElementById('adminDiffAlert');
+        const paymentSelect = document.getElementById('adminPaymentStatusSelect');
+
+        if (diffAlert && paymentSelect) {
+            if (adminOriginalPaymentStatus === 'Paid' && finalAmount > adminOriginalAmount) {
+                const diff = finalAmount - adminOriginalAmount;
+                diffAlert.className = 'p-3 rounded-xl border text-xs bg-amber-50 border-amber-200 text-amber-900 block';
+                diffAlert.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-exclamation-circle text-amber-600 mt-0.5 flex-shrink-0"></i>
+                        <div>
+                            <strong>Paid Booking Amount Increased:</strong> Original paid amount was <strong>₹${adminOriginalAmount}</strong>. New total is <strong>₹${finalAmount}</strong> (Difference: <strong>+₹${diff}</strong>).
+                            <p class="text-[11px] text-amber-700 mt-1">If the customer will pay the remaining ₹${diff} at doorstep, ensure payment status is set to <strong>Partial Online / Cash on Collection</strong>.</p>
+                        </div>
+                    </div>
+                `;
+                if (paymentSelect.value === 'Paid') {
+                    paymentSelect.value = 'Partial Online / Cash on Collection';
+                }
+            } else if (adminOriginalPaymentStatus === 'Paid' && finalAmount < adminOriginalAmount) {
+                const refundDiff = adminOriginalAmount - finalAmount;
+                diffAlert.className = 'p-3 rounded-xl border text-xs bg-blue-50 border-blue-200 text-blue-900 block';
+                diffAlert.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <i class="fas fa-info-circle text-blue-600 mt-0.5 flex-shrink-0"></i>
+                        <div>
+                            <strong>Amount Decreased:</strong> Original paid was <strong>₹${adminOriginalAmount}</strong>, new total is <strong>₹${finalAmount}</strong> (Refund due: <strong>₹${refundDiff}</strong>).
+                        </div>
+                    </div>
+                `;
+            } else {
+                diffAlert.classList.add('hidden');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('adminCollectionFeeInput')?.addEventListener('change', () => {
+            adminCollectionFeeManualOverride = true;
+            recalculateAdminTotals();
+        });
+
+        document.getElementById('adminUpdateTestsForm')?.addEventListener('submit', function (e) {
+            if (adminCurrentTests.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one diagnostic test or package.');
+                return false;
+            }
+            document.getElementById('adminTestsPayloadInput').value = JSON.stringify(adminCurrentTests);
+        });
+    });
 </script>
 @endsection
 

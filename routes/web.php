@@ -248,6 +248,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/report', [AdminBookingController::class, 'uploadReport'])->name('bookings.report.upload');
         Route::delete('/bookings/{id}/report', [AdminBookingController::class, 'deleteReport'])->name('bookings.report.delete');
         Route::post('/bookings/{id}/modify', [AdminBookingController::class, 'modifyBooking'])->name('bookings.modify');
+        Route::post('/bookings/{id}/tests', [AdminBookingController::class, 'updateTests'])->name('bookings.updateTests');
 
         // Sample Collection Time Slots Management
         Route::get('/slots', [AdminSlotController::class, 'index'])->name('slots.index');
