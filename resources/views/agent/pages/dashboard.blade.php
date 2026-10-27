@@ -123,7 +123,7 @@
                             </span>
                         @else
                             <span class="inline-flex items-center gap-1 text-xs font-black px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
-                                <i class="fas fa-coins"></i> CASH DUE: ₹{{ $booking->amount }}
+                                <i class="fas fa-coins"></i> CASH DUE: ₹{{ number_format($booking->due_amount) }}
                             </span>
                         @endif
                     </div>
@@ -245,18 +245,21 @@
 
                         <!-- Collect Cash Button if pending -->
                         @if($isCashPending)
-                            <form action="{{ route('agent.collect_money', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm that you have collected cash payment of ₹{{ $booking->amount }} from the patient?');">
+                            <form action="{{ route('agent.collect_money', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Confirm that you have collected cash payment of ₹{{ number_format($booking->due_amount) }} from the patient?');">
                                 @csrf
                                 <input type="hidden" name="payment_mode" value="Cash">
                                 <button type="submit" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition">
-                                    <i class="fas fa-hand-holding-usd"></i> Collect Cash ₹{{ $booking->amount }}
+                                    <i class="fas fa-hand-holding-usd"></i> Collect Cash ₹{{ number_format($booking->due_amount) }}
                                 </button>
                             </form>
                         @endif
                     </div>
 
-                    <div class="text-right text-xs text-slate-400">
-                        Total Amount: <span class="font-black text-slate-900 text-sm">₹{{ $booking->amount }}</span>
+                    <div class="text-right text-xs text-slate-500 font-medium">
+                        Total Bill: <span class="font-black text-slate-900 text-sm">₹{{ number_format($booking->amount) }}</span>
+                        @if(($booking->paid_amount ?? 0) > 0)
+                            <span class="block text-[11px] text-emerald-700 font-bold">(₹{{ number_format($booking->paid_amount) }} Paid • Due: ₹{{ number_format($booking->due_amount) }})</span>
+                        @endif
                     </div>
                 </div>
 

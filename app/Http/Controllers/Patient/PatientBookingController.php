@@ -424,6 +424,7 @@ class PatientBookingController extends Controller
                 'collection_type' => $collectionType,
                 'collection_slot' => $collectionSlot,
                 'amount' => $finalAmount,
+                'paid_amount' => $paymentMethod === 'Cash' ? 0.00 : $finalAmount,
                 'collection_fee' => $collectionFee,
                 'coupon_code' => $appliedCoupon ? $appliedCoupon->code : ($vipDiscountAmount > 0 ? 'VIP-MEMBER' : null),
                 'discount_amount' => $totalDiscount,
@@ -537,7 +538,7 @@ class PatientBookingController extends Controller
                         'external_booking_reference' => $booking->booking_reference,
                         'payment_method' => $booking->payment_method,
                         'payment_status' => strtolower($booking->payment_status ?? 'pending'),
-                        'paid_amount' => (float) ($booking->payment_status === 'Paid' ? $booking->amount : 0),
+                        'paid_amount' => (float) ($booking->payment_status === 'Paid' ? $booking->amount : ($booking->paid_amount ?? 0)),
                         'transaction_id' => $booking->razorpay_payment_id,
                         'assigned_collector_name' => $booking->agent?->name,
                         'assigned_collector_phone' => $booking->agent?->phone,
@@ -807,8 +808,13 @@ class PatientBookingController extends Controller
 
             $booking->test_details = $allFinalTests;
             if ($additionalAmount > 0) {
-                $booking->amount = (float) $booking->amount + $additionalAmount;
+                $prevAmount = (float) $booking->amount;
+                $booking->amount = $prevAmount + $additionalAmount;
+                if (($booking->paid_amount ?? 0) <= 0 && $isPaid) {
+                    $booking->paid_amount = $prevAmount;
+                }
                 if ($paymentMethodForDiff === 'Cash') {
+                    $booking->payment_status = 'Partial Online / Cash on Collection';
                     $booking->payment_method = 'Partial Online / Cash on Collection';
                 }
             }

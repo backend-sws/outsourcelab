@@ -321,12 +321,12 @@
             
             <!-- Actions -->
             <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 md:gap-3 flex-shrink-0">
-                <!-- Mobile Quick Contact Icons (Hidden on <360px to prevent overflow, helpline available in drawer) -->
-                <div class="hidden min-[360px]:flex lg:hidden items-center gap-1.5">
-                    <a href="tel:{{ $helplineClean }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-50 text-amber-700 border border-amber-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Call Helpline {{ $helplinePrimary }}">
+                <!-- Mobile Quick Contact Icons (Always visible on mobile next to Cart & Menu) -->
+                <div class="flex lg:hidden items-center gap-1.5">
+                    <a href="tel:{{ $helplineClean }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-white border border-amber-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Call Helpline {{ $helplinePrimary }}">
                         <i class="fas fa-phone-alt text-[11px] sm:text-xs animate-pulse"></i>
                     </a>
-                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="hidden min-[420px]:flex sm:flex w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-300 items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Chat on WhatsApp">
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Chat on WhatsApp">
                         <i class="fab fa-whatsapp text-sm sm:text-base"></i>
                     </a>
                 </div>

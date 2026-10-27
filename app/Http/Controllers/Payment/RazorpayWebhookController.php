@@ -140,6 +140,7 @@ class RazorpayWebhookController extends Controller
                 if ($booking && $booking->payment_status !== 'Paid') {
                     $booking->update([
                         'payment_status' => 'Paid',
+                        'paid_amount' => $booking->amount,
                         'payment_method' => 'Online',
                         'razorpay_payment_id' => $paymentId ?: $booking->razorpay_payment_id,
                     ]);

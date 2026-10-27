@@ -18,6 +18,7 @@
             <select name="agent_id" onchange="this.form.submit()" class="text-xs rounded-xl border-gray-200 bg-white px-3 py-2 text-gray-700 font-medium focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                 <option value="">All Field Agents</option>
                 <option value="unassigned" {{ request('agent_id') === 'unassigned' ? 'selected' : '' }}>⚠️ Unassigned Only</option>
+                <option value="deactivated" {{ request('agent_id') === 'deactivated' ? 'selected' : '' }}>🚫 Deactivated Agent Tasks</option>
                 @foreach($agents as $agent)
                     <option value="{{ $agent->id }}" {{ request('agent_id') == $agent->id ? 'selected' : '' }}>
                         {{ $agent->name }} ({{ $agent->city ?: 'Field' }})
@@ -106,8 +107,13 @@
                         <form action="{{ route('admin.bookings.assign_agent', $booking->id) }}" method="POST" class="flex flex-col gap-1.5">
                             @csrf
                             <div class="flex items-center gap-1.5">
-                                <select name="agent_id" onchange="this.form.submit()" class="text-xs rounded-xl border {{ $booking->agent ? 'border-teal-300 bg-teal-50/30 text-teal-900 font-semibold' : 'border-amber-300 bg-amber-50/40 text-amber-900 font-medium' }} py-1.5 pl-2.5 pr-7 focus:ring-teal-500 focus:border-teal-500 shadow-sm cursor-pointer transition-all">
+                                <select name="agent_id" onchange="this.form.submit()" class="text-xs rounded-xl border {{ $booking->agent ? ($booking->agent->status === 'active' ? 'border-teal-300 bg-teal-50/30 text-teal-900 font-semibold' : 'border-rose-300 bg-rose-50/40 text-rose-900 font-bold') : 'border-amber-300 bg-amber-50/40 text-amber-900 font-medium' }} py-1.5 pl-2.5 pr-7 focus:ring-teal-500 focus:border-teal-500 shadow-sm cursor-pointer transition-all">
                                     <option value="">-- Assign Agent --</option>
+                                    @if($booking->agent && $booking->agent->status !== 'active')
+                                        <option value="{{ $booking->agent->id }}" selected disabled class="text-rose-600 font-bold">
+                                            ⚠️ {{ $booking->agent->name }} (Deactivated)
+                                        </option>
+                                    @endif
                                     @foreach($agents as $agent)
                                         <option value="{{ $agent->id }}" {{ (int)$booking->agent_id === (int)$agent->id ? 'selected' : '' }}>
                                             {{ $agent->name }} ({{ $agent->city ?: $agent->phone }})
@@ -117,10 +123,13 @@
                             </div>
 
                             @if($booking->agent)
-                                <div class="flex items-center gap-1 text-[11px] text-teal-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                                <div class="flex items-center gap-1 text-[11px] {{ $booking->agent->status === 'active' ? 'text-teal-700' : 'text-rose-700 font-bold' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $booking->agent->status === 'active' ? 'bg-teal-500 animate-pulse' : 'bg-rose-500' }}"></span>
                                     <span class="font-bold">{{ $booking->sample_status ?: 'Assigned' }}</span>
                                     <span class="text-gray-400">• {{ $booking->agent->phone }}</span>
+                                    @if($booking->agent->status !== 'active')
+                                        <span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-100 text-rose-800 uppercase font-black tracking-wider">Deactivated</span>
+                                    @endif
                                 </div>
                             @else
                                 <span class="text-[10px] text-amber-600 font-bold flex items-center gap-1">
@@ -131,10 +140,17 @@
                     </td>
 
                     <td class="px-6 py-4 font-medium text-gray-700">
-                        ₹{{ $booking->amount }}
-                        <span class="block text-[11px] {{ $booking->payment_status == 'Paid' ? 'text-green-600' : 'text-amber-600' }} font-bold">
-                            {{ $booking->payment_status }}
-                        </span>
+                        ₹{{ number_format($booking->amount) }}
+                        @if($booking->payment_status === 'Paid')
+                            <span class="block text-[11px] text-green-600 font-bold">Paid</span>
+                        @elseif($booking->is_partially_paid)
+                            <span class="block text-[11px] text-amber-700 font-black">Due: ₹{{ number_format($booking->due_amount) }}</span>
+                            <span class="block text-[10px] text-gray-400 font-semibold">(₹{{ number_format($booking->paid_amount) }} paid)</span>
+                        @else
+                            <span class="block text-[11px] text-amber-600 font-bold">
+                                {{ $booking->payment_status }}
+                            </span>
+                        @endif
                     </td>
                     <td class="px-6 py-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 

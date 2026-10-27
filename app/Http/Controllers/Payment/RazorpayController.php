@@ -542,6 +542,7 @@ class RazorpayController extends Controller
             $booking->update([
                 'status' => 'Booked',
                 'payment_status' => 'Paid',
+                'paid_amount' => $booking->amount,
                 'payment_method' => 'Online',
                 'razorpay_order_id' => $orderId,
                 'razorpay_payment_id' => $paymentId,
@@ -1134,6 +1135,7 @@ class RazorpayController extends Controller
 
         $booking->test_details = $allFinalTests;
         $booking->amount = (float) $booking->amount + $additionalAmount;
+        $booking->paid_amount = (float) $booking->amount;
         $booking->payment_status = 'Paid';
 
         if ($request->filled('address_id')) {

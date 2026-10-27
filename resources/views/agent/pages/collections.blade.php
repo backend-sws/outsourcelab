@@ -107,6 +107,10 @@
                         <div class="text-left sm:text-right">
                             <span class="text-xs text-slate-400 block font-medium">Bill Amount</span>
                             <span class="text-lg font-black text-slate-900">₹{{ number_format($booking->amount) }}</span>
+                            @if(($booking->paid_amount ?? 0) > 0 && $booking->payment_status !== 'Paid')
+                                <span class="text-[10px] text-emerald-600 block font-bold">Paid: ₹{{ number_format($booking->paid_amount) }}</span>
+                                <span class="text-[11px] text-amber-700 block font-black">Due: ₹{{ number_format($booking->due_amount) }}</span>
+                            @endif
                         </div>
 
                         <!-- Status Presentation -->
@@ -135,8 +139,8 @@
                                             <option value="Cash">Cash</option>
                                             <option value="UPI / QR">UPI / QR</option>
                                         </select>
-                                        <button type="submit" onclick="return confirm('Confirm receipt of ₹{{ $booking->amount }} from this patient?');" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition">
-                                            <i class="fas fa-hand-holding-usd"></i> Collect ₹{{ $booking->amount }}
+                                        <button type="submit" onclick="return confirm('Confirm receipt of ₹{{ number_format($booking->due_amount) }} from this patient?');" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-sm transition">
+                                            <i class="fas fa-hand-holding-usd"></i> Collect ₹{{ number_format($booking->due_amount) }}
                                         </button>
                                     </form>
                                 </div>

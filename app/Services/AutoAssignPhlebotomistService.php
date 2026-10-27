@@ -43,9 +43,19 @@ class AutoAssignPhlebotomistService
             ->exists();
 
         if ($hasAnyExplicitPincodes) {
-            $candidates = $activeAgents->filter(function (Agent $agent) use ($pincode) {
+            $directMatches = $activeAgents->filter(function (Agent $agent) use ($pincode) {
                 return $agent->servesPincode($pincode);
             });
+
+            if ($directMatches->isNotEmpty()) {
+                $candidates = $directMatches;
+            } else {
+                // Fallback to active agents with no explicit pincodes or wildcard
+                $fallbackAgents = $activeAgents->filter(function (Agent $agent) {
+                    return empty($agent->serviceable_pincodes) || in_array('*', $agent->pincode_list, true);
+                });
+                $candidates = $fallbackAgents->isNotEmpty() ? $fallbackAgents : collect();
+            }
         } else {
             $candidates = $activeAgents;
         }
@@ -146,7 +156,13 @@ class AutoAssignPhlebotomistService
             ->exists();
 
         if ($hasAnyExplicitPincodes) {
-            $coveringPhlebos = $activeAgents->filter(fn (Agent $a) => $a->servesPincode($cleanPin));
+            $directMatches = $activeAgents->filter(fn (Agent $a) => $a->servesPincode($cleanPin));
+            if ($directMatches->isNotEmpty()) {
+                $coveringPhlebos = $directMatches;
+            } else {
+                $fallbackAgents = $activeAgents->filter(fn (Agent $a) => empty($a->serviceable_pincodes) || in_array('*', $a->pincode_list, true));
+                $coveringPhlebos = $fallbackAgents->isNotEmpty() ? $fallbackAgents : collect();
+            }
         } else {
             $coveringPhlebos = $activeAgents;
         }

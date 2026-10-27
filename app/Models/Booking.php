@@ -11,7 +11,7 @@ class Booking extends Model
     protected $fillable = [
         'booking_reference', 'lis_booking_reference', 'lis_bill_number', 'lis_status',
         'patient_id', 'family_member_id', 'address_id', 'agent_id',
-        'test_details', 'collection_type', 'collection_slot', 'amount', 'collection_fee', 'coupon_code', 'discount_amount',
+        'test_details', 'collection_type', 'collection_slot', 'amount', 'paid_amount', 'collection_fee', 'coupon_code', 'discount_amount',
         'coins_redeemed', 'coins_discount', 'coins_earned',
         'payment_method', 'payment_status', 'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature',
         'status', 'sample_status', 'sample_collected_at',
@@ -26,12 +26,39 @@ class Booking extends Model
         'money_collected_at' => 'datetime',
         'lis_synced_at' => 'datetime',
         'amount' => 'float',
+        'paid_amount' => 'float',
         'collection_fee' => 'float',
         'discount_amount' => 'float',
         'coins_redeemed' => 'integer',
         'coins_discount' => 'float',
         'coins_earned' => 'integer',
     ];
+
+    /**
+     * Net remaining due amount to be collected from the customer.
+     * When payment_status is 'Paid', due is 0.
+     * When booking is modified and additional tests are added to an already paid booking,
+     * due_amount reflects ONLY the additional amount of the newly added tests!
+     */
+    public function getDueAmountAttribute(): float
+    {
+        if ($this->payment_status === 'Paid') {
+            return 0.00;
+        }
+
+        $total = (float) $this->amount;
+        $paid = (float) ($this->paid_amount ?? 0.00);
+
+        return max(0.00, round($total - $paid, 2));
+    }
+
+    /**
+     * Indicates whether the customer has already made a partial payment.
+     */
+    public function getIsPartiallyPaidAttribute(): bool
+    {
+        return $this->payment_status !== 'Paid' && (float) ($this->paid_amount ?? 0.00) > 0.00;
+    }
 
     public function patient()
     {

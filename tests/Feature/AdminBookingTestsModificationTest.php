@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Agent;
 use App\Models\Booking;
 use App\Models\Package;
 use App\Models\Patient;
@@ -204,7 +205,97 @@ class AdminBookingTestsModificationTest extends TestCase
         $booking->refresh();
         $this->assertCount(2, $booking->test_details);
         $this->assertEquals(800, $booking->amount);
+        $this->assertEquals(500, $booking->paid_amount);
+        $this->assertEquals(300, $booking->due_amount);
         $this->assertEquals('Partial Online / Cash on Collection', $booking->payment_status);
+    }
+
+    public function test_modifying_paid_booking_sets_correct_due_amount_for_new_tests_only(): void
+    {
+        // 1. Create a fully paid booking of 350
+        $agent = Agent::first() ?? Agent::create([
+            'name' => 'Field Phlebo',
+            'phone' => '9876543210',
+            'email' => 'phlebo'.rand(100, 999).'@example.com',
+            'is_active' => true,
+        ]);
+
+        $booking = Booking::create([
+            'booking_reference' => 'BK-'.strtoupper(bin2hex(random_bytes(3))),
+            'patient_id' => $this->patient->id,
+            'agent_id' => $agent->id,
+            'collection_type' => 'Home Collection',
+            'collection_slot' => '08:00 AM - 09:00 AM',
+            'booking_date' => now()->addDay(),
+            'amount' => 350,
+            'paid_amount' => 350,
+            'collection_fee' => 0,
+            'status' => 'Confirmed',
+            'payment_status' => 'Paid',
+            'payment_method' => 'Online',
+            'test_details' => [
+                [
+                    'id' => $this->test1->id,
+                    'name' => $this->test1->name,
+                    'title' => $this->test1->name,
+                    'type' => 'test',
+                    'price' => 350,
+                ],
+            ],
+        ]);
+
+        $this->assertEquals(0, $booking->due_amount);
+
+        // 2. Admin adds test2 (price 450). Total becomes 800.
+        $testsPayload = [
+            [
+                'id' => $this->test1->id,
+                'type' => 'test',
+                'price' => 350,
+            ],
+            [
+                'id' => $this->test2->id,
+                'type' => 'test',
+                'price' => 450,
+            ],
+        ];
+
+        $response = $this->actingAs($this->adminUser)
+            ->post(route('admin.bookings.updateTests', $booking->id), [
+                'tests' => json_encode($testsPayload),
+                'amount' => 800,
+            ]);
+
+        $response->assertSessionHas('success');
+
+        $booking->refresh();
+        // Total bill is 800, already paid is 350, remaining due to be collected is ONLY 450!
+        $this->assertEquals(800, $booking->amount);
+        $this->assertEquals(350, $booking->paid_amount);
+        $this->assertEquals(450, $booking->due_amount);
+        $this->assertEquals('Partial Online / Cash on Collection', $booking->payment_status);
+
+        // 3. Admin show page shows exactly 450 Cash Due
+        $showResponse = $this->actingAs($this->adminUser)->get(route('admin.bookings.show', $booking->id));
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('₹450 Cash Due');
+        $showResponse->assertSee('₹350 already paid');
+
+        // 4. Agent visits dashboard and sees CASH DUE: ₹450 (not ₹800!)
+        $agentResponse = $this->withSession(['agent_id' => $agent->id])->get(route('agent.dashboard'));
+        $agentResponse->assertStatus(200);
+        $agentResponse->assertSee('CASH DUE: ₹450');
+        $agentResponse->assertSee('Collect Cash ₹450');
+
+        // 5. Agent collects the remaining ₹450 cash
+        $collectResponse = $this->withSession(['agent_id' => $agent->id])
+            ->post(route('agent.collect_money', $booking->id), ['payment_mode' => 'Cash']);
+        $collectResponse->assertSessionHas('success');
+
+        $booking->refresh();
+        $this->assertEquals('Paid', $booking->payment_status);
+        $this->assertEquals(800, $booking->paid_amount);
+        $this->assertEquals(0, $booking->due_amount);
     }
 
     public function test_admin_cannot_save_empty_tests_list(): void

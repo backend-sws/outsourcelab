@@ -12,19 +12,27 @@ use Illuminate\Support\Facades\Log;
 
 class AgentPortalController extends Controller
 {
-    private function getLoggedInAgent()
+    private function getLoggedInAgent(): ?Agent
     {
         $agentId = session('agent_id');
         if (! $agentId) {
             return null;
         }
 
-        return Agent::find($agentId);
+        $agent = Agent::find($agentId);
+        if (! $agent || $agent->status !== 'active') {
+            session()->forget('agent_id');
+
+            return null;
+        }
+
+        return $agent;
     }
 
     public function showLoginForm()
     {
-        if (session()->has('agent_id') && Agent::find(session('agent_id'))) {
+        $agent = $this->getLoggedInAgent();
+        if ($agent) {
             return redirect()->route('agent.dashboard');
         }
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
@@ -83,10 +91,10 @@ class AgentPortalController extends Controller
         if ($agent && Hash::check($request->password, $agent->password)) {
             if ($agent->status !== 'active') {
                 if ($request->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'Your agent account is inactive. Please contact admin.']);
+                    return response()->json(['success' => false, 'message' => 'Your agent account has been deactivated. Please contact administrator.']);
                 }
 
-                return back()->with('error', 'Your agent account is inactive. Please contact admin.')->withInput();
+                return back()->with('error', 'Your agent account has been deactivated. Please contact administrator.')->withInput();
             }
 
             $agent->update(['last_login_at' => now()]);
@@ -133,7 +141,7 @@ class AgentPortalController extends Controller
         $pendingCollection = $bookings->whereNotIn('sample_status', ['Sample Collected', 'Delivered to Lab'])->count();
         $samplesCollected = $bookings->whereIn('sample_status', ['Sample Collected', 'Delivered to Lab'])->count();
 
-        $cashToCollect = $bookings->where('payment_status', '!=', 'Paid')->sum('amount');
+        $cashToCollect = $bookings->where('payment_status', '!=', 'Paid')->sum(fn ($b) => $b->due_amount);
         $cashCollected = $bookings->where('money_collected_by', $agent->id)->where('payment_status', 'Paid')->sum('amount');
 
         return view('agent.pages.dashboard', compact(
@@ -244,7 +252,7 @@ class AgentPortalController extends Controller
             ->get();
 
         $totalCashInHand = $bookings->where('money_collected_by', $agent->id)->where('payment_status', 'Paid')->sum('amount');
-        $totalPendingCash = $bookings->where('payment_status', '!=', 'Paid')->sum('amount');
+        $totalPendingCash = $bookings->where('payment_status', '!=', 'Paid')->sum(fn ($b) => $b->due_amount);
         $totalOnlinePaid = $bookings->where('payment_status', 'Paid')->where('money_collected_by', '!=', $agent->id)->count();
 
         return view('agent.pages.collections', compact('agent', 'bookings', 'totalCashInHand', 'totalPendingCash', 'totalOnlinePaid'));
@@ -276,8 +284,10 @@ class AgentPortalController extends Controller
         }
 
         $paymentMode = $request->input('payment_mode', 'Cash');
+        $collectedDue = $booking->due_amount;
 
         $booking->payment_status = 'Paid';
+        $booking->paid_amount = $booking->amount; // Entire booking is now paid
         $booking->money_collected_at = now();
         $booking->money_collected_by = $agent->id;
         $booking->money_payment_mode = $paymentMode;
@@ -293,10 +303,10 @@ class AgentPortalController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Payment of ₹'.$booking->amount.' successfully collected via '.$paymentMode.'!',
+                'message' => 'Payment of ₹'.$collectedDue.' successfully collected via '.$paymentMode.'!',
             ]);
         }
 
-        return back()->with('success', 'Payment of ₹'.$booking->amount.' collected successfully!');
+        return back()->with('success', 'Payment of ₹'.$collectedDue.' collected successfully!');
     }
 }

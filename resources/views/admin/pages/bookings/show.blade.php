@@ -285,11 +285,23 @@
             </div>
 
             @if($booking->agent)
-                <div class="p-3.5 bg-teal-50/70 rounded-xl border border-teal-100 mb-4 space-y-2">
+                @if($booking->agent->status !== 'active')
+                    <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl mb-3 text-xs text-rose-800 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle text-rose-600 text-sm"></i>
+                        <div>
+                            <span class="font-bold">Assigned Phlebotomist is Deactivated!</span>
+                            <p class="text-[11px] text-rose-700 mt-0.5">Please reassign this booking to an active phlebotomist below.</p>
+                        </div>
+                    </div>
+                @endif
+                <div class="p-3.5 {{ $booking->agent->status === 'active' ? 'bg-teal-50/70 border-teal-100' : 'bg-rose-50/40 border-rose-200' }} rounded-xl border mb-4 space-y-2">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="font-bold text-teal-950 text-sm flex items-center gap-1.5">
                                 <i class="fas fa-user-circle text-teal-600"></i> {{ $booking->agent->name }}
+                                @if($booking->agent->status !== 'active')
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-100 text-rose-800 uppercase font-black tracking-wider">Deactivated</span>
+                                @endif
                             </p>
                             <p class="text-xs text-teal-700 mt-0.5">
                                 <i class="fas fa-phone-alt text-[10px] mr-1"></i>
@@ -322,12 +334,17 @@
                         <span>Doorstep Collection:</span>
                         @if($booking->payment_status == 'Paid')
                             @if($booking->money_collected_by)
-                                <span class="text-emerald-700 font-black">₹{{ $booking->amount }} Collected (Cash)</span>
+                                <span class="text-emerald-700 font-black">₹{{ number_format($booking->amount) }} Collected (Cash)</span>
                             @else
-                                <span class="text-emerald-700 font-black">Paid Online</span>
+                                <span class="text-emerald-700 font-black">Paid Online (₹{{ number_format($booking->amount) }})</span>
                             @endif
                         @else
-                            <span class="text-amber-700 font-black">₹{{ $booking->amount }} Cash Due</span>
+                            <div class="text-right">
+                                <span class="text-amber-700 font-black text-sm">₹{{ number_format($booking->due_amount) }} Cash Due</span>
+                                @if(($booking->paid_amount ?? 0) > 0)
+                                    <span class="block text-[10px] text-gray-500 font-medium">(New tests added • ₹{{ number_format($booking->paid_amount) }} already paid)</span>
+                                @endif
+                            </div>
                         @endif
                     </div>
                     @if($booking->money_collected_at)
@@ -341,7 +358,12 @@
                     <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
                     <div>
                         <p class="font-bold">No Agent Assigned</p>
-                        <p class="text-amber-700 mt-0.5">Assign a phlebotomist below so they can view this client's address, pick up samples, and collect cash.</p>
+                        <p class="text-amber-700 mt-0.5">
+                            Assign a phlebotomist below so they can view this client's address, pick up samples, and collect cash
+                            @if($booking->due_amount > 0)
+                                (<strong>₹{{ number_format($booking->due_amount) }} Due</strong>)
+                            @endif.
+                        </p>
                     </div>
                 </div>
             @endif
@@ -354,6 +376,11 @@
                     </label>
                     <select name="agent_id" class="w-full rounded-lg border-gray-300 focus:border-teal-500 focus:ring-teal-500 shadow-sm px-3 py-2 text-sm border bg-gray-50">
                         <option value="">-- Unassigned (None) --</option>
+                        @if($booking->agent && $booking->agent->status !== 'active')
+                            <option value="{{ $booking->agent->id }}" selected disabled class="text-rose-600 font-bold">
+                                ⚠️ {{ $booking->agent->name }} (Currently Deactivated - Please Reassign)
+                            </option>
+                        @endif
                         @foreach($agents as $agent)
                             <option value="{{ $agent->id }}" {{ (int)$booking->agent_id === (int)$agent->id ? 'selected' : '' }}>
                                 {{ $agent->name }} ({{ $agent->phone }}) {{ $agent->city ? '• ' . $agent->city : '' }}
@@ -372,18 +399,30 @@
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 class="text-lg font-bold text-gray-800 border-b pb-3 mb-4">Payment Summary</h3>
             
-            <div class="space-y-3 mb-4">
+            <div class="space-y-3 mb-4 text-xs sm:text-sm">
                 <div class="flex justify-between">
                     <span class="text-gray-500">Method</span>
                     <span class="font-medium text-gray-800">{{ $booking->payment_method }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Status</span>
-                    <span class="font-medium {{ $booking->payment_status == 'Paid' ? 'text-green-600' : 'text-orange-600' }}">{{ $booking->payment_status }}</span>
+                    <span class="font-bold {{ $booking->payment_status == 'Paid' ? 'text-green-600' : 'text-orange-600' }}">{{ $booking->payment_status }}</span>
                 </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Total Booking Bill</span>
+                    <span class="font-bold text-gray-800">₹{{ number_format($booking->amount, 0) }}</span>
+                </div>
+                @if(($booking->paid_amount ?? 0) > 0)
+                <div class="flex justify-between text-emerald-700">
+                    <span class="font-semibold">Already Paid</span>
+                    <span class="font-bold">₹{{ number_format($booking->paid_amount, 0) }}</span>
+                </div>
+                @endif
                 <div class="border-t pt-2 flex justify-between items-center">
-                    <span class="font-bold text-gray-800">Total Amount</span>
-                    <span class="text-xl font-black text-teal-600">₹{{ $booking->amount }}</span>
+                    <span class="font-bold text-gray-800">Amount To Collect</span>
+                    <span class="text-xl font-black {{ $booking->due_amount > 0 ? 'text-amber-600' : 'text-teal-600' }}">
+                        ₹{{ number_format($booking->due_amount, 0) }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -743,7 +782,27 @@
                                         name="amount" 
                                         value="{{ (float) $booking->amount }}"
                                         class="w-32 px-3 py-1.5 text-base font-black text-teal-900 bg-white border border-teal-300 rounded-xl text-right outline-none focus:ring-2 focus:ring-teal-600"
+                                        oninput="recalculateAdminTotals()"
                                     >
+                                </div>
+                            </div>
+
+                            @php
+                                $modalPaidAmt = (float) ($booking->paid_amount ?? ($booking->payment_status === 'Paid' ? $booking->amount : 0));
+                            @endphp
+                            <div id="adminDueBreakdownCard" class="p-3.5 bg-amber-50/90 rounded-xl border border-amber-200 sm:col-span-2 {{ $modalPaidAmt > 0 ? '' : 'hidden' }}">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-amber-900 font-semibold flex items-center gap-1.5">
+                                        <i class="fas fa-check-circle text-emerald-600"></i> Amount Customer Already Paid:
+                                    </span>
+                                    <span class="font-black text-slate-900" id="adminPrevPaidDisplay">₹{{ number_format($modalPaidAmt, 0) }}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs mt-2 pt-2 border-t border-amber-200 font-black">
+                                    <span class="text-amber-950 flex items-center gap-1.5">
+                                        <i class="fas fa-hand-holding-usd text-amber-600"></i>
+                                        <span>Doorstep Cash To Be Collected (New Tests):</span>
+                                    </span>
+                                    <span class="text-base text-amber-800 font-black" id="adminDueToCollectDisplay">₹0</span>
                                 </div>
                             </div>
                         </div>
@@ -831,6 +890,7 @@
     const adminExistingDiscount = {{ (float) (($booking->discount_amount ?? 0) + ($booking->coins_discount ?? 0)) }};
     const adminOriginalAmount = {{ (float) $booking->amount }};
     const adminOriginalPaymentStatus = @json($booking->payment_status);
+    const adminPaidAmount = {{ (float) ($booking->paid_amount ?? ($booking->payment_status === 'Paid' ? $booking->amount : 0)) }};
     const adminFeeEnabled = {{ \App\Models\Setting::get('collection_fee_enabled', '1') == '1' ? 'true' : 'false' }};
     const adminStandardFee = {{ (float) \App\Models\Setting::get('home_collection_fee', '100') }};
     const adminFreeThreshold = {{ (float) \App\Models\Setting::get('free_collection_threshold', '500') }};
@@ -1092,33 +1152,56 @@
         const amountInput = document.getElementById('adminFinalAmountInput');
         if (amountInput) amountInput.value = finalAmount;
 
+        const dueBreakdownCard = document.getElementById('adminDueBreakdownCard');
+        const dueToCollectDisplay = document.getElementById('adminDueToCollectDisplay');
+
+        const remainingDue = (adminPaidAmount > 0) ? Math.max(0, finalAmount - adminPaidAmount) : finalAmount;
+        if (dueToCollectDisplay) {
+            dueToCollectDisplay.innerText = '₹' + remainingDue.toLocaleString('en-IN');
+        }
+
+        if (dueBreakdownCard) {
+            if (adminPaidAmount > 0) {
+                dueBreakdownCard.classList.remove('hidden');
+            } else {
+                dueBreakdownCard.classList.add('hidden');
+            }
+        }
+
         const diffAlert = document.getElementById('adminDiffAlert');
         const paymentSelect = document.getElementById('adminPaymentStatusSelect');
 
         if (diffAlert && paymentSelect) {
-            if (adminOriginalPaymentStatus === 'Paid' && finalAmount > adminOriginalAmount) {
-                const diff = finalAmount - adminOriginalAmount;
-                diffAlert.className = 'p-3 rounded-xl border text-xs bg-amber-50 border-amber-200 text-amber-900 block';
+            if (adminPaidAmount > 0 && finalAmount > adminPaidAmount) {
+                const diff = finalAmount - adminPaidAmount;
+                diffAlert.className = 'p-3.5 rounded-xl border text-xs bg-amber-50 border-amber-200 text-amber-900 block';
                 diffAlert.innerHTML = `
-                    <div class="flex items-start gap-2">
-                        <i class="fas fa-exclamation-circle text-amber-600 mt-0.5 flex-shrink-0"></i>
+                    <div class="flex items-start gap-2.5">
+                        <i class="fas fa-exclamation-circle text-amber-600 mt-0.5 flex-shrink-0 text-sm"></i>
                         <div>
-                            <strong>Paid Booking Amount Increased:</strong> Original paid amount was <strong>₹${adminOriginalAmount}</strong>. New total is <strong>₹${finalAmount}</strong> (Difference: <strong>+₹${diff}</strong>).
-                            <p class="text-[11px] text-amber-700 mt-1">If the customer will pay the remaining ₹${diff} at doorstep, ensure payment status is set to <strong>Partial Online / Cash on Collection</strong>.</p>
+                            <div class="font-bold text-amber-950">Additional Tests Added to Booking:</div>
+                            <div class="text-slate-700 mt-0.5">
+                                Customer previously paid: <strong>₹${adminPaidAmount.toLocaleString('en-IN')}</strong> | New Total Bill: <strong>₹${finalAmount.toLocaleString('en-IN')}</strong>
+                            </div>
+                            <div class="mt-2 p-2 rounded-lg bg-amber-100/70 border border-amber-300/60 font-black text-amber-900 flex items-center justify-between">
+                                <span><i class="fas fa-hand-holding-usd text-amber-700 mr-1"></i> Amount to collect at doorstep (New Tests):</span>
+                                <span class="text-base font-black text-amber-800">₹${diff.toLocaleString('en-IN')}</span>
+                            </div>
+                            <p class="text-[11px] text-amber-700 mt-1">Payment status set to <strong>Partial Online / Cash on Collection</strong> so field agent collects only this ₹${diff}.</p>
                         </div>
                     </div>
                 `;
                 if (paymentSelect.value === 'Paid') {
                     paymentSelect.value = 'Partial Online / Cash on Collection';
                 }
-            } else if (adminOriginalPaymentStatus === 'Paid' && finalAmount < adminOriginalAmount) {
-                const refundDiff = adminOriginalAmount - finalAmount;
+            } else if (adminPaidAmount > 0 && finalAmount < adminPaidAmount) {
+                const refundDiff = adminPaidAmount - finalAmount;
                 diffAlert.className = 'p-3 rounded-xl border text-xs bg-blue-50 border-blue-200 text-blue-900 block';
                 diffAlert.innerHTML = `
                     <div class="flex items-start gap-2">
                         <i class="fas fa-info-circle text-blue-600 mt-0.5 flex-shrink-0"></i>
                         <div>
-                            <strong>Amount Decreased:</strong> Original paid was <strong>₹${adminOriginalAmount}</strong>, new total is <strong>₹${finalAmount}</strong> (Refund due: <strong>₹${refundDiff}</strong>).
+                            <strong>Tests Reduced:</strong> Customer paid <strong>₹${adminPaidAmount.toLocaleString('en-IN')}</strong>, new total is <strong>₹${finalAmount.toLocaleString('en-IN')}</strong> (Refund due: <strong>₹${refundDiff.toLocaleString('en-IN')}</strong>).
                         </div>
                     </div>
                 `;

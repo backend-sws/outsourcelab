@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class BookingController extends Controller
 {
@@ -24,6 +25,10 @@ class BookingController extends Controller
         if ($request->filled('agent_id')) {
             if ($request->agent_id === 'unassigned') {
                 $query->whereNull('agent_id');
+            } elseif ($request->agent_id === 'deactivated') {
+                $query->whereHas('agent', function ($q) {
+                    $q->where('status', '!=', 'active');
+                });
             } else {
                 $query->where('agent_id', $request->agent_id);
             }
@@ -56,7 +61,14 @@ class BookingController extends Controller
     public function assignAgent(Request $request, int $id)
     {
         $request->validate([
-            'agent_id' => 'nullable|exists:agents,id',
+            'agent_id' => [
+                'nullable',
+                Rule::exists('agents', 'id')->where(function ($query) {
+                    $query->where('status', 'active');
+                }),
+            ],
+        ], [
+            'agent_id.exists' => 'The selected phlebotomist is deactivated or does not exist. Only active phlebotomists can be assigned.',
         ]);
 
         $booking = Booking::findOrFail($id);
@@ -243,7 +255,7 @@ class BookingController extends Controller
             'webhook_url' => url('/api/v1/pathology/webhook'),
             'payment_method' => $booking->payment_method,
             'payment_status' => strtolower($booking->payment_status ?? 'pending'),
-            'paid_amount' => (float) ($booking->payment_status === 'Paid' ? $booking->amount : 0),
+            'paid_amount' => (float) ($booking->payment_status === 'Paid' ? $booking->amount : ($booking->paid_amount ?? 0)),
             'notes' => "Admin Push: #{$booking->booking_reference}",
             'items' => $lisItems,
         ];
@@ -274,6 +286,7 @@ class BookingController extends Controller
             'collection_slot' => 'nullable|string',
             'collection_type' => 'nullable|string',
             'amount' => 'nullable|numeric|min:0',
+            'paid_amount' => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|in:Pending,Paid,Partial Online / Cash on Collection',
             'payment_method' => 'nullable|string',
         ]);
@@ -290,8 +303,14 @@ class BookingController extends Controller
         if ($request->filled('amount')) {
             $booking->amount = (float) $request->amount;
         }
+        if ($request->filled('paid_amount')) {
+            $booking->paid_amount = (float) $request->paid_amount;
+        }
         if ($request->filled('payment_status')) {
             $booking->payment_status = $request->payment_status;
+            if ($booking->payment_status === 'Paid' && ! $request->filled('paid_amount')) {
+                $booking->paid_amount = $booking->amount;
+            }
         }
         if ($request->filled('payment_method')) {
             $booking->payment_method = $request->payment_method;
@@ -313,6 +332,7 @@ class BookingController extends Controller
             'tests' => 'required',
             'collection_fee' => 'nullable|numeric|min:0',
             'amount' => 'nullable|numeric|min:0',
+            'paid_amount' => 'nullable|numeric|min:0',
             'payment_status' => 'nullable|string',
             'payment_method' => 'nullable|string',
         ]);
@@ -399,13 +419,58 @@ class BookingController extends Controller
             $finalAmount = max(0, $calculatedSubtotal - $existingDiscount - $coinsDiscount + $collectionFee);
         }
 
+        $previousAmount = (float) $booking->amount;
+        $previousPaidAmount = (float) ($booking->paid_amount ?? 0);
+        $wasPaid = ($booking->payment_status === 'Paid');
+
+        // If the booking was previously marked as Paid, then the customer had paid the previous amount
+        if ($wasPaid && $previousPaidAmount <= 0) {
+            $previousPaidAmount = $previousAmount;
+        }
+
         $booking->test_details = $sanitizedItems;
         $booking->collection_fee = $collectionFee;
         $booking->amount = $finalAmount;
 
-        if ($request->filled('payment_status')) {
-            $booking->payment_status = $request->payment_status;
+        $requestedPaymentStatus = $request->input('payment_status');
+
+        if ($request->filled('paid_amount')) {
+            $booking->paid_amount = (float) $request->paid_amount;
         }
+
+        if ($requestedPaymentStatus === 'Paid') {
+            $booking->payment_status = 'Paid';
+            if (! $request->filled('paid_amount')) {
+                $booking->paid_amount = $finalAmount;
+            }
+        } elseif ($requestedPaymentStatus === 'Partial Online / Cash on Collection') {
+            $booking->payment_status = 'Partial Online / Cash on Collection';
+            if (! $request->filled('paid_amount')) {
+                $booking->paid_amount = $previousPaidAmount;
+            }
+            if (empty($booking->payment_method) || in_array($booking->payment_method, ['Online', 'Cash'])) {
+                $booking->payment_method = 'Partial Online / Cash on Collection';
+            }
+        } elseif ($requestedPaymentStatus === 'Pending') {
+            $booking->payment_status = 'Pending';
+            if (! $request->filled('paid_amount')) {
+                $booking->paid_amount = $previousPaidAmount;
+            }
+        } else {
+            // No payment_status explicitly requested
+            if (! $request->filled('paid_amount')) {
+                if ($previousPaidAmount > 0 && $finalAmount > $previousPaidAmount) {
+                    // Additional tests added to an already paid booking: customer only owes the difference
+                    $booking->payment_status = 'Partial Online / Cash on Collection';
+                    $booking->paid_amount = $previousPaidAmount;
+                    $booking->payment_method = 'Partial Online / Cash on Collection';
+                } elseif ($previousPaidAmount >= $finalAmount && $previousPaidAmount > 0) {
+                    $booking->payment_status = 'Paid';
+                    $booking->paid_amount = $finalAmount;
+                }
+            }
+        }
+
         if ($request->filled('payment_method')) {
             $booking->payment_method = $request->payment_method;
         }

@@ -7,10 +7,12 @@ use App\Models\Agent;
 use App\Models\AgentLeave;
 use App\Models\Booking;
 use App\Models\CollectionSlot;
+use App\Services\AutoAssignPhlebotomistService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AgentController extends Controller
@@ -74,6 +76,7 @@ class AgentController extends Controller
     public function update(Request $request, int|string $id): RedirectResponse
     {
         $agent = Agent::findOrFail($id);
+        $wasActive = $agent->status === 'active';
 
         $request->validate([
             'name' => 'required|string|max:100',
@@ -111,6 +114,13 @@ class AgentController extends Controller
         }
 
         $agent->update($data);
+        $agent->refresh();
+
+        if ($wasActive && $agent->status === 'inactive') {
+            $deactivationMsg = $this->handleAgentDeactivation($agent);
+
+            return back()->with('success', "Agent {$agent->name} updated. {$deactivationMsg}");
+        }
 
         return back()->with('success', "Agent {$agent->name} updated successfully.");
     }
@@ -118,10 +128,66 @@ class AgentController extends Controller
     public function toggleStatus(int|string $id): RedirectResponse
     {
         $agent = Agent::findOrFail($id);
-        $agent->status = $agent->status === 'active' ? 'inactive' : 'active';
+        $newStatus = $agent->status === 'active' ? 'inactive' : 'active';
+        $agent->status = $newStatus;
         $agent->save();
 
-        return back()->with('success', 'Agent status updated to '.ucfirst($agent->status).'.');
+        if ($newStatus === 'inactive') {
+            $msg = $this->handleAgentDeactivation($agent);
+
+            return back()->with('success', $msg);
+        }
+
+        return back()->with('success', "Phlebotomist {$agent->name} has been activated successfully.");
+    }
+
+    /**
+     * When an agent is deactivated, remove their active assignments and reassign to available active agents.
+     */
+    private function handleAgentDeactivation(Agent $agent): string
+    {
+        $activeBookings = Booking::where('agent_id', $agent->id)
+            ->whereNotIn('sample_status', ['Delivered to Lab', 'Cancelled'])
+            ->get();
+
+        if ($activeBookings->isEmpty()) {
+            return "Phlebotomist {$agent->name} is now Deactivated. (No pending bookings were assigned).";
+        }
+
+        $autoAssignService = app(AutoAssignPhlebotomistService::class);
+        $reassignedCount = 0;
+        $unassignedCount = 0;
+
+        foreach ($activeBookings as $booking) {
+            // Unassign from deactivated agent
+            $booking->agent_id = null;
+            $booking->sample_status = 'Pending';
+            $booking->save();
+
+            // Attempt auto-reassignment to an active phlebotomist covering this area
+            $newAgent = null;
+            try {
+                $newAgent = $autoAssignService->assign($booking);
+            } catch (\Throwable $e) {
+                Log::warning("Auto-reassigning booking #{$booking->booking_reference} on agent deactivation failed: {$e->getMessage()}");
+            }
+
+            if ($newAgent && (int) $newAgent->id !== (int) $agent->id) {
+                $reassignedCount++;
+            } else {
+                $unassignedCount++;
+            }
+        }
+
+        $parts = [];
+        if ($reassignedCount > 0) {
+            $parts[] = "{$reassignedCount} active booking(s) reassigned to on-duty phlebotomists";
+        }
+        if ($unassignedCount > 0) {
+            $parts[] = "{$unassignedCount} active booking(s) set to Unassigned for manual assignment";
+        }
+
+        return "Phlebotomist {$agent->name} is now Deactivated. ".implode(', and ', $parts).'.';
     }
 
     public function destroy(int|string $id): RedirectResponse

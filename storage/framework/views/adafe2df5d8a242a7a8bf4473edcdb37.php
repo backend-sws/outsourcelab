@@ -1,0 +1,3412 @@
+<?php
+    $patientVipData = $patientVipData ?? ($patientVip ? [
+        'id' => $patientVip->id,
+        'plan_name' => $patientVip->plan_name_snapshot,
+        'discount_percentage' => (int) $patientVip->discount_percentage,
+    ] : null);
+
+    $allVipPlansData = $allVipPlansData ?? ($vipPlans ?? collect())->map(function ($p) {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+            'formatted_duration' => $p->formatted_duration,
+            'price' => (float) $p->price,
+            'discount_percentage' => (int) $p->discount_percentage,
+            'is_popular' => (bool) $p->is_popular,
+        ];
+    })->values()->toArray();
+
+    $featuredPlan = $featuredPlan ?? (collect($vipPlans ?? [])->firstWhere('is_popular', true) ?? collect($vipPlans ?? [])->first());
+    $defaultAddress = $patient?->addresses?->first();
+    $defaultAddr = $defaultAddress;
+?>
+
+<?php $__env->startSection('content'); ?>
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+        <!-- Modern Multi-Step Progress Bar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-4 sm:p-6 mb-8">
+            <div class="relative flex justify-between items-center max-w-4xl mx-auto">
+                <!-- Connecting Line Background -->
+                <div class="absolute left-8 right-8 sm:left-14 sm:right-14 top-5 sm:top-6 h-1 bg-slate-100 -z-0 rounded-full"></div>
+                <!-- Progress Fill Line -->
+                <div id="progressFill" class="absolute left-8 sm:left-14 top-5 sm:top-6 h-1 bg-teal-600 -z-0 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                
+                <!-- Step 1 -->
+                <div class="step-wrapper relative z-10 flex flex-col items-center cursor-pointer group" onclick="goToStep(1)">
+                    <div class="step-icon bg-white border-2 border-teal-600 text-teal-800 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all" data-step="1">
+                        <i class="fas fa-flask text-sm sm:text-base"></i>
+                    </div>
+                    <span class="step-label text-[11px] sm:text-xs font-black text-teal-800 mt-2 text-center">Cart & Tests</span>
+                    <span class="step-sub text-[9px] font-semibold text-teal-600 hidden sm:block">Step 1</span>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-wrapper relative z-10 flex flex-col items-center cursor-pointer group" onclick="goToStep(2)">
+                    <div class="step-icon bg-white border-2 border-slate-200 text-slate-400 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all" data-step="2">
+                        <i class="fas fa-user-plus text-sm sm:text-base"></i>
+                    </div>
+                    <span class="step-label text-[11px] sm:text-xs font-bold text-slate-400 mt-2 text-center">Select Patient</span>
+                    <span class="step-sub text-[9px] font-semibold text-slate-400 hidden sm:block">Step 2</span>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-wrapper relative z-10 flex flex-col items-center cursor-pointer group" onclick="goToStep(3)">
+                    <div class="step-icon bg-white border-2 border-slate-200 text-slate-400 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all" data-step="3">
+                        <i class="far fa-calendar-alt text-sm sm:text-base"></i>
+                    </div>
+                    <span class="step-label text-[11px] sm:text-xs font-bold text-slate-400 mt-2 text-center">Date & Slot</span>
+                    <span class="step-sub text-[9px] font-semibold text-slate-400 hidden sm:block">Step 3</span>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step-wrapper relative z-10 flex flex-col items-center cursor-pointer group" onclick="goToStep(4)">
+                    <div class="step-icon bg-white border-2 border-slate-200 text-slate-400 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all" data-step="4">
+                        <i class="fas fa-wallet text-sm sm:text-base"></i>
+                    </div>
+                    <span class="step-label text-[11px] sm:text-xs font-bold text-slate-400 mt-2 text-center">Review & Pay</span>
+                    <span class="step-sub text-[9px] font-semibold text-slate-400 hidden sm:block">Step 4</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Left Column: Steps -->
+            <div class="lg:w-2/3">
+                
+                <!-- STEP 1: Tests & Packages -->
+                <div id="step1" class="step-content">
+                    <div class="flex justify-between items-center mb-5">
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Tests & Packages in Cart</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">Review your selected diagnostic panels and tests before proceeding</p>
+                        </div>
+                        <button onclick="window.location.href='/'" class="text-xs font-bold text-teal-800 hover:text-white bg-teal-50 hover:bg-teal-700 px-3.5 py-1.5 rounded-xl border border-teal-200 transition-all flex items-center gap-1.5 shadow-sm">
+                            <i class="fas fa-plus text-[10px]"></i>
+                            <span>Add More Tests</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Clinical Care Inclusions (Free Add-on Banner) -->
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-900 via-teal-800 to-indigo-950 text-white p-4 sm:p-5 mb-5 shadow-sm">
+                        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">COMPLIMENTARY</span>
+                                    <span class="text-xs font-bold text-teal-200">Value Pack worth ₹1,200</span>
+                                </div>
+                                <h3 class="font-black text-white text-base sm:text-lg tracking-tight">Complete Care Included with Every Report</h3>
+                            </div>
+                            <div class="flex flex-wrap gap-2 text-xs font-semibold text-teal-100">
+                                <div class="flex items-center bg-white/10 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-white/15">
+                                    <i class="fas fa-file-medical text-teal-300 mr-2"></i> Smart AI Report
+                                </div>
+                                <div class="flex items-center bg-white/10 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-white/15">
+                                    <i class="fas fa-user-doctor text-cyan-300 mr-2"></i> Doctor Tele-Consult
+                                </div>
+                                <div class="flex items-center bg-white/10 backdrop-blur-md rounded-xl px-2.5 py-1.5 border border-white/15">
+                                    <i class="fas fa-apple-whole text-emerald-300 mr-2"></i> Diet Guidance
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active VIP Member Banner (Step 1) -->
+                    <?php if($patientVip): ?>
+                    <div class="mb-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-amber-500/5 border border-amber-300/80 p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-lg font-black shadow-sm flex-shrink-0">
+                                <i class="fas fa-crown"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/60 px-2.5 py-0.5 rounded-full border border-amber-300">
+                                        VIP Member Perks Applied
+                                    </span>
+                                    <span class="text-xs font-black text-slate-800"><?php echo e($patientVip->plan_name_snapshot); ?></span>
+                                </div>
+                                <p class="text-xs text-slate-600 font-semibold mt-1">
+                                    Flat <strong class="text-amber-800 font-black"><?php echo e($patientVip->discount_percentage); ?>% VIP Discount</strong> automatically applied to your cart + 100% Free Home Sample Collection!
+                                </p>
+                            </div>
+                        </div>
+                        <div class="hidden sm:block text-right flex-shrink-0">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Status</span>
+                            <span class="text-xs font-black text-emerald-600 flex items-center gap-1 justify-end"><i class="fas fa-check-circle"></i> Active VIP</span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Dynamic Cart Items (filled by JS from localStorage) -->
+                    <div id="checkoutCartItems">
+                        <!-- JS will render items here -->
+                    </div>
+
+                    <!-- 1-Click VIP Upsell Card (Step 1) -->
+                    <?php
+                        $featuredPlan = $vipPlans->firstWhere('is_popular', true) ?? $vipPlans->first();
+                    ?>
+                    <?php if(!$patientVip && $featuredPlan): ?>
+                    <div id="vipUpsellCard" class="mt-4 mb-6 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 text-white p-5 sm:p-6 border border-amber-500/40 shadow-xl relative overflow-hidden transition-all">
+                        <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-amber-500/15 blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-xl font-black shadow-lg flex-shrink-0 mt-0.5">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                            Special Checkout Upsell
+                                        </span>
+                                        <span class="text-xs font-bold text-slate-300">
+                                            <?php echo e($featuredPlan->name); ?> (<?php echo e($featuredPlan->formatted_duration); ?>)
+                                        </span>
+                                    </div>
+                                    <h3 class="text-base sm:text-lg font-black text-white mt-1 leading-snug">
+                                        Add VIP Pass for ₹<?php echo e(number_format($featuredPlan->price, 0)); ?> & Save flat <?php echo e($featuredPlan->discount_percentage); ?>% on today's tests!
+                                    </h3>
+                                    <p class="text-xs text-slate-300 font-medium mt-1 leading-relaxed">
+                                        Enjoy flat <?php echo e($featuredPlan->discount_percentage); ?>% OFF all lab tests for <?php echo e($featuredPlan->formatted_duration); ?>, ₹0 home collection fees, and priority WhatsApp reports for your entire family.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Upsell Checkbox Control -->
+                            <div class="flex-shrink-0 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 flex items-center gap-3">
+                                <input type="checkbox" id="vipUpsellCheckbox" onchange="toggleVipUpsell(this)" class="w-5 h-5 rounded text-amber-500 focus:ring-amber-400 border-gray-300 cursor-pointer">
+                                <label for="vipUpsellCheckbox" class="cursor-pointer select-none">
+                                    <span class="block text-xs font-black text-white">Add VIP Pass (+₹<?php echo e(number_format($featuredPlan->price, 0)); ?>)</span>
+                                    <span id="vipInstantSavingsText" class="block text-[11px] font-bold text-amber-300">Save instantly on today's tests!</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Empty Cart State -->
+                    <div id="emptyCartMsg" class="hidden bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center shadow-sm my-6">
+                        <div class="w-16 h-16 rounded-full bg-teal-50 text-teal-700 flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fas fa-shopping-basket"></i>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-lg mb-1">Your Diagnostic Cart is Empty</h3>
+                        <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto mb-5">Browse doctor-curated full body packages and lab tests with free home sample collection.</p>
+                        <a href="<?php echo e(route('home')); ?>" class="inline-flex items-center gap-2 bg-teal-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs hover:bg-teal-900 transition shadow-md">
+                            <i class="fas fa-magnifying-glass text-xs"></i>
+                            <span>Browse Health Packages</span>
+                        </a>
+                    </div>
+
+                    <!-- Frequently Added / Suggested Diagnostic Tests Section -->
+                    <div class="mt-8 pt-6 border-t border-slate-200" id="suggestedTestsSection">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-[10px] font-black uppercase tracking-wider">
+                                        <i class="fas fa-sparkles text-amber-500"></i> Recommended Add-ons
+                                    </span>
+                                    <span class="text-[11px] font-bold text-slate-400">• High Diagnostic Value</span>
+                                </div>
+                                <h3 class="text-xl font-black text-slate-900 tracking-tight">Frequently Added Together</h3>
+                                <p class="text-xs text-slate-500 font-medium">Add vital individual parameters to your booking with a single click.</p>
+                            </div>
+                        </div>
+
+                        <!-- Suggested Tests Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5" id="suggestedTestsGrid">
+                            <?php $__empty_1 = true; $__currentLoopData = $suggestedTests ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $st): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                                <?php
+                                    $categoryName = $st->category?->name ?? 'Clinical Pathology';
+                                    $hasDiscount = $st->hasDiscount();
+                                    $mrpPrice = $hasDiscount ? $st->effective_mrp : $st->price;
+                                ?>
+                                <div class="suggested-test-card bg-white rounded-2xl p-4 border border-slate-200/90 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between group" data-test-name="<?php echo e($st->name); ?>">
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <span class="text-[10px] font-black text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100 uppercase tracking-wider truncate max-w-[170px]">
+                                                <?php echo e($categoryName); ?>
+
+                                            </span>
+                                            <span class="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                                <i class="fas fa-bolt text-amber-500 text-[9px]"></i> <?php echo e($st->report_delivery_time ?: '6-12h'); ?>
+
+                                            </span>
+                                        </div>
+                                        <h4 class="text-sm font-black text-slate-900 group-hover:text-teal-800 transition-colors line-clamp-2 mb-1.5" title="<?php echo e($st->name); ?>">
+                                            <?php echo e($st->name); ?>
+
+                                        </h4>
+                                        <p class="text-[11px] text-slate-500 font-medium line-clamp-1 mb-3">
+                                            <?php echo e($st->preparation_instructions ?: 'Home collection available. Fast verified reporting.'); ?>
+
+                                        </p>
+                                    </div>
+
+                                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                                        <div>
+                                            <div class="flex items-baseline gap-1.5">
+                                                <span class="text-base font-black text-slate-900">₹<?php echo e(number_format($st->price)); ?></span>
+                                                <?php if($hasDiscount): ?>
+                                                    <span class="text-xs text-slate-400 line-through font-bold">₹<?php echo e(number_format($mrpPrice)); ?></span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <?php if($hasDiscount): ?>
+                                                <span class="text-[10px] font-black text-emerald-600 block"><?php echo e($st->discount_percentage); ?>% OFF</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" 
+                                                onclick="addSuggestedToCart('<?php echo e(addslashes($st->name)); ?>', <?php echo e($st->price); ?>, <?php echo e($mrpPrice); ?>, '1 Parameter', this)"
+                                                class="suggest-add-btn px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-700 text-teal-800 hover:text-white text-xs font-black border border-teal-200/80 hover:border-teal-700 transition-all duration-200 flex items-center gap-1 shadow-sm">
+                                            <i class="fas fa-plus text-[10px]"></i>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                                
+                                <?php
+                                    $defaultAddons = [
+                                        ['name' => 'Complete Blood Count (CBC) with ESR', 'price' => 350, 'mrp' => 550, 'dept' => 'Complete Hemogram'],
+                                        ['name' => 'HbA1c (3-Months Average Sugar)', 'price' => 450, 'mrp' => 700, 'dept' => 'Diabetes Profile'],
+                                        ['name' => 'Vitamin D 25-Hydroxy (Total)', 'price' => 699, 'mrp' => 1200, 'dept' => 'Bone & Immunity'],
+                                    ];
+                                ?>
+                                <?php $__currentLoopData = $defaultAddons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $da): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="suggested-test-card bg-white rounded-2xl p-4 border border-slate-200/90 hover:border-teal-500/50 hover:shadow-md transition-all flex flex-col justify-between group" data-test-name="<?php echo e($da['name']); ?>">
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <span class="text-[10px] font-black text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100 uppercase tracking-wider">
+                                                <?php echo e($da['dept']); ?>
+
+                                            </span>
+                                            <span class="text-[10px] font-bold text-slate-400">Reports in 6h</span>
+                                        </div>
+                                        <h4 class="text-sm font-black text-slate-900 group-hover:text-teal-800 transition-colors line-clamp-2 mb-1.5">
+                                            <?php echo e($da['name']); ?>
+
+                                        </h4>
+                                    </div>
+                                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between mt-auto">
+                                        <div>
+                                            <span class="text-base font-black text-slate-900">₹<?php echo e($da['price']); ?></span>
+                                            <span class="text-xs text-slate-400 line-through font-bold">₹<?php echo e($da['mrp']); ?></span>
+                                        </div>
+                                        <button type="button" 
+                                                onclick="addSuggestedToCart('<?php echo e(addslashes($da['name'])); ?>', <?php echo e($da['price']); ?>, <?php echo e($da['mrp']); ?>, '1 Parameter', this)"
+                                                class="suggest-add-btn px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-700 text-teal-800 hover:text-white text-xs font-black border border-teal-200/80 transition-all flex items-center gap-1 shadow-sm">
+                                            <i class="fas fa-plus text-[10px]"></i>
+                                            <span>Add</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Select Patient / Add Members -->
+                <div id="step2" class="step-content hidden">
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h2 class="text-2xl font-extrabold text-gray-800">Select Patient / Member</h2>
+                            <p class="text-xs text-gray-500 font-semibold mt-1">Choose who this booking and sample collection is for</p>
+                        </div>
+                        <button onclick="window.openAddMemberModal()" class="text-brand-secondary font-bold text-sm border-b-2 border-brand-secondary border-dashed hover:text-brand-dark">+ Add Member</button>
+                    </div>
+
+                    <div class="space-y-4" id="memberSelectionList">
+                        <!-- Primary Patient (Self) -->
+                        <div class="member-card cursor-pointer bg-white border-2 border-brand-secondary rounded-xl p-4 flex items-start transition shadow-sm" onclick="selectMember(null, this)">
+                            <div class="pt-1 mr-4">
+                                <div class="w-6 h-6 rounded-full bg-brand-dark text-white flex items-center justify-center text-xs member-check-indicator">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-bold text-gray-900 text-lg flex items-center">
+                                            <span id="primaryPatientDisplayName"><?php echo e((!empty($patient->name) && strtolower($patient->name) !== 'self') ? $patient->name : 'Self'); ?></span> 
+                                            <span class="text-[10px] bg-brand-light/30 text-brand-dark px-2 py-0.5 rounded ml-2 uppercase font-extrabold">Self</span>
+                                            <?php
+                                                $patientCleanPhone = preg_replace('/[^0-9]/', '', (string)($patient->mobile ?? ''));
+                                                if (strlen($patientCleanPhone) > 10 && str_starts_with($patientCleanPhone, '91')) {
+                                                    $patientCleanPhone = substr($patientCleanPhone, 2);
+                                                }
+                                                $hasValidMobile = strlen($patientCleanPhone) === 10;
+                                                $hasValidAge = !empty($patient->age) && (int)$patient->age >= 1 && (int)$patient->age <= 120;
+                                                $hasValidName = !empty($patient->name) && strtolower(trim($patient->name)) !== 'self';
+                                                $patientProfileIncomplete = !$hasValidName || !$hasValidAge || !$hasValidMobile;
+                                            ?>
+                                            <?php if($patientProfileIncomplete): ?>
+                                                <span id="primaryPatientIncompleteBadge" class="text-[10px] bg-rose-100 text-rose-700 font-extrabold px-2 py-0.5 rounded ml-2 flex items-center gap-1">
+                                                    <i class="fas fa-exclamation-circle text-[9px]"></i> Profile Incomplete
+                                                </span>
+                                            <?php endif; ?>
+                                        </h3>
+                                        <p class="text-xs text-gray-500 font-semibold mt-1 flex flex-wrap items-center gap-2">
+                                            <span id="primaryPatientDisplayAge" class="<?php echo e($hasValidAge ? 'text-gray-600' : 'text-rose-600 font-bold'); ?>">
+                                                <?php echo e($hasValidAge ? $patient->age . ' Years' : 'Age Required *'); ?>
+
+                                            </span>
+                                            <span class="text-gray-300">•</span>
+                                            <span id="primaryPatientDisplayGender" class="text-gray-600">
+                                                <?php echo e(ucfirst($patient->gender ?? 'Not Specified')); ?>
+
+                                            </span>
+                                            <span class="text-gray-300">•</span>
+                                            <span id="primaryPatientDisplayMobile" class="<?php echo e($hasValidMobile ? 'text-gray-600' : 'text-rose-600 font-bold'); ?>">
+                                                <i class="fas fa-phone-alt text-[10px] mr-1"></i><?php echo e($hasValidMobile ? '+91 ' . $patientCleanPhone : 'Phone Required *'); ?>
+
+                                            </span>
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col items-end gap-1">
+                                        <span class="text-xs font-bold text-brand-secondary">Primary Patient</span>
+                                        <button type="button" onclick="event.stopPropagation(); toggleCheckoutProfilePrompt()" class="text-[11px] text-teal-700 hover:text-teal-900 font-bold flex items-center gap-1 underline cursor-pointer">
+                                            <i class="fas fa-pencil-alt text-[9px]"></i> Edit Details
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Mandatory Profile Details Prompt Box -->
+                                <div class="mt-3 pt-3 border-t border-slate-200 <?php echo e($patientProfileIncomplete ? '' : 'hidden'); ?> bg-amber-50/70 rounded-xl p-3.5 border border-amber-200 shadow-sm" id="patientDetailsPromptBox" onclick="event.stopPropagation()">
+                                    <div class="flex items-start justify-between gap-2 mb-2.5">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-black shrink-0">
+                                                <i class="fas fa-id-card"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-xs font-black text-amber-900 flex items-center gap-1">
+                                                    <span>Mandatory Patient Details</span> <span class="text-rose-600">*</span>
+                                                </h4>
+                                                <p class="text-[11px] text-amber-700 font-medium">Name, Age and 10-digit Phone are mandatory for diagnostic reports and sample collection slot booking.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                        <!-- Full Name -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                Full Name <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="text" id="checkoutPatientNameInput" value="<?php echo e($hasValidName ? $patient->name : ''); ?>" placeholder="e.g. Ramesh Kumar" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+
+                                        <!-- Age -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                Age (Years) <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="number" id="checkoutPatientAgeInput" min="1" max="120" value="<?php echo e($hasValidAge ? $patient->age : ''); ?>" placeholder="e.g. 28" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+
+                                        <!-- Phone Number -->
+                                        <div>
+                                            <label class="block text-[11px] font-extrabold text-slate-700 mb-1">
+                                                10-digit Phone <span class="text-rose-600">*</span>
+                                            </label>
+                                            <input type="tel" id="checkoutPatientMobileInput" maxlength="10" pattern="[0-9]{10}" value="<?php echo e($hasValidMobile ? $patientCleanPhone : ''); ?>" placeholder="e.g. 9876543210" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-gray-800 outline-none focus:ring-2 focus:ring-teal-600 transition" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Gender selection & Save Button -->
+                                    <div class="mt-2.5 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-200/60">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[11px] font-extrabold text-slate-700">Gender:</span>
+                                            <div class="inline-flex rounded-lg border border-slate-300 bg-white p-0.5 text-xs font-bold">
+                                                <?php $curGender = strtolower($patient->gender ?? 'female'); ?>
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md <?php echo e($curGender === 'female' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'); ?> transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Female" class="hidden" <?php echo e($curGender === 'female' ? 'checked' : ''); ?> onchange="updateGenderRadioUI(this)"> Female
+                                                </label>
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md <?php echo e($curGender === 'male' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'); ?> transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Male" class="hidden" <?php echo e($curGender === 'male' ? 'checked' : ''); ?> onchange="updateGenderRadioUI(this)"> Male
+                                                </label>
+                                                <label class="cursor-pointer px-2.5 py-1 rounded-md <?php echo e($curGender === 'other' ? 'bg-teal-700 text-white' : 'text-slate-600 hover:text-slate-900'); ?> transition">
+                                                    <input type="radio" name="checkout_patient_gender" value="Other" class="hidden" <?php echo e($curGender === 'other' ? 'checked' : ''); ?> onchange="updateGenderRadioUI(this)"> Other
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <button type="button" id="btnSaveCheckoutDetails" onclick="saveCheckoutPatientDetails()" class="px-4 py-2 bg-teal-800 hover:bg-teal-900 text-white rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 shadow-sm cursor-pointer ml-auto">
+                                            <i class="fas fa-check-circle text-xs"></i>
+                                            <span>Save Profile Details</span>
+                                        </button>
+                                    </div>
+                                    <div id="checkoutDetailsAlert" class="mt-2 text-xs font-bold hidden"></div>
+                                </div>
+
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
+                                    <div class="member-cart-summary text-sm font-semibold text-gray-700">All tests in cart</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Members -->
+                        <?php $__currentLoopData = ($patient->familyMembers ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $mem): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <div class="member-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex items-start transition hover:border-brand-secondary shadow-sm" onclick="selectMember(<?php echo e($mem->id); ?>, this)">
+                            <div class="pt-1 mr-4">
+                                <div class="w-6 h-6 rounded-full border border-gray-300 text-transparent flex items-center justify-center text-xs member-check-indicator">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h3 class="font-bold text-gray-900 text-lg flex items-center"><?php echo e($mem->name); ?> <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase font-extrabold"><?php echo e($mem->relation); ?></span></h3>
+                                        <p class="text-xs text-gray-500 font-semibold mt-1"><?php echo e($mem->age); ?> Years | <?php echo e(ucfirst($mem->gender)); ?></p>
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-400">Family Member</span>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
+                                    <div class="member-cart-summary text-sm font-semibold text-gray-700">All tests in cart</div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Address & Slots -->
+                <div id="step3" class="step-content hidden">
+                    <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Sample Collection Address</h2>
+                    <p class="text-sm text-gray-500 font-semibold mb-6">Select an address from where the sample will be picked</p>
+
+                    <!-- Pincode Check (Custom Logic) -->
+                    <div id="pincodeCheckSection" class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6 transition-all">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Area Pincode</label>
+                        <div class="flex gap-4">
+                            <input type="text" id="pincodeInput" class="flex-1 border border-gray-300 rounded-lg px-4 py-2 font-bold focus:ring-2 focus:ring-brand-secondary outline-none text-gray-800 tracking-wider" placeholder="Enter Pincode (e.g. 800001)" maxlength="6">
+                            <button onclick="verifyPincode()" class="bg-brand-dark text-white font-bold px-6 py-2 rounded-lg hover:bg-brand-secondary transition">Verify</button>
+                        </div>
+                        <p id="pincodeError" class="text-red-500 text-sm font-bold mt-2 hidden">Sorry, service not available in this area.</p>
+                        <p id="pincodeSuccess" class="text-green-600 text-sm font-bold mt-2 hidden"><i class="fas fa-check-circle mr-1"></i> Service available!</p>
+                    </div>
+
+                    <!-- Hidden Address & Slot Section -->
+                    <div id="addressAndSlotSection" class="hidden">
+                        <?php
+                            $defaultAddress = $patient->addresses->first();
+                        ?>
+                        <?php if($patient->addresses->isEmpty()): ?>
+                        <div id="noAddressAlertBox" class="border-2 border-dashed border-amber-300 rounded-2xl p-5 mb-8 bg-amber-50/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl font-bold flex-shrink-0">
+                                    <i class="fas fa-map-location-dot"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-gray-900 text-sm">Sample Collection Address Required</h4>
+                                    <p class="text-xs text-gray-600 mt-0.5">Please add your complete address for home sample collection before proceeding.</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="window.openAddAddressModal()" class="w-full sm:w-auto px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm whitespace-nowrap cursor-pointer">
+                                <i class="fas fa-plus text-xs"></i>
+                                <span>Add Address Now</span>
+                            </button>
+                        </div>
+                        <?php else: ?>
+                        <div class="border border-gray-200 rounded-xl p-4 flex justify-between items-center mb-8 bg-white shadow-sm">
+                            <div class="flex items-start">
+                                <i class="fas fa-map-marker-alt text-brand-secondary mt-1 mr-3 text-lg"></i>
+                                <div>
+                                    <h4 class="font-bold text-gray-800 text-sm">Collection Address <span id="displayAddressType" class="bg-brand-light/30 text-brand-dark text-[10px] px-2 py-0.5 rounded ml-2"><?php echo e($defaultAddress?->title ?? 'Home'); ?></span></h4>
+                                    <p id="displayAddressText" class="text-xs text-gray-500 mt-1"><?php echo e($defaultAddress ? ($defaultAddress->full_address . ' - ' . $defaultAddress->pincode) : 'No address selected. Please click Change to select or add.'); ?></p>
+                                </div>
+                            </div>
+                            <button onclick="window.openChangeAddressModal()" class="text-brand-dark font-bold text-xs border-b border-brand-dark border-dashed hover:text-brand-secondary">Change</button>
+                        </div>
+                        <?php endif; ?>
+
+                        <h3 class="font-extrabold text-gray-800 text-lg mb-4">Collection Date</h3>
+                        <div class="flex gap-3 overflow-x-auto pb-4 no-scrollbar" id="dateContainer">
+                            <?php for($d = 0; $d < 7; $d++): ?>
+                                <?php
+                                    $dateObj = now()->addDays($d);
+                                    $isFirst = ($d === 0);
+                                ?>
+                                <div class="date-item flex-none w-16 h-20 rounded-xl flex flex-col items-center justify-center cursor-pointer shadow-sm transition <?php echo e($isFirst ? 'border-2 border-brand-secondary bg-brand-light/10 text-brand-secondary active-date' : 'border border-gray-200 bg-white hover:border-brand-secondary'); ?>"
+                                     data-date="<?php echo e($dateObj->format('Y-m-d')); ?>">
+                                    <span class="text-xs <?php echo e($isFirst ? 'font-bold text-brand-secondary' : 'font-semibold text-gray-500'); ?>"><?php echo e($dateObj->format('D')); ?></span>
+                                    <span class="text-lg font-black <?php echo e($isFirst ? 'text-brand-secondary' : 'text-gray-800'); ?>"><?php echo e($dateObj->format('d')); ?></span>
+                                    <span class="text-xs <?php echo e($isFirst ? 'font-bold text-brand-secondary' : 'font-semibold text-gray-500'); ?>"><?php echo e($dateObj->format('M')); ?></span>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+
+                        <h3 class="font-extrabold text-gray-800 text-lg mb-4 mt-6">Available Slots</h3>
+                        
+                        <?php
+                            $activeSlots = $collectionSlots ?? \App\Models\CollectionSlot::active()->ordered()->get()->groupBy('period');
+                            $morningSlots = $activeSlots['morning'] ?? collect();
+                            $afternoonSlots = $activeSlots['afternoon'] ?? collect();
+                            $eveningSlots = $activeSlots['evening'] ?? collect();
+                        ?>
+                        
+                        <!-- Morning Slots -->
+                        <?php if($morningSlots->isNotEmpty()): ?>
+                        <div class="mb-6 slot-section" data-section="morning">
+                            <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-cloud-sun mr-2"></i> Morning</p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
+                                <?php $__currentLoopData = $morningSlots; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slot): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="<?php echo e(trim($slot->title)); ?>"><?php echo e($slot->title); ?></div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Afternoon Slots -->
+                        <?php if($afternoonSlots->isNotEmpty()): ?>
+                        <div class="mb-6 slot-section" data-section="afternoon">
+                            <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-sun mr-2"></i> Afternoon</p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
+                                <?php $__currentLoopData = $afternoonSlots; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slot): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="<?php echo e(trim($slot->title)); ?>"><?php echo e($slot->title); ?></div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Evening Slots -->
+                        <?php if($eveningSlots->isNotEmpty()): ?>
+                        <div class="mb-6 slot-section" data-section="evening">
+                            <p class="text-xs font-bold text-gray-400 mb-3 flex items-center"><i class="fas fa-moon mr-2"></i> Evening</p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 slot-container">
+                                <?php $__currentLoopData = $eveningSlots; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $slot): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <div class="slot-item border border-gray-200 bg-white rounded-lg py-2.5 px-2 text-center text-xs font-bold text-gray-600 hover:border-brand-secondary hover:text-brand-secondary cursor-pointer transition shadow-sm" data-slot-title="<?php echo e(trim($slot->title)); ?>"><?php echo e($slot->title); ?></div>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Notice when phlebos are off or area has no slots -->
+                        <div id="phleboOffDutyNotice" class="hidden p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-slash text-rose-500 text-base flex-shrink-0"></i>
+                                <span id="phleboOffDutyNoticeText">Phlebotomist is off-duty in your area for the selected date. Please choose another date.</span>
+                            </div>
+                            <button type="button" onclick="selectTomorrowDate()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer flex-shrink-0 whitespace-nowrap">
+                                Try Tomorrow
+                            </button>
+                        </div>
+
+                        <!-- Empty State Notice for Today if all slots have passed -->
+                        <div id="noSlotsAvailableNotice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-clock text-amber-600 text-base"></i>
+                                <span>No more collection slots available for today. Please select tomorrow or an upcoming date.</span>
+                            </div>
+                            <button type="button" onclick="selectTomorrowDate()" class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold transition shadow-xs cursor-pointer flex-shrink-0">
+                                Select Tomorrow
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Payment -->
+                <div id="step4" class="step-content hidden">
+                    <div class="bg-brand-light/10 border-l-4 border-brand-secondary rounded-r-xl p-4 mb-6 flex items-center shadow-sm">
+                        <h2 class="text-brand-dark font-extrabold text-2xl tracking-tighter mr-4">4x<span class="text-lg font-normal">VALUE</span></h2>
+                        <div>
+                            <h4 class="font-bold text-sm text-gray-800">Expert Consultation</h4>
+                            <p class="text-xs text-gray-500 font-semibold">Free with every test</p>
+                        </div>
+                    </div>
+
+                    <!-- 1. Interactive Booking Summary Accordion -->
+                    <div class="border border-slate-200 bg-white rounded-2xl mb-4 shadow-sm overflow-hidden transition-all">
+                        <button type="button" onclick="toggleBookingSummaryAccordion()" class="w-full p-4 sm:p-4.5 flex justify-between items-center hover:bg-slate-50/80 transition text-left cursor-pointer group">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200/60 text-teal-800 flex items-center justify-center text-base font-black shadow-2xs group-hover:scale-105 transition-transform">
+                                    <i class="fas fa-clipboard-list"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="font-black text-slate-900 text-sm">Booking Summary</h4>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full" id="bookingSummaryItemCount">0 Items</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 font-medium mt-0.5">Click to review tests, patient details & collection address</p>
+                                </div>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-teal-50 group-hover:text-teal-800 transition">
+                                <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="bookingSummaryChevron"></i>
+                            </div>
+                        </button>
+                        
+                        <!-- Collapsible Body -->
+                        <div id="bookingSummaryContent" class="hidden border-t border-slate-100 p-4 sm:p-5 bg-slate-50/60 space-y-3.5">
+                            <!-- Patient Details Card -->
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-2xs">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Patient / Beneficiary</span>
+                                        <span class="text-xs font-black text-slate-800" id="summaryPatientName"><?php echo e($patient->name ?? 'Self'); ?> (Primary Patient)</span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="goToStep(2)" class="text-xs font-black text-teal-800 hover:text-teal-950 underline underline-offset-2">
+                                    Change
+                                </button>
+                            </div>
+
+                            <!-- Collection Address Card -->
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex items-start justify-between gap-3 shadow-2xs">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Sample Pickup Address</span>
+                                        <span class="text-xs font-medium text-slate-700 block leading-snug" id="summaryAddressFull"><?php echo e($defaultAddr ? ($defaultAddr->full_address . ' - ' . $defaultAddr->pincode) : 'No address selected'); ?></span>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="window.openChangeAddressModal()" class="text-xs font-black text-teal-800 hover:text-teal-950 underline underline-offset-2 flex-shrink-0">
+                                    Change
+                                </button>
+                            </div>
+
+                            <!-- Appointment Slot Card -->
+                            <div class="bg-white p-3.5 rounded-xl border border-slate-200/80 flex items-center justify-between shadow-2xs">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs font-bold">
+                                        <i class="far fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Appointment Schedule</span>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-xs font-black text-slate-900" id="summarySlotDateText">Selected Date</span>
+                                            <span class="text-slate-300">•</span>
+                                            <span class="text-[11px] font-black text-amber-900 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md" id="summarySlotTimeText">07:00 AM - 08:00 AM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="goToStep(3)" class="text-xs font-black text-teal-800 hover:text-teal-950 underline underline-offset-2">
+                                    Change
+                                </button>
+                            </div>
+
+                            <!-- Booked Tests & Packages List -->
+                            <div class="pt-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Diagnostic Tests & Panels</span>
+                                    <button type="button" onclick="goToStep(1)" class="text-[11px] font-bold text-teal-800 hover:underline">Edit Cart</button>
+                                </div>
+                                <div id="bookingSummaryItemsList" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Interactive Unlock Coupons & Offers Card -->
+                    <div onclick="openCouponsModal()" class="border border-indigo-200/80 bg-gradient-to-r from-indigo-50/70 via-purple-50/40 to-white rounded-2xl p-4 mb-5 flex justify-between items-center cursor-pointer hover:border-indigo-400 hover:shadow-md transition-all shadow-xs group">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base font-black shadow-xs group-hover:scale-105 transition-transform">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-black text-slate-900 text-sm">Unlock Coupons & Offers</h4>
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">Offers Available</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 font-medium mt-0.5" id="step4CouponSummaryText">Click to browse promo codes & instant discounts</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black text-indigo-700 group-hover:underline">View Offers</span>
+                            <i class="fas fa-chevron-right text-indigo-400 text-xs group-hover:translate-x-0.5 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- Selected Appointment Date & Time Slot Banner -->
+                    <div id="step4AppointmentSummary" class="bg-gradient-to-r from-teal-50/90 via-emerald-50/70 to-teal-50/90 border border-teal-200/90 rounded-2xl p-4 mb-6 flex items-center justify-between shadow-xs">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center text-lg font-black shadow-xs flex-shrink-0">
+                                <i class="far fa-calendar-check"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-teal-800 block leading-tight">Collection Appointment Slot</span>
+                                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                                    <span class="text-xs font-black text-slate-900" id="step4SummaryDate">Date</span>
+                                    <span class="text-slate-300 hidden sm:inline">•</span>
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-black text-amber-900 bg-amber-100/90 border border-amber-300/80 px-2 py-0.5 rounded-md">
+                                        <i class="far fa-clock text-[10px] text-amber-700"></i>
+                                        <span id="step4SummarySlot">07:00 AM - 08:00 AM</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="currentStep = 3; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="text-xs font-black text-teal-800 hover:text-teal-950 underline underline-offset-2 flex-shrink-0">
+                            Change Slot
+                        </button>
+                    </div>
+
+                    <div class="flex justify-between items-end mb-4">
+                        <div>
+                            <h3 class="font-extrabold text-gray-800 text-lg">Wellcare VIP Membership</h3>
+                            <p class="text-xs text-gray-500 font-medium">Unlock flat discounts and complimentary home sample collections</p>
+                        </div>
+                        <a href="<?php echo e(route('patient.membership')); ?>" target="_blank" class="text-brand-secondary font-bold text-xs hover:underline flex items-center gap-1">
+                            <span>Compare Plans</span> <i class="fas fa-external-link-alt text-[10px]"></i>
+                        </a>
+                    </div>
+
+                    <?php if($patientVip): ?>
+                        <div class="rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-400/10 to-amber-500/5 border border-amber-300/80 p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm mb-6">
+                            <div class="flex items-center gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-400 to-amber-600 text-slate-950 flex items-center justify-center text-lg font-black shadow-sm flex-shrink-0">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-900 bg-amber-200/60 px-2.5 py-0.5 rounded-full border border-amber-300">Active Membership</span>
+                                        <span class="text-xs font-black text-slate-800"><?php echo e($patientVip->plan_name_snapshot); ?></span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-semibold mt-1">
+                                        Flat <strong class="text-amber-800 font-black"><?php echo e($patientVip->discount_percentage); ?>% VIP Discount</strong> is applied to this booking.
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-black text-emerald-600 flex items-center gap-1 flex-shrink-0"><i class="fas fa-check-circle"></i> Benefit Applied</span>
+                        </div>
+                    <?php elseif($vipPlans->isNotEmpty()): ?>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                            <?php $__currentLoopData = $vipPlans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $vPlan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="vip-plan-card border-2 <?php echo e($vPlan->is_popular ? 'border-amber-400 bg-amber-50/20' : 'border-slate-200 bg-white'); ?> rounded-2xl p-4 sm:p-5 relative cursor-pointer hover:border-amber-500 shadow-sm transition-all" 
+                                     onclick="selectVipPlanCard(<?php echo e($vPlan->id); ?>, <?php echo e($vPlan->price); ?>, <?php echo e($vPlan->discount_percentage); ?>, '<?php echo e(addslashes($vPlan->name)); ?>', '<?php echo e($vPlan->formatted_duration); ?>', this)"
+                                     data-vip-plan-id="<?php echo e($vPlan->id); ?>"
+                                     <?php echo e($vPlan->is_popular ? 'data-is-popular="true"' : ''); ?>>
+                                    <?php if($vPlan->is_popular): ?>
+                                        <div class="absolute top-0 right-4 bg-amber-500 text-white text-[9px] font-black uppercase px-2.5 py-0.5 rounded-b-md tracking-wider">
+                                            Recommended
+                                        </div>
+                                    <?php endif; ?>
+                                    <div class="vip-check-indicator absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs text-transparent">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-lg mb-3 shadow-xs">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <h4 class="font-black text-slate-900 text-sm mb-0.5"><?php echo e($vPlan->name); ?></h4>
+                                    <p class="text-[11px] text-slate-500 font-medium leading-tight mb-2">Flat <strong class="text-amber-700 font-black"><?php echo e($vPlan->discount_percentage); ?>% OFF</strong> + Free Home Collection</p>
+                                    <div class="flex items-baseline gap-1.5">
+                                        <span class="text-xl font-black text-slate-900">₹<?php echo e(number_format($vPlan->price, 0)); ?></span>
+                                        <span class="text-[11px] font-bold text-slate-400">/ <?php echo e($vPlan->formatted_duration); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <div class="bg-green-50 text-green-700 text-xs font-bold p-3 rounded-lg text-center shadow-sm"><i class="fas fa-tree mr-2"></i> With every health checkup, you're helping plant a tree!</div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Summary & Bill -->
+            <div class="lg:w-1/3">
+                <div class="sticky top-24">
+                    
+                    <!-- Apply Coupon / Promo Code Block -->
+                    <div id="checkoutCouponSection" class="bg-white border border-gray-200 rounded-xl p-4 mb-4 shadow-sm">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-black text-gray-800 uppercase tracking-wide flex items-center gap-1.5">
+                                <i class="fas fa-ticket-alt text-brand-secondary"></i>
+                                <span>Apply Coupon / Promo Code</span>
+                            </span>
+                        </div>
+
+                        <!-- Coupon Input Field -->
+                        <div id="couponInputContainer" class="flex gap-2">
+                            <input type="text" id="checkoutCouponInput" placeholder="Enter coupon code" 
+                                class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-xs uppercase font-mono font-black focus:ring-2 focus:ring-brand-secondary outline-none text-gray-800 placeholder-gray-400">
+                            <button type="button" onclick="applyCouponManual()" id="applyCouponBtn" 
+                                class="bg-brand-dark hover:bg-brand-secondary text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <span>Apply</span>
+                            </button>
+                        </div>
+
+                        <!-- Coupon Message Alert -->
+                        <div id="couponStatusMessage" class="hidden text-[11px] font-bold mt-2 p-2 rounded-lg"></div>
+
+                        <!-- Active Applied Coupon Pill -->
+                        <div id="appliedCouponDisplay" class="hidden mt-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div>
+                                    <span class="font-mono font-black text-xs text-emerald-800" id="appliedCouponCodeText"></span>
+                                    <span class="text-[10px] text-emerald-600 block font-semibold" id="appliedCouponSavingsText"></span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="removeAppliedCoupon()" class="text-xs font-bold text-rose-500 hover:text-rose-700">Remove</button>
+                        </div>
+
+                        <!-- Available Coupons for Quick Apply -->
+                        <?php if((isset($myCoupons) && $myCoupons->count() > 0) || (isset($bannerCoupons) && $bannerCoupons->count() > 0)): ?>
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Available Offers</span>
+                                    <span class="text-[10px] font-bold text-brand-secondary">Click to Apply</span>
+                                </div>
+                                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                    
+                                    <?php if(isset($myCoupons)): ?>
+                                        <?php $__currentLoopData = $myCoupons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <?php if($pc->coupon && $pc->coupon->is_active): ?>
+                                                <div onclick="applyQuickCoupon('<?php echo e($pc->coupon->code); ?>')" class="p-2.5 rounded-xl border border-indigo-100 bg-indigo-50/50 hover:bg-indigo-50 cursor-pointer transition flex items-center justify-between group">
+                                                    <div>
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="font-mono font-black text-xs text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200"><?php echo e($pc->coupon->code); ?></span>
+                                                            <?php if($pc->coupon->coupon_type === 'welcome'): ?>
+                                                                <span class="text-[9px] font-black uppercase text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded">🎁 1st Order</span>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                        <p class="text-[10px] text-gray-600 font-medium mt-1">
+                                                            <?php echo e($pc->coupon->discount_type === 'percentage' ? $pc->coupon->discount_value . '% OFF' : '₹' . number_format($pc->coupon->discount_value) . ' Flat OFF'); ?>
+
+                                                            <?php if($pc->coupon->min_order_amount > 0): ?>
+                                                                (Min order: ₹<?php echo e(number_format($pc->coupon->min_order_amount)); ?>)
+                                                            <?php endif; ?>
+                                                        </p>
+                                                    </div>
+                                                    <span class="text-[11px] font-bold text-indigo-600 group-hover:underline">Apply</span>
+                                                </div>
+                                            <?php endif; ?>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <?php endif; ?>
+
+                                    
+                                    <?php if(isset($bannerCoupons)): ?>
+                                        <?php $__currentLoopData = $bannerCoupons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <div onclick="applyQuickCoupon('<?php echo e($bc->code); ?>')" class="p-2.5 rounded-xl border border-amber-100 bg-amber-50/50 hover:bg-amber-50 cursor-pointer transition flex items-center justify-between group">
+                                                <div>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-mono font-black text-xs text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-200"><?php echo e($bc->code); ?></span>
+                                                        <span class="text-[9px] font-black uppercase text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">📢 Offer</span>
+                                                    </div>
+                                                    <p class="text-[10px] text-gray-600 font-medium mt-1">
+                                                        <?php echo e($bc->discount_type === 'percentage' ? $bc->discount_value . '% OFF' : '₹' . number_format($bc->discount_value) . ' Flat OFF'); ?>
+
+                                                        <?php if($bc->min_order_amount > 0): ?>
+                                                            on orders > ₹<?php echo e(number_format($bc->min_order_amount)); ?>
+
+                                                        <?php endif; ?>
+                                                    </p>
+                                                </div>
+                                                <span class="text-[11px] font-bold text-amber-700 group-hover:underline">Apply</span>
+                                            </div>
+                                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Health Coins Redemption Widget -->
+                    <?php if(isset($rewardSettings) && $rewardSettings['enabled']): ?>
+                    <div id="rewardCoinsSection" class="bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-white border border-amber-300/80 rounded-2xl p-4 mb-4 shadow-sm relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-black shadow-xs">
+                                    🪙
+                                </div>
+                                <div>
+                                    <span class="text-xs font-black text-slate-900 block leading-tight">Health Coins Loyalty</span>
+                                    <span class="text-[11px] text-amber-800 font-bold">
+                                        Balance: <strong class="text-slate-900"><?php echo e(number_format($rewardSettings['patient_coins'])); ?></strong> Coins
+                                        <span class="text-slate-500 font-normal">(≈ ₹<?php echo e(number_format($rewardSettings['patient_coins'] * $rewardSettings['coin_value'], 2)); ?>)</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                                1 🪙 = ₹<?php echo e(number_format($rewardSettings['coin_value'], 2)); ?>
+
+                            </span>
+                        </div>
+
+                        <!-- Eligible Container -->
+                        <div id="coinEligibleNotice" class="hidden mt-3 pt-3 border-t border-amber-200/60">
+                            <label class="flex items-center gap-2 cursor-pointer select-none">
+                                <input type="checkbox" id="redeemCoinsCheckbox" onchange="toggleCoinRedemption(this.checked)" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 accent-amber-600">
+                                <span class="text-xs font-black text-slate-900">
+                                    Redeem Health Coins on this Order
+                                </span>
+                            </label>
+
+                            <!-- Coin Input Wrapper (Hidden when unchecked) -->
+                            <div id="coinInputWrapper" class="hidden mt-2.5 p-3 rounded-xl bg-white border border-amber-200 space-y-2">
+                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                                    <span>Coins to redeem:</span>
+                                    <span>Max allowed: <strong id="maxCoinsAllowedBadge" class="text-amber-700">0</strong></span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="coinsToRedeemInput" min="1" step="1" oninput="onCoinInputChange(this.value)"
+                                        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-black text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none">
+                                    <button type="button" onclick="applyMaxCoins()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] rounded-lg transition whitespace-nowrap">
+                                        Max
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400">
+                                    Cap: Max <?php echo e($rewardSettings['max_redeem_type'] === 'percentage' ? $rewardSettings['max_redeem_value'] . '% of order' : $rewardSettings['max_redeem_value'] . ' coins'); ?>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Ineligible Notice -->
+                        <div id="coinIneligibleNotice" class="hidden mt-2 pt-2 border-t border-amber-100 text-[11px] text-amber-800 font-semibold flex items-center gap-1.5">
+                            <i class="fas fa-lock text-[10px] text-amber-600"></i>
+                            <span></span>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Persistent Unified Order Bill Breakdown (Always Visible in Steps 1-4) -->
+                    <div id="orderBillBreakdown" class="border border-slate-200/90 rounded-2xl overflow-hidden mb-4 bg-white shadow-sm">
+                        <!-- Free Collection Gamified Progress Banner -->
+                        <div id="freeCollectionProgressBarCard" class="p-3.5 bg-gradient-to-r from-teal-50 via-emerald-50 to-teal-50 border-b border-teal-100/90">
+                            <div class="flex items-center justify-between text-xs font-bold mb-1.5">
+                                <span class="text-teal-950 flex items-center gap-1.5">
+                                    <i class="fas fa-truck-medical text-teal-600"></i>
+                                    <span id="collectionProgressText">Checking collection fee...</span>
+                                </span>
+                                <span id="collectionProgressPercent" class="text-[11px] font-mono text-teal-700 font-black">0%</span>
+                            </div>
+                            <div class="w-full bg-slate-200/80 rounded-full h-2 overflow-hidden shadow-inner">
+                                <div id="collectionProgressBarFill" class="bg-gradient-to-r from-teal-500 to-emerald-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 sm:p-5 border-b border-slate-100 space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                                    <i class="fas fa-file-invoice-dollar text-teal-600"></i> Order Bill Breakdown
+                                </span>
+                                <span class="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200/60 flex items-center gap-1">
+                                    <i class="fas fa-shield-halved text-teal-600"></i> Verified Prices
+                                </span>
+                            </div>
+
+                            <!-- MRP Total -->
+                            <div class="flex justify-between text-sm font-medium text-slate-600">
+                                <span>Tests Total (MRP)</span>
+                                <span data-bill-mrp class="line-through text-slate-400 font-bold">₹0</span>
+                            </div>
+
+                            <!-- Diagnostic Discount -->
+                            <div class="flex justify-between text-sm font-semibold text-emerald-600">
+                                <span>Diagnostic Discount</span>
+                                <span data-bill-mrp-savings class="font-bold">-₹0</span>
+                            </div>
+
+                            <!-- VIP Plan Row -->
+                            <div class="vip-plan-row hidden flex justify-between text-sm font-semibold text-amber-800">
+                                <span class="flex items-center gap-1.5"><i class="fas fa-crown text-amber-500 text-xs"></i> <span><span class="vip-plan-name-badge font-bold">VIP Pass</span> (<span class="vip-plan-duration-badge text-[11px]"></span>)</span></span>
+                                <span class="font-black text-slate-900">+<span data-bill-vip-price>₹0</span></span>
+                            </div>
+
+                            <!-- VIP Discount Row -->
+                            <div class="vip-discount-row hidden flex justify-between text-sm font-semibold text-emerald-600">
+                                <span class="flex items-center gap-1.5"><i class="fas fa-crown text-amber-500 text-xs"></i> <span>VIP Test Discount (<span class="vip-discount-percent-badge font-black"></span>)</span></span>
+                                <span class="font-black">-<span data-bill-vip-discount>₹0</span></span>
+                            </div>
+
+                            <!-- Home Sample Collection Row -->
+                            <div class="flex justify-between text-sm font-medium text-slate-600" id="billCollectionFeeRow">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fas fa-house-medical text-teal-600 text-xs"></i>
+                                    <span>Home Sample Collection</span>
+                                </span>
+                                <span id="billCollectionFeeValue" class="font-bold text-emerald-600 flex items-center gap-1">
+                                    <span class="line-through text-slate-400 text-xs font-normal">₹100</span>
+                                    <span>FREE</span>
+                                </span>
+                            </div>
+
+                            <!-- Free Doctor Tele-Consultation -->
+                            <div class="flex justify-between text-sm font-medium text-slate-600">
+                                <span>Doctor Report Consultation</span>
+                                <span class="font-bold text-emerald-600 flex items-center gap-1">
+                                    <span class="line-through text-slate-400 text-xs font-normal">₹299</span>
+                                    <span>FREE</span>
+                                </span>
+                            </div>
+
+                            <!-- Coupon Discount Row -->
+                            <div class="coupon-discount-row hidden flex justify-between text-sm font-semibold text-emerald-600 pt-1 border-t border-slate-100">
+                                <span class="flex items-center gap-1"><i class="fas fa-tag text-xs"></i> <span>Coupon (<span class="coupon-code-badge font-mono font-black"></span>)</span></span>
+                                <span class="font-bold">-<span data-bill-discount>₹0</span></span>
+                            </div>
+
+                            <!-- Health Coins Redeemed Row -->
+                            <div class="coins-discount-row hidden flex justify-between text-sm font-semibold text-amber-700 pt-1 border-t border-slate-100">
+                                <span class="flex items-center gap-1.5"><i class="fas fa-coins text-amber-500 text-xs"></i> <span>Health Coins Redeemed (<span class="coins-redeemed-count-badge font-mono font-black">0</span> 🪙)</span></span>
+                                <span class="font-bold text-amber-700"><span data-bill-coins-discount>-₹0</span></span>
+                            </div>
+                        </div>
+
+                        <!-- Total Payable Row -->
+                        <div class="p-4 sm:p-5 bg-slate-50 flex justify-between items-center border-t border-slate-100">
+                            <div>
+                                <span class="font-black text-slate-900 text-sm block">Total Payable</span>
+                                <span class="text-[11px] font-semibold text-slate-500">Includes all taxes & sample fees</span>
+                            </div>
+                            <span data-bill-amount class="font-black text-2xl text-teal-900">₹0</span>
+                        </div>
+
+                        <!-- Coins Earning Preview Callout -->
+                        <div id="coinEarnPreview" class="hidden px-4 py-2.5 bg-amber-50/70 border-t border-amber-100 text-amber-900 text-xs font-bold flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <span>🪙</span>
+                                <span>Rewards you'll earn on this order:</span>
+                            </span>
+                            <span class="font-black text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full">+<span id="coinsToEarnValue">0</span> Coins</span>
+                        </div>
+                    </div>
+
+                    <!-- Booking Savings Highlight Box -->
+                    <div id="bookingSavingsCallout" class="bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold p-3 rounded-2xl text-center mb-4 shadow-sm flex items-center justify-center gap-2">
+                        <span>🎉</span>
+                        <span>Total Savings on this order: <span id="totalSavingsValueText" class="font-black text-emerald-900 text-sm">₹0</span></span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <button id="btnNext" onclick="nextStep()" class="w-full bg-teal-800 hover:bg-teal-900 text-white font-black py-4 rounded-2xl shadow-lg shadow-teal-900/15 transition-all text-base flex items-center justify-center gap-2">
+                        <span>Proceed to Patient Details</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                    
+                    <div id="btnPay" class="hidden flex gap-3 mt-3">
+                        <button type="button" onclick="payOnCollection()" class="flex-1 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-800 font-bold py-3.5 rounded-2xl transition shadow-sm text-xs">
+                            <i class="fas fa-money-bill-wave text-teal-600 mr-1.5"></i> Pay on Collection
+                        </button>
+                        <button type="button" onclick="payOnlineRazorpay()" id="btnPayOnline" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl shadow-md transition text-xs flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-lock text-xs"></i> <span>Pay Now Online</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Clinical Quality & Trust Badges -->
+                    <div class="mt-5 pt-4 border-t border-slate-200 space-y-2 text-[11px] font-semibold text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shield-halved text-teal-600 text-xs flex-shrink-0"></i>
+                            <span>100% Quality Certified Testing Laboratories</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-temperature-arrow-down text-teal-600 text-xs flex-shrink-0"></i>
+                            <span>Barcoded Cold-Chain Temperature Controlled Vials</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-whatsapp text-emerald-600 text-xs flex-shrink-0"></i>
+                            <span>Smart PDF Reports on WhatsApp within 12-24 Hours</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Coupons & Offers Modal -->
+<div id="couponsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 bg-gradient-to-r from-teal-900 via-teal-800 to-indigo-950 text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/15 text-amber-300 flex items-center justify-center text-lg font-black backdrop-blur-xs shadow-xs">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-white text-base">Exclusive Offers & Coupons</h3>
+                    <p class="text-xs text-teal-200 font-medium">Apply a promo code to save more on your booking</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeCouponsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+            <!-- Manual Coupon Code Input Box -->
+            <div>
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">Have a Promo Code?</label>
+                <div class="flex gap-2">
+                    <input type="text" id="modalCouponInput" placeholder="ENTER COUPON CODE" 
+                        class="flex-1 border-2 border-slate-200 focus:border-teal-600 rounded-xl px-4 py-2.5 text-xs font-mono font-black uppercase outline-none text-slate-800 placeholder-slate-400 tracking-wider">
+                    <button type="button" onclick="applyModalCouponManual()" id="modalApplyBtn" 
+                        class="bg-teal-800 hover:bg-teal-900 text-white px-5 py-2.5 rounded-xl text-xs font-black transition shadow-sm cursor-pointer">
+                        Apply
+                    </button>
+                </div>
+                <div id="modalCouponStatusMessage" class="hidden text-xs font-bold mt-2 p-2.5 rounded-xl"></div>
+            </div>
+
+            <!-- Active Applied Coupon (if any) -->
+            <div id="modalAppliedCouponBox" class="hidden p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xs font-black">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-black text-xs text-emerald-900" id="modalAppliedCodeText"></span>
+                            <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">Applied</span>
+                        </div>
+                        <span class="text-xs text-emerald-700 font-bold block mt-0.5" id="modalAppliedSavingsText"></span>
+                    </div>
+                </div>
+                <button type="button" onclick="removeAppliedCoupon(); syncModalCouponState();" class="text-xs font-black text-rose-600 hover:text-rose-800 underline cursor-pointer">
+                    Remove
+                </button>
+            </div>
+
+            <!-- Available Coupons List -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider">Available Lab Offers</span>
+                    <span class="text-[11px] font-semibold text-teal-700">Click Apply to use</span>
+                </div>
+                <div class="space-y-3">
+                    <?php if(isset($myCoupons) && $myCoupons->count() > 0): ?>
+                        <?php $__currentLoopData = $myCoupons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <?php if($pc->coupon && $pc->coupon->is_active): ?>
+                                <div class="p-4 rounded-2xl border-2 border-indigo-100 bg-indigo-50/40 hover:border-indigo-300 hover:bg-indigo-50/70 transition flex items-center justify-between gap-3">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono font-black text-xs text-indigo-900 bg-white px-2.5 py-1 rounded-lg border border-indigo-200"><?php echo e($pc->coupon->code); ?></span>
+                                            <?php if($pc->coupon->coupon_type === 'welcome'): ?>
+                                                <span class="text-[9px] font-black uppercase text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">🎁 1st Order Gift</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p class="text-xs text-slate-800 font-black">
+                                            <?php echo e($pc->coupon->discount_type === 'percentage' ? $pc->coupon->discount_value . '% OFF' : '₹' . number_format($pc->coupon->discount_value) . ' Flat OFF'); ?>
+
+                                        </p>
+                                        <p class="text-[11px] text-slate-500 font-medium">
+                                            <?php echo e($pc->coupon->description ?? ($pc->coupon->min_order_amount > 0 ? 'Applicable on orders above ₹' . number_format($pc->coupon->min_order_amount) : 'Valid on all diagnostic tests')); ?>
+
+                                        </p>
+                                    </div>
+                                    <button type="button" onclick="applyQuickCoupon('<?php echo e($pc->coupon->code); ?>'); setTimeout(() => { syncModalCouponState(); closeCouponsModal(); }, 300);" 
+                                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition shadow-xs flex-shrink-0 cursor-pointer">
+                                        Apply
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
+
+                    <?php if(isset($bannerCoupons) && $bannerCoupons->count() > 0): ?>
+                        <?php $__currentLoopData = $bannerCoupons; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <div class="p-4 rounded-2xl border-2 border-amber-100 bg-amber-50/40 hover:border-amber-300 hover:bg-amber-50/70 transition flex items-center justify-between gap-3">
+                                <div class="space-y-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono font-black text-xs text-amber-900 bg-white px-2.5 py-1 rounded-lg border border-amber-200"><?php echo e($bc->code); ?></span>
+                                        <span class="text-[9px] font-black uppercase text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">✨ Special Offer</span>
+                                    </div>
+                                    <p class="text-xs text-slate-800 font-black">
+                                        <?php echo e($bc->discount_type === 'percentage' ? $bc->discount_value . '% OFF' : '₹' . number_format($bc->discount_value) . ' Flat OFF'); ?>
+
+                                    </p>
+                                    <p class="text-[11px] text-slate-500 font-medium">
+                                        <?php echo e($bc->description ?? ($bc->min_order_amount > 0 ? 'Min order amount: ₹' . number_format($bc->min_order_amount) : 'Valid across full cart')); ?>
+
+                                    </p>
+                                </div>
+                                <button type="button" onclick="applyQuickCoupon('<?php echo e($bc->code); ?>'); setTimeout(() => { syncModalCouponState(); closeCouponsModal(); }, 300);" 
+                                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-xl transition shadow-xs flex-shrink-0 cursor-pointer">
+                                    Apply
+                                </button>
+                            </div>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Success Celebration Modal -->
+<style>
+@keyframes modalCheckmarkPop {
+    0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+    70% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes modalSparkleFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(10deg); }
+}
+.animate-checkmark-pop {
+    animation: modalCheckmarkPop 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+.animate-sparkle-float {
+    animation: modalSparkleFloat 3s ease-in-out infinite;
+}
+</style>
+
+<div id="bookingSuccessModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-300">
+        <!-- Festive Top Header -->
+        <div class="bg-gradient-to-br from-emerald-600 via-teal-700 to-indigo-950 text-white relative p-6 sm:p-7 text-center overflow-hidden">
+            <!-- Background Decorative Ambient Circles -->
+            <div class="absolute -top-12 -left-12 w-36 h-36 rounded-full bg-emerald-400/20 blur-xl"></div>
+            <div class="absolute -bottom-10 -right-10 w-36 h-36 rounded-full bg-teal-400/20 blur-xl"></div>
+            <div class="absolute top-4 right-6 text-xl animate-sparkle-float opacity-80">✨</div>
+            <div class="absolute bottom-6 left-6 text-lg animate-sparkle-float opacity-80" style="animation-delay: 1.2s;">🎉</div>
+
+            <!-- Animated Checkmark Badge -->
+            <div class="relative w-20 h-20 mx-auto mb-3.5">
+                <!-- Outer Pulse Ring -->
+                <div class="absolute inset-0 rounded-full bg-emerald-400/35 animate-ping"></div>
+                <!-- Inner Circle with Icon -->
+                <div class="relative w-20 h-20 rounded-full bg-white text-emerald-600 flex items-center justify-center shadow-xl shadow-teal-950/30 ring-4 ring-emerald-300/40 animate-checkmark-pop">
+                    <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-emerald-200 text-[11px] font-black uppercase tracking-wider mb-2 border border-white/15">
+                <i class="fas fa-certificate text-emerald-300"></i> Confirmed &amp; Scheduled
+            </span>
+            <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">Booking Successful! 🎉</h3>
+            <p class="text-xs sm:text-sm text-teal-100 mt-1 max-w-sm mx-auto font-medium">Your diagnostic sample collection appointment has been scheduled.</p>
+        </div>
+
+        <!-- Modal Body Content -->
+        <div class="p-5 sm:p-6 space-y-4">
+            <!-- Booking Reference Card -->
+            <div class="bg-gradient-to-r from-teal-50/90 to-emerald-50/90 rounded-2xl p-4 border border-teal-200/80 flex items-center justify-between gap-3 shadow-2xs">
+                <div>
+                    <span class="text-[10px] uppercase font-black text-teal-900/60 tracking-wider block">Booking Reference ID</span>
+                    <span id="successModalBookingRef" class="text-lg font-black text-teal-950 font-mono tracking-wide">BK-XXXXXX</span>
+                </div>
+                <button type="button" onclick="copyBookingRef()" id="copyRefBtn" class="px-3 py-1.5 rounded-xl bg-white hover:bg-teal-100/60 text-teal-900 border border-teal-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                    <i class="far fa-copy text-xs text-teal-600"></i>
+                    <span id="copyRefBtnText">Copy</span>
+                </button>
+            </div>
+
+            <!-- Key Summary Details Grid -->
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <!-- Appointment Slot -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Appointment Slot</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fas fa-calendar-check text-teal-600 text-[11px]"></i>
+                        <span id="successModalSlot" class="truncate">Today • 07:00 AM</span>
+                    </div>
+                </div>
+
+                <!-- Patient Name -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Patient Name</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5 truncate">
+                        <i class="fas fa-user-check text-indigo-600 text-[11px]"></i>
+                        <span id="successModalPatient" class="truncate">Self</span>
+                    </div>
+                </div>
+
+                <!-- Collection Location -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Collection Mode</span>
+                    <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="fas fa-house-medical text-emerald-600 text-[11px]"></i>
+                        <span>Home Sample Pickup</span>
+                    </div>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block mb-1">Amount / Payment</span>
+                    <div class="font-black text-slate-900 flex items-center gap-1.5">
+                        <i class="fas fa-wallet text-amber-500 text-[11px]"></i>
+                        <span id="successModalAmount">₹0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What's Next 3-Step Pill Road -->
+            <div class="p-3.5 rounded-2xl bg-slate-50/80 border border-slate-200 text-slate-600 space-y-2 text-[11px]">
+                <div class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                    <i class="fas fa-route text-teal-600"></i> Next Steps Timeline
+                </div>
+                <div class="grid grid-cols-3 gap-2 text-[10px] pt-1">
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-teal-50 text-teal-700 font-black flex items-center justify-center text-[10px]">1</div>
+                        <p class="font-bold text-slate-700 leading-tight">Phlebo Dispatched</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">Certified agent arrives at slot</p>
+                    </div>
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-emerald-50 text-emerald-700 font-black flex items-center justify-center text-[10px]">2</div>
+                        <p class="font-bold text-slate-700 leading-tight">Cold-Chain Vials</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">Sealed sample transported</p>
+                    </div>
+                    <div class="p-2 bg-white rounded-xl border border-slate-200/80 text-center space-y-1">
+                        <div class="w-6 h-6 mx-auto rounded-full bg-indigo-50 text-indigo-700 font-black flex items-center justify-center text-[10px]">3</div>
+                        <p class="font-bold text-slate-700 leading-tight">Fast Report</p>
+                        <p class="text-slate-400 text-[9px] leading-snug">PDF on WhatsApp &amp; Portal</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-2.5">
+                <a id="successModalViewBookingsBtn" href="<?php echo e(route('patient.bookings')); ?>" class="flex-1 bg-teal-800 hover:bg-teal-900 text-white font-black py-3.5 px-4 rounded-2xl shadow-lg shadow-teal-900/15 text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer">
+                    <span>View My Bookings</span>
+                    <i class="fas fa-arrow-right text-xs"></i>
+                </a>
+                <a id="successModalInvoiceBtn" href="#" class="bg-white hover:bg-slate-50 border-2 border-slate-200 text-slate-800 font-bold py-3.5 px-4 rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-1.5 transition cursor-pointer">
+                    <i class="fas fa-file-invoice text-teal-700"></i>
+                    <span>Download Invoice</span>
+                </a>
+            </div>
+
+            <!-- Auto Redirect Notice -->
+            <p class="text-center text-[11px] text-slate-400 font-medium">
+                Redirecting to your bookings dashboard in <span id="successRedirectCountdown" class="font-bold text-teal-800 font-mono">10</span> seconds...
+            </p>
+        </div>
+    </div>
+</div>
+
+    <script id="checkout-patient-data" type="application/json">
+        <?php echo json_encode([
+            'patientId' => (string)($patient->id ?? session('patient_id', '')),
+            'patientVip' => $patientVipData ?? null,
+            'allVipPlans' => $allVipPlansData ?? [],
+            'featuredPlan' => isset($featuredPlan) && $featuredPlan ? [
+                'id' => $featuredPlan->id,
+                'name' => $featuredPlan->name,
+                'formatted_duration' => $featuredPlan->formatted_duration,
+                'price' => (float) $featuredPlan->price,
+                'discount_percentage' => (int) $featuredPlan->discount_percentage,
+                'is_popular' => (bool) $featuredPlan->is_popular,
+            ] : null,
+            'activeMemberId' => null,
+            'activeAddressId' => isset($defaultAddress) ? $defaultAddress?->id : null,
+            'initialStep' => (int) request('step', 1),
+            'rewardSettings' => $rewardSettings ?? [
+                'enabled' => false,
+                'patient_coins' => 0,
+                'coin_value' => 1,
+                'earn_type' => 'percentage',
+                'earn_value' => 5,
+                'min_order_to_earn' => 100,
+                'max_redeem_type' => 'percentage',
+                'max_redeem_value' => 20,
+                'min_order_to_redeem' => 200,
+                'min_coins_to_redeem' => 10,
+            ],
+            'collectionFeeSettings' => $collectionFeeSettings ?? [
+                'enabled' => true,
+                'fee' => 100,
+                'threshold' => 500,
+            ],
+            'serverCart' => $patient->cart ?? []
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>
+
+    </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    // --- Cart & Coupon Data (keyed by patient ID) ---
+    const checkoutPatientMeta = JSON.parse(document.getElementById('checkout-patient-data').textContent);
+    const checkoutPatientId = checkoutPatientMeta.patientId;
+    const checkoutCartKey = 'cart_' + checkoutPatientId;
+    const serverCheckoutCart = Array.isArray(checkoutPatientMeta.serverCart) ? checkoutPatientMeta.serverCart : [];
+    let currentAppliedCoupon = null;
+
+    function getCheckoutCart() {
+        try {
+            let stored = JSON.parse(localStorage.getItem(checkoutCartKey));
+            if (Array.isArray(stored) && stored.length > 0) {
+                return stored;
+            }
+            if (serverCheckoutCart.length > 0) {
+                localStorage.setItem(checkoutCartKey, JSON.stringify(serverCheckoutCart));
+                return serverCheckoutCart;
+            }
+            return Array.isArray(stored) ? stored : [];
+        } catch(e) {
+            return serverCheckoutCart || [];
+        }
+    }
+
+    function removeFromCart(index) {
+        let cart = getCheckoutCart();
+        cart.splice(index, 1);
+        localStorage.setItem(checkoutCartKey, JSON.stringify(cart));
+        fetch('<?php echo e(route("patient.cart.sync")); ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            },
+            body: JSON.stringify({ cart: cart })
+        });
+        renderCheckoutCart();
+        updateCartBadge();
+    }
+
+    function updateCartBadge() {
+        let cart = getCheckoutCart();
+        let countEl = document.getElementById('cartCount');
+        if (countEl) {
+            countEl.innerText = cart.length;
+            if (cart.length > 0) {
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
+    }
+
+    function showCouponMessage(msg, type) {
+        let el = document.getElementById('couponStatusMessage');
+        if (!el) return;
+        el.className = 'text-[11px] font-bold mt-2 p-2.5 rounded-lg ' + 
+            (type === 'success' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
+            (type === 'error' ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-gray-100 text-gray-700'));
+        el.innerText = msg;
+        el.classList.remove('hidden');
+    }
+
+    function applyCouponManual() {
+        let code = document.getElementById('checkoutCouponInput').value.trim();
+        if (!code) {
+            showCouponMessage('Please enter a coupon code.', 'error');
+            return;
+        }
+        applyCoupon(code);
+    }
+
+    function applyQuickCoupon(code) {
+        document.getElementById('checkoutCouponInput').value = code;
+        applyCoupon(code);
+    }
+
+    function applyCoupon(code) {
+        let cart = getCheckoutCart();
+        let subtotal = cart.reduce((acc, item) => acc + (parseFloat(item.price) || 0), 0);
+        if (subtotal <= 0) {
+            showCouponMessage('Please add tests or packages to your cart before applying a coupon.', 'error');
+            return;
+        }
+
+        let btn = document.getElementById('applyCouponBtn');
+        if (btn) btn.innerText = 'Checking...';
+
+        fetch("<?php echo e(route('patient.apply_coupon')); ?>", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            },
+            body: JSON.stringify({
+                code: code,
+                cart_total: subtotal
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (btn) btn.innerText = 'Apply';
+            if (data.success) {
+                currentAppliedCoupon = {
+                    code: data.coupon_code,
+                    title: data.coupon_title,
+                    discount: parseFloat(data.discount_amount),
+                    type: data.discount_type,
+                    value: parseFloat(data.discount_value)
+                };
+                showCouponMessage(data.message, 'success');
+                document.getElementById('couponInputContainer').classList.add('hidden');
+                document.getElementById('appliedCouponDisplay').classList.remove('hidden');
+                document.getElementById('appliedCouponCodeText').innerText = data.coupon_code;
+                document.getElementById('appliedCouponSavingsText').innerText = 'You save ₹' + Number(data.discount_amount).toFixed(2);
+                renderCheckoutCart();
+                syncModalCouponState();
+            } else {
+                showCouponMessage(data.message, 'error');
+            }
+        })
+        .catch(() => {
+            if (btn) btn.innerText = 'Apply';
+            showCouponMessage('Could not verify coupon. Please try again.', 'error');
+        });
+    }
+
+    function removeAppliedCoupon() {
+        currentAppliedCoupon = null;
+        document.getElementById('couponInputContainer').classList.remove('hidden');
+        document.getElementById('appliedCouponDisplay').classList.add('hidden');
+        document.getElementById('checkoutCouponInput').value = '';
+        showCouponMessage('Coupon removed.', 'info');
+        renderCheckoutCart();
+        syncModalCouponState();
+    }
+
+    // --- Coupons & Offers Modal Functions ---
+    function openCouponsModal() {
+        let modal = document.getElementById('couponsModal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        syncModalCouponState();
+    }
+    window.openCouponsModal = openCouponsModal;
+
+    function closeCouponsModal() {
+        let modal = document.getElementById('couponsModal');
+        if (modal) modal.classList.add('hidden');
+    }
+    window.closeCouponsModal = closeCouponsModal;
+
+    function syncModalCouponState() {
+        let appliedBox = document.getElementById('modalAppliedCouponBox');
+        let codeText = document.getElementById('modalAppliedCodeText');
+        let savingsText = document.getElementById('modalAppliedSavingsText');
+        let step4Text = document.getElementById('step4CouponSummaryText');
+
+        if (currentAppliedCoupon) {
+            if (appliedBox) appliedBox.classList.remove('hidden');
+            if (codeText) codeText.innerText = currentAppliedCoupon.code;
+            if (savingsText) savingsText.innerText = 'You save ₹' + Number(currentAppliedCoupon.discount).toFixed(2);
+            if (step4Text) step4Text.innerText = `Coupon active: ${currentAppliedCoupon.code} (Saving ₹${Number(currentAppliedCoupon.discount).toFixed(0)})`;
+        } else {
+            if (appliedBox) appliedBox.classList.add('hidden');
+            if (step4Text) step4Text.innerText = 'Click to browse promo codes & instant discounts';
+        }
+    }
+    window.syncModalCouponState = syncModalCouponState;
+
+    function applyModalCouponManual() {
+        let input = document.getElementById('modalCouponInput');
+        let code = input ? input.value.trim() : '';
+        let msgEl = document.getElementById('modalCouponStatusMessage');
+        if (!code) {
+            if (msgEl) {
+                msgEl.className = 'text-xs font-bold mt-2 p-2.5 rounded-xl bg-rose-100 text-rose-800 border border-rose-200';
+                msgEl.innerText = 'Please enter a coupon code.';
+                msgEl.classList.remove('hidden');
+            }
+            return;
+        }
+        applyCoupon(code);
+        setTimeout(() => {
+            syncModalCouponState();
+            let mainMsg = document.getElementById('couponStatusMessage');
+            if (currentAppliedCoupon) {
+                if (msgEl) msgEl.classList.add('hidden');
+                if (input) input.value = '';
+                closeCouponsModal();
+            } else if (msgEl && mainMsg) {
+                msgEl.className = mainMsg.className;
+                msgEl.innerText = mainMsg.innerText;
+                msgEl.classList.remove('hidden');
+            }
+        }, 500);
+    }
+    window.applyModalCouponManual = applyModalCouponManual;
+
+    // --- Booking Summary Accordion Functions ---
+    function toggleBookingSummaryAccordion() {
+        let content = document.getElementById('bookingSummaryContent');
+        let chevron = document.getElementById('bookingSummaryChevron');
+        if (!content) return;
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+            renderBookingSummaryDetails();
+        } else {
+            content.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+    window.toggleBookingSummaryAccordion = toggleBookingSummaryAccordion;
+
+    function renderBookingSummaryDetails() {
+        let cart = getCheckoutCart();
+        let countBadge = document.getElementById('bookingSummaryItemCount');
+        if (countBadge) countBadge.innerText = cart.length + ' Item' + (cart.length === 1 ? '' : 's');
+
+        // Patient / Beneficiary
+        let patientEl = document.getElementById('summaryPatientName');
+        if (patientEl) {
+            if (window.selectedMemberId) {
+                let activeMemberCard = document.querySelector(`.member-card[onclick*="${window.selectedMemberId}"]`);
+                let memName = activeMemberCard ? activeMemberCard.querySelector('h3')?.innerText : 'Family Member';
+                patientEl.innerText = memName || 'Family Member';
+            } else {
+                patientEl.innerText = "<?php echo e($patient->name ?? 'Self'); ?> (Primary Patient)";
+            }
+        }
+
+        // Collection Address
+        let addrEl = document.getElementById('summaryAddressFull');
+        let displayAddr = document.getElementById('displayAddressText');
+        if (addrEl && displayAddr) {
+            addrEl.innerText = displayAddr.innerText;
+        }
+
+        // Appointment Slot
+        let slotDateEl = document.getElementById('summarySlotDateText');
+        let slotTimeEl = document.getElementById('summarySlotTimeText');
+        let activeDateEl = document.querySelector('.date-item.active-date');
+        let activeSlotEl = document.querySelector('.slot-item.active-slot');
+        if (slotDateEl && activeDateEl) {
+            let ymd = activeDateEl.getAttribute('data-date');
+            if (ymd) {
+                let parts = ymd.split('-');
+                if (parts.length === 3) {
+                    let dObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    slotDateEl.innerText = dObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' });
+                }
+            }
+        }
+        if (slotTimeEl && activeSlotEl) {
+            slotTimeEl.innerText = activeSlotEl.innerText.trim();
+        }
+
+        // Booked Tests & Packages
+        let listEl = document.getElementById('bookingSummaryItemsList');
+        if (listEl) {
+            if (cart.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-slate-400">Your cart is empty.</p>';
+            } else {
+                listEl.innerHTML = cart.map(item => `
+                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-6 h-6 rounded-lg bg-teal-100/70 text-teal-800 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                <i class="fas fa-flask"></i>
+                            </span>
+                            <div class="truncate">
+                                <span class="font-bold text-slate-800">${item.name || item.title}</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase ml-1 px-1.5 py-0.5 bg-slate-100 rounded">${item.type || 'test'}</span>
+                            </div>
+                        </div>
+                        <span class="font-black text-slate-900 ml-2 whitespace-nowrap">₹${Number(item.price).toLocaleString('en-IN')}</span>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+    window.renderBookingSummaryDetails = renderBookingSummaryDetails;
+
+    function addSuggestedToCart(name, price, mrp, params, btn) {
+        let cart = getCheckoutCart();
+        let alreadyExists = cart.some(item => item.name === name);
+        if (alreadyExists) return;
+
+        cart.push({ name, price, mrp, params });
+        localStorage.setItem(checkoutCartKey, JSON.stringify(cart));
+
+        fetch('<?php echo e(route("patient.cart.sync")); ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+            },
+            body: JSON.stringify({ cart: cart })
+        });
+
+        renderCheckoutCart();
+        updateCartBadge();
+    }
+    window.addSuggestedToCart = addSuggestedToCart;
+
+    function syncSuggestedButtons() {
+        let cart = getCheckoutCart();
+        document.querySelectorAll('#suggestedTestsGrid .suggested-test-card').forEach(card => {
+            let testName = card.getAttribute('data-test-name');
+            let btn = card.querySelector('.suggest-add-btn');
+            if (!btn) return;
+            let inCart = cart.some(item => item.name === testName);
+            if (inCart) {
+                btn.innerHTML = '<i class="fas fa-check text-[10px]"></i> <span>Added</span>';
+                btn.className = 'suggest-add-btn px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-black border border-emerald-600 transition-all flex items-center gap-1 shadow-sm cursor-default';
+                btn.disabled = true;
+            } else {
+                btn.innerHTML = '<i class="fas fa-plus text-[10px]"></i> <span>Add</span>';
+                btn.className = 'suggest-add-btn px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-700 text-teal-800 hover:text-white text-xs font-black border border-teal-200/80 hover:border-teal-700 transition-all duration-200 flex items-center gap-1 shadow-sm';
+                btn.disabled = false;
+            }
+        });
+    }
+
+    const existingPatientVip = <?php echo json_encode($patientVipData, 15, 512) ?>;
+    const allVipPlans = <?php echo json_encode($allVipPlansData, 15, 512) ?>;
+    const availableFeaturedVipPlan = (allVipPlans && allVipPlans.length > 0) 
+        ? (allVipPlans.find(p => p.is_popular) || allVipPlans[0]) 
+        : null;
+    let selectedVipPlan = null;
+
+    const rewardConfig = <?php echo json_encode($rewardSettings ?? [], 15, 512) ?>;
+    window.coinsToRedeem = 0;
+    window.isRedeemingCoins = false;
+
+    function toggleCoinRedemption(checked) {
+        window.isRedeemingCoins = checked;
+        if (!checked) {
+            window.coinsToRedeem = 0;
+        }
+        renderCheckoutCart();
+    }
+    window.toggleCoinRedemption = toggleCoinRedemption;
+
+    function onCoinInputChange(val) {
+        let parsed = parseInt(val) || 0;
+        window.coinsToRedeem = Math.max(0, parsed);
+        window.isRedeemingCoins = (window.coinsToRedeem > 0);
+        renderCheckoutCart();
+    }
+    window.onCoinInputChange = onCoinInputChange;
+
+    function applyMaxCoins() {
+        const badge = document.getElementById('maxCoinsAllowedBadge');
+        const maxVal = badge ? (parseInt(badge.innerText) || 0) : 0;
+        window.coinsToRedeem = maxVal;
+        window.isRedeemingCoins = (maxVal > 0);
+        const cb = document.getElementById('redeemCoinsCheckbox');
+        if (cb) cb.checked = (maxVal > 0);
+        const input = document.getElementById('coinsToRedeemInput');
+        if (input) input.value = maxVal;
+        renderCheckoutCart();
+    }
+    window.applyMaxCoins = applyMaxCoins;
+
+    function toggleVipUpsell(checkbox) {
+        if (checkbox.checked) {
+            selectedVipPlan = availableFeaturedVipPlan;
+        } else {
+            selectedVipPlan = null;
+        }
+        syncVipSelectionUI();
+        renderCheckoutCart();
+    }
+    window.toggleVipUpsell = toggleVipUpsell;
+
+    function selectVipPlanCard(planId, price, discountPct, planName, duration, cardEl) {
+        if (selectedVipPlan && selectedVipPlan.id === planId) {
+            selectedVipPlan = null;
+        } else {
+            selectedVipPlan = allVipPlans.find(p => p.id === planId) || {
+                id: planId,
+                price: price,
+                discount_percentage: discountPct,
+                name: planName,
+                formatted_duration: duration
+            };
+        }
+        syncVipSelectionUI();
+        renderCheckoutCart();
+    }
+    window.selectVipPlanCard = selectVipPlanCard;
+
+    function syncVipSelectionUI() {
+        const upsellCb = document.getElementById('vipUpsellCheckbox');
+        if (upsellCb) {
+            upsellCb.checked = (selectedVipPlan !== null);
+        }
+
+        document.querySelectorAll('.vip-plan-card').forEach(card => {
+            const pId = parseInt(card.getAttribute('data-vip-plan-id'));
+            const indicator = card.querySelector('.vip-check-indicator');
+            if (selectedVipPlan && selectedVipPlan.id === pId) {
+                card.classList.add('border-amber-500', 'bg-amber-50/40', 'ring-2', 'ring-amber-400');
+                card.classList.remove('border-slate-200');
+                if (indicator) {
+                    indicator.classList.add('bg-amber-500', 'text-white', 'border-amber-500');
+                    indicator.classList.remove('text-transparent', 'border-slate-300', 'bg-white');
+                }
+            } else {
+                card.classList.remove('border-amber-500', 'bg-amber-50/40', 'ring-2', 'ring-amber-400');
+                if (!card.hasAttribute('data-is-popular')) {
+                    card.classList.add('border-slate-200');
+                }
+                if (indicator) {
+                    indicator.classList.remove('bg-amber-500', 'text-white', 'border-amber-500');
+                    indicator.classList.add('text-transparent', 'border-slate-300', 'bg-white');
+                }
+            }
+        });
+    }
+
+    function renderCheckoutCart() {
+        let cart = getCheckoutCart();
+        let container = document.getElementById('checkoutCartItems');
+        let emptyMsg = document.getElementById('emptyCartMsg');
+        let totalAmount = 0;
+        let totalMrp = 0;
+
+        if (cart.length === 0) {
+            container.innerHTML = '';
+            emptyMsg.classList.remove('hidden');
+            syncSuggestedButtons();
+            return;
+        }
+
+        emptyMsg.classList.add('hidden');
+        container.innerHTML = cart.map((item, i) => {
+            let price = parseInt(item.price) || 0;
+            let mrp = parseInt(item.mrp) || price;
+            totalAmount += price;
+            totalMrp += mrp;
+            let discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+
+            return `
+                <div class="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-sm hover:shadow-md transition-all mb-4 relative group">
+                    <!-- Remove button -->
+                    <button type="button" onclick="removeFromCart(${i})" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-all" title="Remove from cart">
+                        <i class="far fa-trash-alt text-xs"></i>
+                    </button>
+                    
+                    <!-- Header & Title -->
+                    <div class="pr-10 mb-3">
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 text-[10px] font-black uppercase tracking-wider border border-teal-100">
+                                ${item.params && (item.params.includes('Parameter') || item.params.includes('Test')) ? item.params : 'Diagnostic Test'}
+                            </span>
+                            <span class="text-[10px] font-bold text-emerald-600 flex items-center gap-1">
+                                <i class="fas fa-shield-check text-[9px]"></i> Certified Lab
+                            </span>
+                        </div>
+                        <h3 class="text-slate-900 font-black text-base sm:text-lg leading-snug group-hover:text-teal-800 transition-colors">
+                            ${item.name}
+                        </h3>
+                    </div>
+
+                    <!-- Clinical Highlights Pills -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500 mb-4 pb-3 border-b border-slate-100">
+                        <span class="inline-flex items-center gap-1 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 text-slate-600">
+                            <i class="fas fa-house-medical text-teal-600"></i> Free Home Sample Pickup
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 text-slate-600">
+                            <i class="fas fa-bolt text-amber-500"></i> Reports in 10-12h
+                        </span>
+                        <span class="inline-flex items-center gap-1 text-[11px] bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 text-slate-600 hidden sm:inline-flex">
+                            <i class="fas fa-user-doctor text-cyan-600"></i> Free Doctor Consult
+                        </span>
+                    </div>
+
+                    <!-- Pricing & Action Row -->
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-teal-800">
+                            <i class="fas fa-check-circle text-teal-600 text-xs"></i>
+                            <span>Cold Chain Sealed Sample Handling</span>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            ${mrp > price ? `
+                                <span class="text-xs font-bold text-slate-400 line-through">₹${mrp.toLocaleString('en-IN')}</span>
+                                <span class="text-[10px] font-black text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/60">${discountPct}% OFF</span>
+                            ` : ''}
+                            <span class="text-xl font-black text-slate-900">₹${price.toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+
+        let subtotal = totalAmount;
+        let itemNames = cart.map(i => i.name || i.title).join(', ');
+        document.querySelectorAll('.member-cart-summary').forEach(el => {
+            el.innerText = itemNames || 'All tests in cart';
+        });
+
+        // 1. VIP Calculations
+        let vipDiscount = 0;
+        let vipPlanPrice = 0;
+        let activeVipRate = 0;
+
+        if (existingPatientVip) {
+            activeVipRate = existingPatientVip.discount_percentage;
+            vipDiscount = Math.round((subtotal * activeVipRate) / 100);
+
+            document.querySelectorAll('.vip-plan-row').forEach(r => r.classList.add('hidden'));
+            document.querySelectorAll('.vip-discount-row').forEach(r => {
+                r.classList.remove('hidden');
+                let discEl = r.querySelector('[data-bill-vip-discount]');
+                if (discEl) discEl.innerText = '₹' + vipDiscount.toLocaleString('en-IN');
+                let badge = r.querySelector('.vip-discount-percent-badge');
+                if (badge) badge.innerText = activeVipRate + '% OFF';
+            });
+        } else if (selectedVipPlan) {
+            activeVipRate = selectedVipPlan.discount_percentage;
+            vipPlanPrice = parseFloat(selectedVipPlan.price) || 0;
+            vipDiscount = Math.round((subtotal * activeVipRate) / 100);
+
+            document.querySelectorAll('.vip-plan-row').forEach(r => {
+                r.classList.remove('hidden');
+                let priceEl = r.querySelector('[data-bill-vip-price]');
+                if (priceEl) priceEl.innerText = '₹' + vipPlanPrice.toLocaleString('en-IN');
+                let durBadge = r.querySelector('.vip-plan-duration-badge');
+                if (durBadge) durBadge.innerText = selectedVipPlan.formatted_duration;
+                let nameBadge = r.querySelector('.vip-plan-name-badge');
+                if (nameBadge) nameBadge.innerText = selectedVipPlan.name;
+            });
+
+            document.querySelectorAll('.vip-discount-row').forEach(r => {
+                r.classList.remove('hidden');
+                let discEl = r.querySelector('[data-bill-vip-discount]');
+                if (discEl) discEl.innerText = '₹' + vipDiscount.toLocaleString('en-IN');
+                let badge = r.querySelector('.vip-discount-percent-badge');
+                if (badge) badge.innerText = activeVipRate + '% OFF';
+            });
+        } else {
+            document.querySelectorAll('.vip-plan-row').forEach(r => r.classList.add('hidden'));
+            document.querySelectorAll('.vip-discount-row').forEach(r => r.classList.add('hidden'));
+        }
+
+        // Update instant savings text on upsell card
+        if (!existingPatientVip && availableFeaturedVipPlan) {
+            let potentialSavings = Math.round((subtotal * availableFeaturedVipPlan.discount_percentage) / 100);
+            let savTextEl = document.getElementById('vipInstantSavingsText');
+            if (savTextEl) {
+                savTextEl.innerText = 'Save ₹' + potentialSavings.toLocaleString('en-IN') + ' immediately on today\'s tests!';
+            }
+        }
+
+        let subtotalAfterVip = Math.max(0, subtotal - vipDiscount);
+
+        // 2. Coupon Calculations (applies to subtotalAfterVip)
+        let discount = 0;
+        if (currentAppliedCoupon) {
+            if (currentAppliedCoupon.type === 'percentage') {
+                discount = (subtotalAfterVip * currentAppliedCoupon.value) / 100;
+            } else {
+                discount = Math.min(subtotalAfterVip, currentAppliedCoupon.value);
+            }
+            discount = Math.round(discount * 100) / 100;
+            currentAppliedCoupon.discount = discount;
+        }
+
+        let subtotalAfterCoupon = Math.max(0, subtotalAfterVip - discount);
+
+        // 3. Health Coins Loyalty Calculations
+        let coinsDiscount = 0;
+        let maxCoinsAllowed = 0;
+
+        const rewardCoinsSection = document.getElementById('rewardCoinsSection');
+        if (rewardConfig && rewardConfig.enabled && rewardCoinsSection) {
+            const pCoins = rewardConfig.patient_coins || 0;
+            const minCoins = rewardConfig.min_coins_to_redeem || 0;
+            const minOrder = rewardConfig.min_order_to_redeem || 0;
+            const coinVal = rewardConfig.coin_value || 1.0;
+
+            const meetsRequirements = (pCoins >= minCoins) && (subtotalAfterVip >= minOrder);
+
+            const coinEligibleNotice = document.getElementById('coinEligibleNotice');
+            const coinIneligibleNotice = document.getElementById('coinIneligibleNotice');
+            const coinInputWrap = document.getElementById('coinInputWrapper');
+            const redeemCheckbox = document.getElementById('redeemCoinsCheckbox');
+            const coinInput = document.getElementById('coinsToRedeemInput');
+            const maxAllowedBadge = document.getElementById('maxCoinsAllowedBadge');
+
+            if (meetsRequirements) {
+                if (rewardConfig.max_redeem_type === 'percentage') {
+                    const maxDisc = (subtotalAfterCoupon * rewardConfig.max_redeem_value) / 100;
+                    maxCoinsAllowed = Math.floor(maxDisc / coinVal);
+                } else {
+                    maxCoinsAllowed = Math.floor(rewardConfig.max_redeem_value);
+                }
+
+                maxCoinsAllowed = Math.min(pCoins, maxCoinsAllowed, Math.floor(subtotalAfterCoupon / coinVal));
+                maxCoinsAllowed = Math.max(0, maxCoinsAllowed);
+
+                if (coinEligibleNotice) coinEligibleNotice.classList.remove('hidden');
+                if (coinIneligibleNotice) coinIneligibleNotice.classList.add('hidden');
+                if (maxAllowedBadge) maxAllowedBadge.innerText = maxCoinsAllowed;
+
+                if (window.isRedeemingCoins && maxCoinsAllowed > 0) {
+                    if (!window.coinsToRedeem || window.coinsToRedeem <= 0) {
+                        window.coinsToRedeem = maxCoinsAllowed;
+                    }
+                    window.coinsToRedeem = Math.min(window.coinsToRedeem, maxCoinsAllowed);
+                    coinsDiscount = Math.round(window.coinsToRedeem * coinVal * 100) / 100;
+
+                    if (redeemCheckbox) redeemCheckbox.checked = true;
+                    if (coinInputWrap) coinInputWrap.classList.remove('hidden');
+                    if (coinInput) coinInput.value = window.coinsToRedeem;
+                } else {
+                    window.coinsToRedeem = 0;
+                    coinsDiscount = 0;
+                    if (redeemCheckbox) redeemCheckbox.checked = false;
+                    if (coinInputWrap) coinInputWrap.classList.add('hidden');
+                }
+            } else {
+                window.coinsToRedeem = 0;
+                window.isRedeemingCoins = false;
+                coinsDiscount = 0;
+                if (coinEligibleNotice) coinEligibleNotice.classList.add('hidden');
+                if (coinIneligibleNotice) {
+                    coinIneligibleNotice.classList.remove('hidden');
+                    let lockText = '';
+                    if (pCoins < minCoins) {
+                        lockText = `Hold at least ${minCoins} Coins to redeem (You have ${pCoins}).`;
+                    } else if (subtotalAfterVip < minOrder) {
+                        lockText = `Cart value must be ≥ ₹${minOrder.toLocaleString('en-IN')} to redeem coins.`;
+                    }
+                    const textSpan = coinIneligibleNotice.querySelector('span');
+                    if (textSpan) textSpan.innerText = lockText;
+                }
+                if (coinInputWrap) coinInputWrap.classList.add('hidden');
+                if (redeemCheckbox) redeemCheckbox.checked = false;
+            }
+        }
+
+        // 4. Collection Fee Calculation (Approach 1: Threshold-based)
+        const collectionConfig = checkoutPatientMeta.collectionFeeSettings || { enabled: true, fee: 100, threshold: 500 };
+        let collectionFee = 0;
+        let isVipActive = !!(existingPatientVip || selectedVipPlan);
+        let feeValEl = document.getElementById('billCollectionFeeValue');
+        let progressCard = document.getElementById('freeCollectionProgressBarCard');
+        let progressText = document.getElementById('collectionProgressText');
+        let progressPercent = document.getElementById('collectionProgressPercent');
+        let progressBarFill = document.getElementById('collectionProgressBarFill');
+
+        if (collectionConfig.enabled && !isVipActive) {
+            if (subtotalAfterVip < collectionConfig.threshold) {
+                collectionFee = collectionConfig.fee;
+                if (feeValEl) {
+                    feeValEl.innerHTML = `<span class="font-bold text-slate-900">+₹${collectionFee.toLocaleString('en-IN')}</span>`;
+                }
+                if (progressCard) {
+                    progressCard.classList.remove('hidden');
+                    let diff = Math.max(0, collectionConfig.threshold - subtotalAfterVip);
+                    let pct = Math.min(100, Math.max(0, Math.round((subtotalAfterVip / collectionConfig.threshold) * 100)));
+                    if (progressText) progressText.innerHTML = `Add <strong class="text-teal-900 font-black">₹${diff.toLocaleString('en-IN')}</strong> more for <strong class="text-emerald-700">FREE Home Collection</strong>!`;
+                    if (progressPercent) progressPercent.innerText = pct + '%';
+                    if (progressBarFill) {
+                        progressBarFill.style.width = pct + '%';
+                        progressBarFill.className = 'bg-gradient-to-r from-teal-500 to-amber-500 h-2 rounded-full transition-all duration-500';
+                    }
+                }
+            } else {
+                collectionFee = 0;
+                if (feeValEl) {
+                    feeValEl.innerHTML = `<span class="line-through text-slate-400 text-xs font-normal">₹${collectionConfig.fee}</span> <span class="font-bold text-emerald-600">FREE</span>`;
+                }
+                if (progressCard) {
+                    progressCard.classList.remove('hidden');
+                    if (progressText) progressText.innerHTML = `🎉 <strong>Congratulations!</strong> You unlocked <strong>FREE Home Sample Collection</strong>!`;
+                    if (progressPercent) progressPercent.innerText = '100%';
+                    if (progressBarFill) {
+                        progressBarFill.style.width = '100%';
+                        progressBarFill.className = 'bg-gradient-to-r from-emerald-500 to-teal-500 h-2 rounded-full transition-all duration-500';
+                    }
+                }
+            }
+        } else if (isVipActive) {
+            collectionFee = 0;
+            if (feeValEl) {
+                feeValEl.innerHTML = `<span class="line-through text-slate-400 text-xs font-normal">₹${collectionConfig.fee}</span> <span class="font-bold text-emerald-600">FREE (VIP)</span>`;
+            }
+            if (progressCard) {
+                progressCard.classList.remove('hidden');
+                if (progressText) progressText.innerHTML = `👑 <strong class="text-amber-800 font-black">VIP Pass Active:</strong> 100% Free Home Sample Collection Unlocked!`;
+                if (progressPercent) progressPercent.innerText = 'VIP';
+                if (progressBarFill) {
+                    progressBarFill.style.width = '100%';
+                    progressBarFill.className = 'bg-gradient-to-r from-amber-400 to-amber-600 h-2 rounded-full transition-all duration-500';
+                }
+            }
+        } else {
+            collectionFee = 0;
+            if (feeValEl) {
+                feeValEl.innerHTML = `<span class="font-bold text-emerald-600">FREE</span>`;
+            }
+            if (progressCard) {
+                progressCard.classList.add('hidden');
+            }
+        }
+
+        let payable = Math.max(0, subtotalAfterCoupon - coinsDiscount + vipPlanPrice + collectionFee);
+
+        // Calculate coins earned on this order
+        let coinsToEarn = 0;
+        if (rewardConfig && rewardConfig.enabled && payable >= rewardConfig.min_order_to_earn) {
+            if (rewardConfig.earn_type === 'percentage') {
+                coinsToEarn = Math.round((payable * rewardConfig.earn_value) / 100);
+            } else {
+                coinsToEarn = Math.round(rewardConfig.earn_value);
+            }
+        }
+
+        const coinEarnBadge = document.getElementById('coinsToEarnValue');
+        if (coinEarnBadge) coinEarnBadge.innerText = coinsToEarn;
+        const coinEarnPreview = document.getElementById('coinEarnPreview');
+        if (coinEarnPreview) {
+            if (coinsToEarn > 0) {
+                coinEarnPreview.classList.remove('hidden');
+            } else {
+                coinEarnPreview.classList.add('hidden');
+            }
+        }
+
+        // Update bill summary blocks
+        document.querySelectorAll('[data-bill-subtotal]').forEach(el => el.innerText = '₹' + subtotal.toLocaleString('en-IN'));
+        document.querySelectorAll('[data-bill-mrp]').forEach(el => el.innerText = '₹' + totalMrp.toLocaleString('en-IN'));
+        document.querySelectorAll('[data-bill-amount]').forEach(el => el.innerText = '₹' + payable.toLocaleString('en-IN'));
+
+        let labDiscount = Math.max(0, totalMrp - subtotal);
+        document.querySelectorAll('[data-bill-mrp-savings]').forEach(el => el.innerText = '-₹' + labDiscount.toLocaleString('en-IN'));
+
+        let savedCollectionFee = (collectionFee === 0) ? (collectionConfig.fee || 100) : 0;
+        let totalOverallSavings = labDiscount + discount + vipDiscount + coinsDiscount + savedCollectionFee + 299;
+        document.querySelectorAll('#totalSavingsValueText').forEach(el => el.innerText = '₹' + totalOverallSavings.toLocaleString('en-IN'));
+
+        // Update discount rows
+        document.querySelectorAll('.coupon-discount-row').forEach(row => {
+            if (discount > 0 && currentAppliedCoupon) {
+                row.classList.remove('hidden');
+                let discVal = row.querySelector('[data-bill-discount]');
+                if (discVal) discVal.innerText = '-₹' + discount.toFixed(2);
+                let badge = row.querySelector('.coupon-code-badge');
+                if (badge) badge.innerText = currentAppliedCoupon.code;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        // Update coins discount row
+        document.querySelectorAll('.coins-discount-row').forEach(row => {
+            if (coinsDiscount > 0) {
+                row.classList.remove('hidden');
+                let discVal = row.querySelector('[data-bill-coins-discount]');
+                if (discVal) discVal.innerText = '-₹' + coinsDiscount.toFixed(2);
+                let countBadge = row.querySelector('.coins-redeemed-count-badge');
+                if (countBadge) countBadge.innerText = window.coinsToRedeem;
+            } else {
+                row.classList.add('hidden');
+            }
+        });
+
+        syncSuggestedButtons();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCheckoutCart();
+    });
+
+    let isBookingInProgress = false;
+
+    function setPaymentButtonsState(loading, text = 'Booking...') {
+        const cashBtn = document.querySelector('#btnPay button:first-child');
+        const onlineBtn = document.getElementById('btnPayOnline');
+        if (loading) {
+            isBookingInProgress = true;
+            if (cashBtn) {
+                cashBtn.disabled = true;
+                cashBtn.classList.add('opacity-60', 'pointer-events-none');
+                cashBtn.innerHTML = `<i class="fas fa-spinner fa-spin mr-1.5"></i> ${text}`;
+            }
+            if (onlineBtn) {
+                onlineBtn.disabled = true;
+                onlineBtn.classList.add('opacity-60', 'pointer-events-none');
+            }
+        } else {
+            isBookingInProgress = false;
+            if (cashBtn) {
+                cashBtn.disabled = false;
+                cashBtn.classList.remove('opacity-60', 'pointer-events-none');
+                cashBtn.innerHTML = `<i class="fas fa-money-bill-wave text-teal-600 mr-1.5"></i> Pay on Collection`;
+            }
+            if (onlineBtn) {
+                onlineBtn.disabled = false;
+                onlineBtn.classList.remove('opacity-60', 'pointer-events-none');
+                onlineBtn.innerHTML = `<i class="fas fa-lock text-xs"></i> <span>Pay Now Online</span>`;
+            }
+        }
+    }
+
+    function payOnCollection() {
+        if (isBookingInProgress) {
+            return;
+        }
+        isBookingInProgress = true;
+        setPaymentButtonsState(true, 'Validating...');
+
+        let cart = getCheckoutCart();
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            setPaymentButtonsState(false);
+            return;
+        }
+
+        // Validate Patient Full Name
+        if (!window.selectedMemberId) {
+            let nameVal = (window.currentPatientName || '').trim();
+            let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
+            if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
+                alert('Patient Full Name is required to place your booking.');
+                setPaymentButtonsState(false);
+                goToStep(2);
+                document.getElementById('checkoutPatientNameInput')?.focus();
+                return;
+            }
+        }
+
+        // Validate Address
+        if (!window.selectedAddressId) {
+            alert('Sample collection address is required to place your booking. Please add an address.');
+            setPaymentButtonsState(false);
+            goToStep(3);
+            if (typeof window.openAddAddressModal === 'function') {
+                window.openAddAddressModal();
+            }
+            return;
+        }
+
+        // Get selected date
+        let activeDateEl = document.querySelector('.date-item.active-date');
+        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || getTodayDateYmd()) : getTodayDateYmd();
+
+        // Get selected slot
+        let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!activeSlotEl) {
+            alert('Please select an available collection time slot.');
+            setPaymentButtonsState(false);
+            goToStep(3);
+            return;
+        }
+        let selectedSlot = activeSlotEl.innerText.trim();
+
+        // Parse slot start time for full datetime
+        let slotStart = selectedSlot.split('-')[0].trim();
+        let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
+
+        setPaymentButtonsState(true, 'Booking...');
+
+        fetch("<?php echo e(route('patient.place_booking')); ?>", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                cart: cart,
+                payment_method: 'Cash',
+                collection_type: 'Home Collection',
+                booking_date: bookingDate,
+                collection_slot: selectedSlot,
+                address_id: window.selectedAddressId || null,
+                family_member_id: window.selectedMemberId || null,
+                coupon_code: currentAppliedCoupon ? currentAppliedCoupon.code : null,
+                discount_amount: currentAppliedCoupon ? currentAppliedCoupon.discount : 0,
+                membership_plan_id: selectedVipPlan ? selectedVipPlan.id : null,
+                coins_to_redeem: window.coinsToRedeem || 0,
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Clear cart from localStorage & server
+                localStorage.removeItem(checkoutCartKey);
+                localStorage.removeItem('cart_guest');
+                updateCartBadge();
+                // Show celebratory success modal
+                showBookingSuccessModal(data, 'Pay on Collection (Cash)');
+            } else {
+                alert('Booking notice: ' + (data.message || 'Unknown error'));
+                setPaymentButtonsState(false);
+            }
+        })
+        .catch(() => {
+            alert('Network error. Please try again.');
+            setPaymentButtonsState(false);
+        });
+    }
+
+    function payOnlineRazorpay() {
+        if (isBookingInProgress) {
+            return;
+        }
+        isBookingInProgress = true;
+        setPaymentButtonsState(true, 'Initializing...');
+
+        let cart = getCheckoutCart();
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            setPaymentButtonsState(false);
+            return;
+        }
+
+        // Validate Patient Full Name
+        if (!window.selectedMemberId) {
+            let nameVal = (window.currentPatientName || '').trim();
+            let inputVal = document.getElementById('checkoutPatientNameInput')?.value?.trim() || '';
+            if ((!nameVal || nameVal.toLowerCase() === 'self') && (!inputVal || inputVal.toLowerCase() === 'self')) {
+                alert('Patient Full Name is required to place your booking.');
+                setPaymentButtonsState(false);
+                goToStep(2);
+                document.getElementById('checkoutPatientNameInput')?.focus();
+                return;
+            }
+        }
+
+        // Validate Address
+        if (!window.selectedAddressId) {
+            alert('Sample collection address is required to place your booking. Please add an address.');
+            setPaymentButtonsState(false);
+            goToStep(3);
+            if (typeof window.openAddAddressModal === 'function') {
+                window.openAddAddressModal();
+            }
+            return;
+        }
+
+        // Get selected date
+        let activeDateEl = document.querySelector('.date-item.active-date');
+        let selectedDateYmd = activeDateEl ? (activeDateEl.getAttribute('data-date') || getTodayDateYmd()) : getTodayDateYmd();
+
+        // Get selected slot
+        let activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!activeSlotEl) {
+            alert('Please select an available collection time slot.');
+            setPaymentButtonsState(false);
+            goToStep(3);
+            return;
+        }
+        let selectedSlot = activeSlotEl.innerText.trim();
+
+        // Parse slot start time for full datetime
+        let slotStart = selectedSlot.split('-')[0].trim();
+        let bookingDate = selectedDateYmd + ' ' + (slotStart || '08:00 AM');
+
+        fetch("<?php echo e(route('razorpay.order.create')); ?>", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                cart: cart,
+                collection_type: 'Home Collection',
+                booking_date: bookingDate,
+                collection_slot: selectedSlot,
+                address_id: window.selectedAddressId || null,
+                family_member_id: window.selectedMemberId || null,
+                coupon_code: currentAppliedCoupon ? currentAppliedCoupon.code : null,
+                discount_amount: currentAppliedCoupon ? currentAppliedCoupon.discount : 0,
+                membership_plan_id: selectedVipPlan ? selectedVipPlan.id : null,
+                coins_to_redeem: window.coinsToRedeem || 0,
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || 'Payment initiation failed. Please try again.');
+                setPaymentButtonsState(false);
+                return;
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency || 'INR',
+                name: data.name || 'Av Wellcare Diagnostics',
+                description: data.description || 'Health Checkup Booking',
+                order_id: data.order_id,
+                prefill: data.prefill || {},
+                theme: data.theme || { color: '#0d9488' },
+                handler: function (response) {
+                    setPaymentButtonsState(true, 'Verifying Payment...');
+                    fetch("<?php echo e(route('razorpay.payment.verify')); ?>", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            booking_id: data.booking_id
+                        })
+                    })
+                    .then(vr => vr.json())
+                    .then(vData => {
+                        if (vData.success) {
+                            localStorage.removeItem(checkoutCartKey);
+                            localStorage.removeItem('cart_guest');
+                            updateCartBadge();
+                            // Show celebratory success modal
+                            showBookingSuccessModal(vData, 'Online (Razorpay)');
+                        } else {
+                            alert('Payment verification error: ' + (vData.message || 'Please contact customer support.'));
+                            window.location.href = "<?php echo e(route('patient.bookings')); ?>";
+                        }
+                    })
+                    .catch(err => {
+                        alert('Network error during verification. If money was debited, your booking will be confirmed automatically.');
+                        window.location.href = "<?php echo e(route('patient.bookings')); ?>";
+                    });
+                },
+                modal: {
+                    ondismiss: function () {
+                        setTimeout(() => {
+                            setPaymentButtonsState(false);
+                        }, 400);
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert('Payment failed: ' + (response.error.description || 'Transaction declined.'));
+                setPaymentButtonsState(false);
+            });
+            rzp.open();
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Network error. Please try again.');
+            setPaymentButtonsState(false);
+        });
+    }
+
+    // --- Booking Success Modal & Celebration Logic ---
+    let successCountdownInterval = null;
+
+    function showBookingSuccessModal(data, paymentMode) {
+        let modal = document.getElementById('bookingSuccessModal');
+        if (!modal) {
+            window.location.href = "<?php echo e(route('patient.bookings')); ?>";
+            return;
+        }
+
+        // Set Booking Reference
+        let ref = data.booking_reference || (data.booking_id ? ('BK-' + data.booking_id) : 'BK-CONFIRMED');
+        let refEl = document.getElementById('successModalBookingRef');
+        if (refEl) refEl.innerText = ref;
+
+        // Set Slot and Date
+        let slotEl = document.getElementById('successModalSlot');
+        if (slotEl) {
+            let slotText = data.collection_slot || 'Morning Slot';
+            let dateText = data.booking_date || 'Upcoming';
+            slotEl.innerText = dateText + ' • ' + slotText;
+        }
+
+        // Set Patient Name
+        let patientEl = document.getElementById('successModalPatient');
+        if (patientEl) {
+            patientEl.innerText = data.patient_name || "<?php echo e($patient->name ?? 'Patient'); ?>";
+        }
+
+        // Set Amount and Payment Mode
+        let amountEl = document.getElementById('successModalAmount');
+        if (amountEl) {
+            let amt = data.final_amount !== undefined ? data.final_amount : 0;
+            let mode = paymentMode || data.payment_method || 'Confirmed';
+            amountEl.innerText = '₹' + Number(amt).toLocaleString('en-IN') + ' (' + mode + ')';
+        }
+
+        // Set Invoice URL
+        let invoiceBtn = document.getElementById('successModalInvoiceBtn');
+        if (invoiceBtn) {
+            if (data.invoice_url) {
+                invoiceBtn.href = data.invoice_url;
+                invoiceBtn.classList.remove('hidden');
+            } else if (data.booking_id) {
+                invoiceBtn.href = '/patient/bookings/' + data.booking_id + '/invoice';
+                invoiceBtn.classList.remove('hidden');
+            } else {
+                invoiceBtn.classList.add('hidden');
+            }
+        }
+
+        // Display modal
+        modal.classList.remove('hidden');
+
+        // Countdown timer for automatic transition
+        let secondsLeft = 10;
+        let countEl = document.getElementById('successRedirectCountdown');
+        if (countEl) countEl.innerText = secondsLeft;
+
+        if (successCountdownInterval) clearInterval(successCountdownInterval);
+        successCountdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (countEl) countEl.innerText = secondsLeft;
+            if (secondsLeft <= 0) {
+                clearInterval(successCountdownInterval);
+                window.location.href = "<?php echo e(route('patient.bookings')); ?>";
+            }
+        }, 1000);
+    }
+    window.showBookingSuccessModal = showBookingSuccessModal;
+
+    function copyBookingRef() {
+        let refEl = document.getElementById('successModalBookingRef');
+        if (!refEl) return;
+        let text = refEl.innerText.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            let btnText = document.getElementById('copyRefBtnText');
+            if (btnText) {
+                btnText.innerText = 'Copied!';
+                setTimeout(() => { btnText.innerText = 'Copy'; }, 2000);
+            }
+        }).catch(() => {
+            let btnText = document.getElementById('copyRefBtnText');
+            if (btnText) {
+                btnText.innerText = 'Copied!';
+                setTimeout(() => { btnText.innerText = 'Copy'; }, 2000);
+            }
+        });
+    }
+    window.copyBookingRef = copyBookingRef;
+
+
+    <?php
+        $pincodeArray = \App\Models\City::getAllActivePincodes();
+        if (empty($pincodeArray)) {
+            $pincodeStr = \App\Models\Setting::get('serviceable_pincodes', '800001, 800002, 110001, 400001');
+            $pincodeArray = array_values(array_filter(array_map('trim', preg_split('/[,\r\n]+/', $pincodeStr))));
+        }
+        $defaultAddr = $patient->addresses->first();
+        $patientCleanPhone = preg_replace('/[^0-9]/', '', (string)($patient->mobile ?? ''));
+        if (strlen($patientCleanPhone) > 10 && str_starts_with($patientCleanPhone, '91')) {
+            $patientCleanPhone = substr($patientCleanPhone, 2);
+        }
+    ?>
+
+    let currentStep = 1;
+    const validPincodes = <?php echo json_encode($pincodeArray, 15, 512) ?>;
+    window.selectedAddressId = <?php echo json_encode($defaultAddr?->id ?? null, 15, 512) ?>;
+    window.selectedMemberId = null;
+    window.currentPatientName = <?php echo json_encode((!empty($patient->name) && strtolower(trim($patient->name)) !== 'self') ? $patient->name : '', 15, 512) ?>;
+    window.currentPatientAge = <?php echo json_encode((!empty($patient->age) && (int)$patient->age >= 1) ? (int)$patient->age : null, 15, 512) ?>;
+    window.currentPatientMobile = <?php echo json_encode((strlen($patientCleanPhone) === 10) ? $patientCleanPhone : '', 15, 512) ?>;
+    window.currentPatientGender = <?php echo json_encode($patient->gender ?? 'Female', 15, 512) ?>;
+    let isPincodeVerified = false;
+
+    function toggleCheckoutProfilePrompt() {
+        const box = document.getElementById('patientDetailsPromptBox');
+        if (box) box.classList.toggle('hidden');
+    }
+    window.toggleCheckoutProfilePrompt = toggleCheckoutProfilePrompt;
+
+    function updateGenderRadioUI(radio) {
+        document.querySelectorAll('input[name="checkout_patient_gender"]').forEach(r => {
+            const label = r.closest('label');
+            if (label) {
+                if (r.checked) {
+                    label.className = 'cursor-pointer px-2.5 py-1 rounded-md bg-teal-700 text-white transition';
+                } else {
+                    label.className = 'cursor-pointer px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+                }
+            }
+        });
+    }
+    window.updateGenderRadioUI = updateGenderRadioUI;
+
+    function saveCheckoutPatientDetails(onSuccessCallback = null) {
+        const nameInput = document.getElementById('checkoutPatientNameInput');
+        const ageInput = document.getElementById('checkoutPatientAgeInput');
+        const mobileInput = document.getElementById('checkoutPatientMobileInput');
+        const genderEl = document.querySelector('input[name="checkout_patient_gender"]:checked');
+        const alertBox = document.getElementById('checkoutDetailsAlert');
+        const btn = document.getElementById('btnSaveCheckoutDetails');
+
+        const name = (nameInput?.value || '').trim();
+        const age = parseInt((ageInput?.value || '').trim(), 10);
+        let mobile = (mobileInput?.value || '').trim().replace(/\D/g, '');
+        if (mobile.length > 10 && mobile.startsWith('91')) {
+            mobile = mobile.substring(2);
+        }
+        const gender = genderEl ? genderEl.value : 'Female';
+
+        if (!name || name.toLowerCase() === 'self' || name.length < 2) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'Patient Full Name is mandatory (minimum 2 characters).';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('Patient Full Name is mandatory (minimum 2 characters).');
+            }
+            nameInput?.focus();
+            return false;
+        }
+
+        if (isNaN(age) || age < 1 || age > 120) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'Patient Age is mandatory and must be between 1 and 120 years.';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('Patient Age is mandatory and must be between 1 and 120 years.');
+            }
+            ageInput?.focus();
+            return false;
+        }
+
+        if (mobile.length !== 10) {
+            if (alertBox) {
+                alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                alertBox.innerText = 'A valid 10-digit mobile number is mandatory for booking updates.';
+                alertBox.classList.remove('hidden');
+            } else {
+                alert('A valid 10-digit mobile number is mandatory for booking updates.');
+            }
+            mobileInput?.focus();
+            return false;
+        }
+
+        if (alertBox) alertBox.classList.add('hidden');
+        let oldHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> Saving...';
+        }
+
+        fetch("<?php echo e(route('patient.update_name')); ?>", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ name, age, mobile, gender })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+            if (data.success) {
+                window.currentPatientName = data.name;
+                window.currentPatientAge = data.age;
+                window.currentPatientMobile = data.mobile;
+                window.currentPatientGender = data.gender;
+
+                const nameEl = document.getElementById('primaryPatientDisplayName');
+                if (nameEl) nameEl.innerText = data.name;
+
+                const ageEl = document.getElementById('primaryPatientDisplayAge');
+                if (ageEl) {
+                    ageEl.innerText = data.age + ' Years';
+                    ageEl.className = 'text-gray-600';
+                }
+
+                const mobileEl = document.getElementById('primaryPatientDisplayMobile');
+                if (mobileEl) {
+                    mobileEl.innerHTML = '<i class="fas fa-phone-alt text-[10px] mr-1"></i>+91 ' + data.mobile;
+                    mobileEl.className = 'text-gray-600';
+                }
+
+                const genderDisplayEl = document.getElementById('primaryPatientDisplayGender');
+                if (genderDisplayEl) genderDisplayEl.innerText = data.gender;
+
+                const badge = document.getElementById('primaryPatientIncompleteBadge');
+                if (badge) badge.remove();
+
+                if (alertBox) {
+                    alertBox.className = 'mt-2 text-xs font-bold text-emerald-800 bg-emerald-50 p-2 rounded-lg border border-emerald-200 flex items-center gap-1.5';
+                    alertBox.innerHTML = '<i class="fas fa-circle-check text-emerald-600"></i> Profile details saved successfully!';
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => {
+                        const box = document.getElementById('patientDetailsPromptBox');
+                        if (box) box.classList.add('hidden');
+                        alertBox.classList.add('hidden');
+                    }, 1500);
+                }
+
+                if (typeof onSuccessCallback === 'function') {
+                    onSuccessCallback();
+                }
+            } else {
+                if (alertBox) {
+                    alertBox.className = 'mt-2 text-xs font-bold text-rose-700 bg-rose-50 p-2 rounded-lg border border-rose-200';
+                    alertBox.innerText = data.message || 'Error saving details.';
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alert(data.message || 'Error saving details.');
+                }
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
+            }
+        });
+    }
+    window.saveCheckoutPatientDetails = saveCheckoutPatientDetails;
+    window.saveCheckoutPatientName = saveCheckoutPatientDetails; // Backward-compatibility
+
+    // Dynamically append newly added family member on checkout without page reload
+    window.onFamilyMemberCreated = function(member) {
+        const list = document.getElementById('memberSelectionList');
+        if (!list) return;
+
+        const card = document.createElement('div');
+        card.className = 'member-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex items-start transition hover:border-brand-secondary shadow-sm';
+        card.onclick = function() { selectMember(member.id, card); };
+        card.innerHTML = `
+            <div class="pt-1 mr-4">
+                <div class="w-6 h-6 rounded-full border border-gray-300 text-transparent flex items-center justify-center text-xs member-check-indicator">
+                    <i class="fas fa-check"></i>
+                </div>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-lg flex items-center">
+                            <span>\${member.name}</span>
+                            <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase font-extrabold">\${member.relation}</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 font-semibold mt-1">\${member.age} Years | \${member.gender}</p>
+                    </div>
+                    <span class="text-xs font-bold text-gray-400">Family Member</span>
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
+                    <div class="member-cart-summary text-sm font-semibold text-gray-700">All tests in cart</div>
+                </div>
+            </div>
+        `;
+        list.appendChild(card);
+        selectMember(member.id, card);
+    };
+
+    function selectMember(memberId, cardEl) {
+        window.selectedMemberId = memberId || null;
+        document.querySelectorAll('#memberSelectionList .member-card').forEach(card => {
+            card.classList.remove('border-2', 'border-brand-secondary');
+            card.classList.add('border', 'border-gray-200');
+            const ind = card.querySelector('.member-check-indicator');
+            if (ind) {
+                ind.classList.remove('bg-brand-dark', 'text-white');
+                ind.classList.add('border', 'border-gray-300', 'text-transparent');
+            }
+        });
+
+        if (cardEl) {
+            cardEl.classList.add('border-2', 'border-brand-secondary');
+            cardEl.classList.remove('border', 'border-gray-200');
+            const activeInd = cardEl.querySelector('.member-check-indicator');
+            if (activeInd) {
+                activeInd.classList.add('bg-brand-dark', 'text-white');
+                activeInd.classList.remove('border', 'border-gray-300', 'text-transparent');
+            }
+        }
+
+        // Dynamically update Step 4 Review summary patient name
+        const summaryNameEl = document.getElementById('summaryPatientName');
+        if (summaryNameEl) {
+            const ownerName = (window.currentPatientName || '<?php echo e(addslashes($patient->name ?? "Account Owner")); ?>').trim();
+            if (memberId && cardEl) {
+                const nameHeading = cardEl.querySelector('h3');
+                let memberName = '';
+                let memberRel = '';
+                if (nameHeading) {
+                    const spanRel = nameHeading.querySelector('span');
+                    memberRel = spanRel ? spanRel.innerText.trim() : '';
+                    memberName = (nameHeading.innerText || '').replace(memberRel, '').trim();
+                }
+                if (!memberName) memberName = 'Family Member';
+                if (memberRel) {
+                    summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${memberName}</span> <span class="text-teal-700 font-bold">(${memberRel} of ${ownerName})</span>`;
+                } else {
+                    summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${memberName}</span> <span class="text-teal-700 font-bold">(Family Member of ${ownerName})</span>`;
+                }
+            } else {
+                summaryNameEl.innerHTML = `<span class="font-black text-slate-900">${ownerName}</span> <span class="text-slate-500 font-bold">(Primary Patient - Self)</span>`;
+            }
+        }
+    }
+
+    function validateStep2() {
+        if (!window.selectedMemberId) {
+            // Primary patient is selected: Name, Age, and 10-digit Phone are mandatory
+            const nameInput = document.getElementById('checkoutPatientNameInput');
+            const ageInput = document.getElementById('checkoutPatientAgeInput');
+            const mobileInput = document.getElementById('checkoutPatientMobileInput');
+
+            const nameVal = (nameInput?.value || window.currentPatientName || '').trim();
+            const ageVal = parseInt((ageInput?.value || window.currentPatientAge || 0), 10);
+            let mobileVal = (mobileInput?.value || window.currentPatientMobile || '').trim().replace(/\D/g, '');
+            if (mobileVal.length > 10 && mobileVal.startsWith('91')) {
+                mobileVal = mobileVal.substring(2);
+            }
+
+            if (!nameVal || nameVal.toLowerCase() === 'self' || nameVal.length < 2) {
+                alert('Patient Full Name is mandatory (minimum 2 characters) before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                nameInput?.focus();
+                return false;
+            }
+
+            if (isNaN(ageVal) || ageVal < 1 || ageVal > 120) {
+                alert('Patient Age is mandatory (1-120 years) before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                ageInput?.focus();
+                return false;
+            }
+
+            if (mobileVal.length !== 10) {
+                alert('A valid 10-digit mobile number is mandatory before proceeding to Date & Slot.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                mobileInput?.focus();
+                return false;
+            }
+
+            // If unsaved changes are present in input fields, save them before moving forward
+            if (nameVal !== window.currentPatientName || ageVal !== window.currentPatientAge || mobileVal !== window.currentPatientMobile) {
+                saveCheckoutPatientDetails();
+            }
+        } else {
+            // Family member selected: check that primary contact phone number is available
+            let mobileVal = (document.getElementById('checkoutPatientMobileInput')?.value || window.currentPatientMobile || '').trim().replace(/\D/g, '');
+            if (mobileVal.length > 10 && mobileVal.startsWith('91')) {
+                mobileVal = mobileVal.substring(2);
+            }
+            if (mobileVal.length !== 10) {
+                alert('A valid 10-digit primary mobile number is mandatory for slot booking and sample collection updates.');
+                document.getElementById('patientDetailsPromptBox')?.classList.remove('hidden');
+                document.getElementById('checkoutPatientMobileInput')?.focus();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function goToStep(step) {
+        if (step < currentStep) {
+            currentStep = step;
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else if (step > currentStep) {
+            if (currentStep === 2 && !validateStep2()) {
+                return;
+            }
+            if (step === currentStep + 1 && (currentStep !== 3 || isPincodeVerified)) {
+                nextStep();
+            }
+        }
+    }
+    window.goToStep = goToStep;
+
+    function updateUI() {
+        // Hide all steps
+        document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById('step' + currentStep).classList.remove('hidden');
+
+        // Update Stepper Elements
+        document.querySelectorAll('.step-wrapper').forEach(wrapper => {
+            let icon = wrapper.querySelector('.step-icon');
+            let label = wrapper.querySelector('.step-label');
+            let sub = wrapper.querySelector('.step-sub');
+            if (!icon) return;
+            let step = parseInt(icon.getAttribute('data-step'));
+            let iconMap = { 1: 'fa-flask', 2: 'fa-user-plus', 3: 'fa-calendar-alt', 4: 'fa-wallet' };
+
+            if (step < currentStep) {
+                // Completed
+                icon.className = 'step-icon bg-teal-800 text-white border-2 border-teal-800 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all';
+                icon.innerHTML = '<i class="fas fa-check text-sm sm:text-base"></i>';
+                if (label) label.className = 'step-label text-[11px] sm:text-xs font-bold text-slate-700 mt-2 text-center';
+                if (sub) sub.innerText = 'Completed';
+            } else if (step === currentStep) {
+                // Active
+                icon.className = 'step-icon bg-white text-teal-800 border-2 border-teal-800 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-md shadow-teal-900/10 transition-all';
+                icon.innerHTML = `<i class="${step === 3 ? 'far' : 'fas'} ${iconMap[step]} text-sm sm:text-base"></i>`;
+                if (label) label.className = 'step-label text-[11px] sm:text-xs font-black text-teal-800 mt-2 text-center';
+                if (sub) sub.innerText = 'In Progress';
+            } else {
+                // Upcoming
+                icon.className = 'step-icon bg-white text-slate-400 border-2 border-slate-200 rounded-2xl w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-extrabold shadow-sm transition-all';
+                icon.innerHTML = `<i class="${step === 3 ? 'far' : 'fas'} ${iconMap[step]} text-sm sm:text-base"></i>`;
+                if (label) label.className = 'step-label text-[11px] sm:text-xs font-semibold text-slate-400 mt-2 text-center';
+                if (sub) sub.innerText = 'Step ' + step;
+            }
+        });
+
+        // Update Progress Bar Line
+        let progress = ((currentStep - 1) / 3) * 100;
+        let progressEl = document.getElementById('progressFill');
+        if (progressEl) progressEl.style.width = progress + '%';
+
+        // Update Action Buttons
+        let btnNext = document.getElementById('btnNext');
+        let btnPay = document.getElementById('btnPay');
+        if (btnNext) {
+            btnNext.disabled = false;
+            btnNext.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnNext.classList.remove('hidden');
+        }
+        if (btnPay) btnPay.classList.add('hidden');
+
+        if(currentStep === 1) {
+            if (btnNext) btnNext.innerHTML = '<span>Proceed to Patient Details</span> <i class="fas fa-arrow-right text-xs ml-2"></i>';
+        } else if(currentStep === 2) {
+            if (btnNext) btnNext.innerHTML = '<span>Proceed to Date & Slot</span> <i class="fas fa-arrow-right text-xs ml-2"></i>';
+        } else if(currentStep === 3) {
+            if (btnNext) {
+                btnNext.innerHTML = '<span>Proceed to Review & Pay</span> <i class="fas fa-arrow-right text-xs ml-2"></i>';
+                if(!isPincodeVerified) {
+                    btnNext.disabled = true;
+                    btnNext.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        } else if(currentStep === 4) {
+            if (btnNext) btnNext.classList.add('hidden');
+            if (btnPay) btnPay.classList.remove('hidden');
+
+            // Update appointment date & slot summary on step 4
+            let activeDateEl = document.querySelector('.date-item.active-date');
+            let activeSlotEl = document.querySelector('.slot-item.active-slot');
+            let selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : '';
+            let selectedSlotText = activeSlotEl ? activeSlotEl.innerText.trim() : '07:00 AM - 08:00 AM';
+
+            let dateSummaryEl = document.getElementById('step4SummaryDate');
+            let slotSummaryEl = document.getElementById('step4SummarySlot');
+            if (dateSummaryEl && selectedDateYmd) {
+                let parts = selectedDateYmd.split('-');
+                if (parts.length === 3) {
+                    let dObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    dateSummaryEl.innerText = dObj.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+                }
+            }
+            if (slotSummaryEl) {
+                slotSummaryEl.innerText = selectedSlotText;
+            }
+
+            // Sync booking summary accordion & coupon modal text
+            renderBookingSummaryDetails();
+            syncModalCouponState();
+        }
+    }
+
+    function nextStep() {
+        // Step 2 Validation: Check patient name, age, and phone number
+        if (currentStep === 2) {
+            if (!validateStep2()) {
+                return;
+            }
+        }
+
+        // Step 3 Validation: Pincode and Address
+        if (currentStep === 3) {
+            if (!isPincodeVerified) {
+                alert('Please verify a valid serviceable pincode first.');
+                return;
+            }
+            if (!window.selectedAddressId) {
+                alert('Sample collection address is required. Please add or select an address.');
+                if (typeof window.openAddAddressModal === 'function') {
+                    window.openAddAddressModal();
+                }
+                return;
+            }
+            const activeSlotEl = document.querySelector('.slot-item.active-slot:not(.hidden)');
+            if (!activeSlotEl) {
+                alert('Please select an available collection time slot.');
+                return;
+            }
+        }
+
+        if (currentStep < 4) {
+            currentStep++;
+            updateUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function verifyPincode() {
+        let val = document.getElementById('pincodeInput').value.trim();
+        let errorEl = document.getElementById('pincodeError');
+        let successEl = document.getElementById('pincodeSuccess');
+        if (validPincodes.includes(val)) {
+            errorEl.classList.add('hidden');
+            successEl.classList.remove('hidden');
+            isPincodeVerified = true;
+            document.getElementById('addressAndSlotSection').classList.remove('hidden');
+            if (typeof filterSlotsForSelectedDate === 'function') {
+                filterSlotsForSelectedDate();
+            }
+            updateUI(); // Unlock next button
+        } else {
+            errorEl.classList.remove('hidden');
+            successEl.classList.add('hidden');
+            isPincodeVerified = false;
+            document.getElementById('addressAndSlotSection').classList.add('hidden');
+            updateUI(); // Lock next button
+        }
+    }
+    window.verifyPincode = verifyPincode;
+
+    function saveNewMember() {
+        // Get values
+        let name = document.getElementById('newMemberName').value.trim();
+        let age = document.getElementById('newMemberAge').value.trim();
+        let genderInput = document.querySelector('input[name="new_member_gender"]:checked');
+        let relationInput = document.querySelector('input[name="new_member_relation"]:checked');
+        let gender = genderInput ? genderInput.value : 'female';
+        let relation = relationInput ? relationInput.value : 'other';
+
+        if (!name || !age) {
+            alert('Please enter member name and age.');
+            return;
+        }
+
+        gender = gender.charAt(0).toUpperCase() + gender.slice(1);
+        relation = relation.charAt(0).toUpperCase() + relation.slice(1);
+
+        fetch("<?php echo e(route('patient.add_family_member')); ?>", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ name, age, gender, relation })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.member) {
+                let m = data.member;
+                let cart = getCheckoutCart();
+                let itemNames = cart.map(i => i.name || i.title).join(', ') || 'All tests in cart';
+
+                let html = `
+                    <div class="member-card cursor-pointer bg-white border border-gray-200 rounded-xl p-4 flex items-start transition hover:border-brand-secondary shadow-sm" onclick="selectMember(${m.id}, this)">
+                        <div class="pt-1 mr-4">
+                            <div class="w-6 h-6 rounded-full border border-gray-300 text-transparent flex items-center justify-center text-xs member-check-indicator">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-gray-900 text-lg flex items-center">${m.name} <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded ml-2 uppercase font-extrabold">${m.relation}</span></h3>
+                                    <p class="text-xs text-gray-500 font-semibold mt-1">${m.age} Years | ${m.gender}</p>
+                                </div>
+                                <span class="text-xs font-bold text-gray-400">Family Member</span>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <p class="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">Assigned Tests / Packages:</p>
+                                <div class="member-cart-summary text-sm font-semibold text-gray-700">${itemNames}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const list = document.getElementById('memberSelectionList');
+                list.insertAdjacentHTML('beforeend', html);
+                
+                // Select the new member
+                const newCard = list.lastElementChild;
+                selectMember(m.id, newCard);
+
+                // Reset form and close modal
+                document.getElementById('addMemberForm').reset();
+                window.closeAddMemberModal();
+            } else {
+                alert(data.message || 'Could not save member. Please try again.');
+            }
+        })
+        .catch(() => alert('Network error adding member.'));
+    }
+
+    // Helper: Parse slot start time (e.g. "07:00 AM") to total minutes from midnight
+    function parseSlotTimeToMinutes(timeStr) {
+        if (!timeStr) return null;
+        timeStr = timeStr.trim().toUpperCase();
+        const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/);
+        if (!match) return null;
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3];
+
+        if (period === 'PM' && hours < 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+
+        return hours * 60 + minutes;
+    }
+    window.parseSlotTimeToMinutes = parseSlotTimeToMinutes;
+
+    // Helper: Get today's Y-m-d string based on client's local date
+    function getTodayDateYmd() {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    window.getTodayDateYmd = getTodayDateYmd;
+
+    let currentSlotCheckAbort = null;
+
+    // Synchronize slot section headers (Morning, Afternoon, Evening) based on visible slots
+    function syncSlotSectionsVisibility() {
+        let hasAnyVisible = false;
+        document.querySelectorAll('.slot-section').forEach(section => {
+            const visibleCount = section.querySelectorAll('.slot-item:not(.hidden)').length;
+            if (visibleCount === 0) {
+                section.classList.add('hidden');
+            } else {
+                section.classList.remove('hidden');
+                hasAnyVisible = true;
+            }
+        });
+
+        // Ensure one visible slot is actively selected
+        const currentActiveVisible = document.querySelector('.slot-item.active-slot:not(.hidden)');
+        if (!currentActiveVisible && hasAnyVisible) {
+            const firstVisible = document.querySelector('.slot-item:not(.hidden)');
+            if (firstVisible) {
+                firstVisible.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                firstVisible.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            }
+        }
+
+        const activeDateEl = document.querySelector('.date-item.active-date');
+        const selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : getTodayDateYmd();
+        const isToday = (selectedDateYmd === getTodayDateYmd());
+
+        if (!hasAnyVisible && isToday) {
+            document.getElementById('noSlotsAvailableNotice')?.classList.remove('hidden');
+        }
+    }
+    window.syncSlotSectionsVisibility = syncSlotSectionsVisibility;
+
+    // Filter Slots dynamically for the currently selected collection date and area pincode
+    function filterSlotsForSelectedDate() {
+        const activeDateEl = document.querySelector('.date-item.active-date');
+        const selectedDateYmd = activeDateEl ? activeDateEl.getAttribute('data-date') : getTodayDateYmd();
+        const todayYmd = getTodayDateYmd();
+        const isToday = (selectedDateYmd === todayYmd);
+
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const pincodeVal = (document.getElementById('pincodeInput')?.value || '').trim();
+
+        const noSlotsNotice = document.getElementById('noSlotsAvailableNotice');
+        if (noSlotsNotice) noSlotsNotice.classList.add('hidden');
+        const offDutyNotice = document.getElementById('phleboOffDutyNotice');
+        if (offDutyNotice) offDutyNotice.classList.add('hidden');
+
+        const slotItems = document.querySelectorAll('.slot-item');
+
+        // 1. Initial client-side filter based on elapsed time if date is today
+        slotItems.forEach(item => {
+            const slotText = (item.getAttribute('data-slot-title') || item.innerText).trim();
+            const startStr = slotText.split('-')[0].trim();
+            const startMinutes = parseSlotTimeToMinutes(startStr);
+
+            if (isToday && startMinutes !== null && startMinutes <= currentMinutes) {
+                item.classList.add('hidden');
+                item.setAttribute('data-time-passed', 'true');
+                item.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                item.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            } else {
+                item.classList.remove('hidden');
+                item.removeAttribute('data-time-passed');
+            }
+        });
+
+        // 2. Query area-wise phlebotomist availability and leave records
+        if (pincodeVal && pincodeVal.length >= 6) {
+            if (currentSlotCheckAbort) {
+                currentSlotCheckAbort.abort();
+            }
+            currentSlotCheckAbort = new AbortController();
+
+            fetch("<?php echo e(route('checkout.check_slots')); ?>", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ pincode: pincodeVal, date: selectedDateYmd }),
+                signal: currentSlotCheckAbort.signal
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.serviceable) {
+                    slotItems.forEach(item => item.classList.add('hidden'));
+                    if (offDutyNotice) {
+                        const noticeText = document.getElementById('phleboOffDutyNoticeText');
+                        if (noticeText) noticeText.innerText = data.message || 'Home collection is currently not serviceable in this area.';
+                        offDutyNotice.classList.remove('hidden');
+                    }
+                    syncSlotSectionsVisibility();
+                    return;
+                }
+
+                const slotMap = {};
+                if (Array.isArray(data.slots)) {
+                    data.slots.forEach(s => {
+                        slotMap[s.title.trim()] = s;
+                    });
+                }
+
+                let hasAnyAvailableSlot = false;
+
+                slotItems.forEach(item => {
+                    const title = (item.getAttribute('data-slot-title') || item.innerText).trim();
+                    const slotData = slotMap[title];
+
+                    // If time already passed for today, keep it hidden
+                    if (item.getAttribute('data-time-passed') === 'true') {
+                        return;
+                    }
+
+                    // Requirement 14: If phlebotomist is on leave/off or slot is full, do not show the slot
+                    if (slotData && slotData.is_available === false) {
+                        item.classList.add('hidden');
+                        item.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                        item.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+                    } else {
+                        item.classList.remove('hidden');
+                        hasAnyAvailableSlot = true;
+                    }
+                });
+
+                syncSlotSectionsVisibility();
+
+                if (!hasAnyAvailableSlot) {
+                    if (isToday) {
+                        if (noSlotsNotice) noSlotsNotice.classList.remove('hidden');
+                    } else {
+                        if (offDutyNotice) {
+                            const noticeText = document.getElementById('phleboOffDutyNoticeText');
+                            if (noticeText) noticeText.innerText = 'Phlebotomist is off-duty / on leave in your area for this date. Please select another date.';
+                            offDutyNotice.classList.remove('hidden');
+                        }
+                    }
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.warn('Slot availability check note:', err);
+                    syncSlotSectionsVisibility();
+                }
+            });
+        } else {
+            syncSlotSectionsVisibility();
+        }
+    }
+    window.filterSlotsForSelectedDate = filterSlotsForSelectedDate;
+
+    // Select a date card item
+    function selectDateItem(item) {
+        if (!item) return;
+
+        document.querySelectorAll('.date-item').forEach(d => {
+            d.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
+            d.classList.add('border', 'border-gray-200', 'bg-white');
+            const spans = d.querySelectorAll('span');
+            if (spans.length === 3) {
+                spans[0].className = 'text-xs font-semibold text-gray-500';
+                spans[1].className = 'text-lg font-black text-gray-800';
+                spans[2].className = 'text-xs font-semibold text-gray-500';
+            }
+        });
+
+        item.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-secondary', 'active-date');
+        item.classList.remove('border', 'border-gray-200', 'bg-white');
+        const spans = item.querySelectorAll('span');
+        if (spans.length === 3) {
+            spans[0].className = 'text-xs font-bold text-brand-secondary';
+            spans[1].className = 'text-lg font-black text-brand-secondary';
+            spans[2].className = 'text-xs font-bold text-brand-secondary';
+        }
+
+        filterSlotsForSelectedDate();
+    }
+    window.selectDateItem = selectDateItem;
+
+    // Select tomorrow's date shortcut
+    function selectTomorrowDate() {
+        const dateItems = document.querySelectorAll('.date-item');
+        if (dateItems.length > 1) {
+            selectDateItem(dateItems[1]);
+        }
+    }
+    window.selectTomorrowDate = selectTomorrowDate;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        updateUI();
+
+        // Check if default address pincode is valid
+        const defaultPincode = <?php echo json_encode($defaultAddr?->pincode ?? '', 15, 512) ?>;
+        if (defaultPincode && validPincodes.includes(defaultPincode)) {
+            const pinInput = document.getElementById('pincodeInput');
+            if (pinInput) {
+                pinInput.value = defaultPincode;
+                verifyPincode();
+            }
+        }
+
+        // Date Selection Logic
+        const dateContainer = document.getElementById('dateContainer');
+        if (dateContainer) {
+            dateContainer.addEventListener('click', (e) => {
+                const item = e.target.closest('.date-item');
+                if (!item) return;
+                selectDateItem(item);
+            });
+        }
+
+        // Slot Selection Logic
+        const slotItems = document.querySelectorAll('.slot-item');
+        slotItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.classList.contains('hidden')) return; // Ignore past slots
+                slotItems.forEach(s => {
+                    s.classList.remove('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                    s.classList.add('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+                });
+                
+                item.classList.add('border-2', 'border-brand-secondary', 'bg-brand-light/10', 'text-brand-dark', 'active-slot');
+                item.classList.remove('border', 'border-gray-200', 'bg-white', 'text-gray-600');
+            });
+        });
+
+        // Initial slot filtering check
+        const todayYmd = getTodayDateYmd();
+        const firstDateItem = document.querySelector('.date-item');
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // Check if today has any upcoming slots remaining
+        let hasAnyFutureSlotToday = false;
+        slotItems.forEach(item => {
+            const startStr = item.innerText.trim().split('-')[0].trim();
+            const startM = parseSlotTimeToMinutes(startStr);
+            if (startM !== null && startM > currentMinutes) {
+                hasAnyFutureSlotToday = true;
+            }
+        });
+
+        // If today has 0 slots left (e.g. late evening), automatically select tomorrow
+        if (!hasAnyFutureSlotToday && firstDateItem && firstDateItem.getAttribute('data-date') === todayYmd) {
+            const dateItems = document.querySelectorAll('.date-item');
+            if (dateItems.length > 1) {
+                selectDateItem(dateItems[1]);
+            } else {
+                filterSlotsForSelectedDate();
+            }
+        } else {
+            filterSlotsForSelectedDate();
+        }
+    });
+</script>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('frontend.layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\Employee\Desktop\outsourcelab\resources\views/frontend/pages/checkout.blade.php ENDPATH**/ ?>

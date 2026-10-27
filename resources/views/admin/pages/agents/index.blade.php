@@ -161,8 +161,8 @@
 
                         <!-- Status -->
                         <td class="px-5 py-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $agent->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600' }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $agent->status === 'active' ? 'bg-emerald-500' : 'bg-slate-400' }} mr-1.5"></span>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold {{ $agent->status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800 border border-rose-200/60' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $agent->status === 'active' ? 'bg-emerald-500' : 'bg-rose-500' }} mr-1.5"></span>
                                 {{ ucfirst($agent->status) }}
                             </span>
                         </td>
@@ -182,10 +182,16 @@
                             </button>
 
                             <!-- Toggle Status Form -->
-                            <form action="{{ route('admin.agents.toggle_status', $agent->id) }}" method="POST" class="inline">
+                            <form action="{{ route('admin.agents.toggle_status', $agent->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ $agent->status === 'active' ? 'Are you sure you want to deactivate ' . addslashes($agent->name) . '? Any active bookings assigned to this agent will be unassigned and queued for reassignment.' : 'Activate ' . addslashes($agent->name) . '?' }}');">
                                 @csrf
-                                <button type="submit" class="px-2.5 py-1.5 rounded-xl text-xs font-bold {{ $agent->status === 'active' ? 'bg-slate-100 text-slate-700 hover:bg-slate-200' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }} transition cursor-pointer">
-                                    {{ $agent->status === 'active' ? 'Deactivate' : 'Activate' }}
+                                <button type="submit" class="px-2.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5 {{ $agent->status === 'active' ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200/70' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/70' }}" title="{{ $agent->status === 'active' ? 'Deactivate this phlebotomist' : 'Activate this phlebotomist' }}">
+                                    @if($agent->status === 'active')
+                                        <i class="fas fa-user-slash text-[10px]"></i>
+                                        <span>Deactivate</span>
+                                    @else
+                                        <i class="fas fa-user-check text-[10px]"></i>
+                                        <span>Activate</span>
+                                    @endif
                                 </button>
                             </form>
 

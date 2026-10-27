@@ -39,6 +39,16 @@ class Agent extends Model
         ];
     }
 
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
