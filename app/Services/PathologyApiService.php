@@ -289,6 +289,29 @@ class PathologyApiService
     }
 
     /**
+     * Fetch real-time booking status and invoice/report details from Pathology SaaS.
+     */
+    public function getBookingStatus(string $bookingReference): ?array
+    {
+        if (! $this->isConfigured()) {
+            return null;
+        }
+
+        try {
+            $cleanRef = urlencode(trim(ltrim($bookingReference, '#')));
+            $response = $this->client()->get("/bookings/{$cleanRef}/status");
+            if ($response->successful()) {
+                return (array) $response->json('data', []);
+            }
+            Log::warning("Pathology API getBookingStatus returned {$response->status()}: ".$response->body());
+        } catch (\Throwable $e) {
+            Log::error('Pathology API getBookingStatus error: '.$e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
      * Authenticate patient and obtain signed Single Sign-On (SSO) redirect URL.
      *
      * @return array{success: bool, message: string, data: array<string, mixed>}
