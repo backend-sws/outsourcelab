@@ -161,6 +161,8 @@
                                 'Sample Collection Scheduled' => ['label' => 'Scheduled',        'badge' => 'bg-teal-50 text-teal-700 border-teal-200',       'icon' => 'fa-calendar-alt',   'activeStep' => 2],
                                 'Out for Collection'          => ['label' => 'Agent On The Way', 'badge' => 'bg-amber-50 text-amber-700 border-amber-200',    'icon' => 'fa-biking',         'activeStep' => 2],
                                 'Sample Collected'            => ['label' => 'Sample Collected', 'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-vial',       'activeStep' => 2],
+                                'Dispatched'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope',   'activeStep' => 3],
+                                'Delivered to Lab'            => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope',   'activeStep' => 3],
                                 'In Process'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope',   'activeStep' => 3],
                                 'Processing'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope',   'activeStep' => 3],
                                 'Report Ready'                => ['label' => 'Report Ready',     'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-file-medical-alt', 'activeStep' => 4],
@@ -174,7 +176,7 @@
                                 'icon'  => 'fa-info-circle',
                                 'activeStep' => ($booking->agent ? 2 : 1)
                             ];
-                            $isCompleted = in_array($booking->status, ['Report Ready', 'Completed']) || $booking->sample_status === 'Delivered to Lab' || !empty($booking->report_file_path);
+                            $isCompleted = in_array($booking->status, ['Report Ready', 'Completed']) || !empty($booking->report_file_path);
                             $filterGroup = $isCompleted ? 'completed' : 'active';
                             $steps = ['Booked', 'Sample Collection', 'Processing', 'Report Ready'];
                             $forName = $booking->familyMember ? $booking->familyMember->name : ($profile->name ?? 'Patient (Self)');

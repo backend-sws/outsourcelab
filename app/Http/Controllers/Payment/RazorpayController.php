@@ -682,6 +682,7 @@ class RazorpayController extends Controller
                         'assigned_collector_name' => $booking->agent?->name,
                         'assigned_collector_phone' => $booking->agent?->phone,
                         'assigned_collector_id' => $booking->agent?->lis_collector_id,
+                        'webhook_url' => url('/api/v1/pathology/webhook'),
                         'notes' => $notes,
                         'items' => $lisItems,
                     ];

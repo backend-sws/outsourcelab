@@ -239,6 +239,11 @@ class BookingController extends Controller
             'preferred_date' => $booking->booking_date ? $booking->booking_date->toDateString() : now()->toDateString(),
             'preferred_time_slot' => $booking->collection_slot ?: '08:00 AM - 10:00 AM',
             'branch_id' => (int) config('pathology.default_branch_id', 1),
+            'external_booking_reference' => $booking->booking_reference,
+            'webhook_url' => url('/api/v1/pathology/webhook'),
+            'payment_method' => $booking->payment_method,
+            'payment_status' => strtolower($booking->payment_status ?? 'pending'),
+            'paid_amount' => (float) ($booking->payment_status === 'Paid' ? $booking->amount : 0),
             'notes' => "Admin Push: #{$booking->booking_reference}",
             'items' => $lisItems,
         ];

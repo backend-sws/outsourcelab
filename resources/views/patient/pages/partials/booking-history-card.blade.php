@@ -10,6 +10,8 @@
         'Sample Collection Scheduled' => ['label' => 'Scheduled',        'badge' => 'bg-teal-50 text-teal-700 border-teal-200',       'icon' => 'fa-calendar-alt'],
         'Out for Collection'          => ['label' => 'Agent On The Way', 'badge' => 'bg-amber-50 text-amber-700 border-amber-200',    'icon' => 'fa-biking'],
         'Sample Collected'            => ['label' => 'Sample Collected', 'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-vial'],
+        'Dispatched'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope'],
+        'Delivered to Lab'            => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope'],
         'In Process'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope'],
         'Processing'                  => ['label' => 'Processing',       'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200',   'icon' => 'fa-microscope'],
         'Report Ready'                => ['label' => 'Report Ready',     'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-file-medical-alt'],
@@ -17,11 +19,12 @@
         'Cancelled'                   => ['label' => 'Cancelled',        'badge' => 'bg-rose-50 text-rose-700 border-rose-200',       'icon' => 'fa-times-circle'],
     ];
 
-    $currentStatus = $statusMap[$booking->status] ?? [
+    $statusKey = (!empty($booking->sample_status) && in_array($booking->sample_status, ['Dispatched', 'Delivered to Lab', 'Sample Collected', 'Out for Collection'])) ? $booking->sample_status : $booking->status;
+    $currentStatus = $statusMap[$statusKey] ?? ($statusMap[$booking->status] ?? [
         'label' => $booking->status ?: 'Booked',
         'badge' => 'bg-gray-50 text-gray-700 border-gray-200',
         'icon'  => 'fa-info-circle'
-    ];
+    ]);
 @endphp
 
 <div class="bg-white border border-gray-200 hover:border-teal-300 rounded-2xl p-5 md:p-6 shadow-sm hover:shadow-md transition duration-200 space-y-4">

@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\TestController as AdminTestController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Agent\AgentPortalController;
+use App\Http\Controllers\Api\PathologyWebhookController;
 use App\Http\Controllers\Frontend\CalculatorController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\ExploreController;
@@ -323,3 +324,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/bookings/{id}/push-lis', [AdminBookingController::class, 'pushToLis'])->name('bookings.push_lis');
     });
 });
+
+// =========================================================================
+// 5. EXTERNAL API & WEBHOOK ROUTES (Pathology LIS Sync)
+// =========================================================================
+Route::post('/api/v1/pathology/webhook', [PathologyWebhookController::class, 'handle'])->name('api.pathology.webhook');
+Route::post('/api/pathology/webhook', [PathologyWebhookController::class, 'handle']);

@@ -240,6 +240,8 @@
                             'Sample Collection Scheduled' => ['label' => 'Scheduled',        'badge' => 'bg-teal-50 text-teal-700 border-teal-200',       'icon' => 'fa-calendar-alt',   'step' => 2],
                             'Out for Collection'          => ['label' => 'Agent On The Way', 'badge' => 'bg-amber-50 text-amber-700 border-amber-200',    'icon' => 'fa-biking',         'step' => 2],
                             'Sample Collected'            => ['label' => 'Sample Collected', 'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-vial',       'step' => 2],
+                            'Dispatched'                  => ['label' => 'Lab Processing',   'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200', 'icon' => 'fa-microscope',   'step' => 3],
+                            'Delivered to Lab'            => ['label' => 'Lab Processing',   'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200', 'icon' => 'fa-microscope',   'step' => 3],
                             'In Process'                  => ['label' => 'Lab Processing',   'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200', 'icon' => 'fa-microscope',   'step' => 3],
                             'Processing'                  => ['label' => 'Lab Processing',   'badge' => 'bg-yellow-50 text-yellow-700 border-yellow-200', 'icon' => 'fa-microscope',   'step' => 3],
                             'Report Ready'                => ['label' => 'Report Ready',     'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'icon' => 'fa-file-medical-alt', 'step' => 4],

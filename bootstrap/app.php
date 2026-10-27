@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/razorpay/webhook',
             'webhooks/razorpay',
+            'api/v1/pathology/webhook',
+            'api/pathology/webhook',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

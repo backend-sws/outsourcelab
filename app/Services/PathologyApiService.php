@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Booking;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -309,6 +311,102 @@ class PathologyApiService
         }
 
         return null;
+    }
+
+    /**
+     * Poll and synchronize the live state of a local booking against Pathology LIS.
+     * Transitions status from Sample Collection to Processing when dispatched by phlebotomist.
+     */
+    public function syncBookingState(Booking $booking): bool
+    {
+        if (! $this->isConfigured()) {
+            return false;
+        }
+
+        $lookupRef = $booking->lis_booking_reference ?: $booking->booking_reference;
+        if (empty($lookupRef)) {
+            return false;
+        }
+
+        $remote = $this->getBookingStatus($lookupRef);
+        if (! $remote || ! is_array($remote)) {
+            return false;
+        }
+
+        $changed = false;
+        $sampleStatus = trim((string) ($remote['sample_status'] ?? ''));
+        $homeCollectionStatus = trim((string) ($remote['home_collection_status'] ?? ''));
+        $isDispatched = ! empty($remote['is_dispatched'])
+            || strcasecmp($sampleStatus, 'Dispatched') === 0
+            || strcasecmp($sampleStatus, 'Delivered to Lab') === 0
+            || strcasecmp($homeCollectionStatus, 'Dispatched') === 0
+            || strcasecmp($homeCollectionStatus, 'Received') === 0
+            || ! empty($remote['dispatched_at']);
+
+        $isCollected = ! empty($remote['collected_at'])
+            || strcasecmp($sampleStatus, 'Sample Collected') === 0
+            || strcasecmp($homeCollectionStatus, 'Collected') === 0;
+
+        $isReportReady = ! empty($remote['is_report_ready'])
+            || in_array(strtolower((string) ($remote['report_status'] ?? '')), ['approved', 'finalized', 'completed'])
+            || ! empty($remote['report_download_url']);
+
+        if ($isReportReady) {
+            if ($booking->status !== 'Report Ready' && $booking->status !== 'Completed') {
+                $booking->status = 'Report Ready';
+                $booking->lis_status = 'Report Ready for Download';
+                $changed = true;
+            }
+            if (! empty($remote['report_download_url']) && $booking->report_file_path !== $remote['report_download_url']) {
+                $booking->report_file_path = $remote['report_download_url'];
+                $changed = true;
+            }
+        } elseif ($isDispatched) {
+            if ($booking->status !== 'In Process' && $booking->status !== 'Report Ready' && $booking->status !== 'Completed') {
+                $booking->status = 'In Process';
+                $booking->sample_status = 'Delivered to Lab';
+                $booking->lis_status = 'Dispatched to Lab - Processing Underway';
+                $changed = true;
+            } elseif ($booking->sample_status !== 'Delivered to Lab') {
+                $booking->sample_status = 'Delivered to Lab';
+                $changed = true;
+            }
+        } elseif ($isCollected) {
+            if ($booking->status !== 'In Process' && $booking->status !== 'Report Ready' && $booking->status !== 'Completed') {
+                if ($booking->status !== 'Sample Collected' || $booking->sample_status !== 'Sample Collected') {
+                    $booking->status = 'Sample Collected';
+                    $booking->sample_status = 'Sample Collected';
+                    $booking->lis_status = 'Sample Collected by Phlebotomist';
+                    if (! $booking->sample_collected_at) {
+                        $booking->sample_collected_at = ! empty($remote['collected_at']) ? Carbon::parse($remote['collected_at']) : now();
+                    }
+                    $changed = true;
+                }
+            }
+        }
+
+        if (! empty($remote['invoice_number']) && empty($booking->lis_bill_number)) {
+            $booking->lis_bill_number = $remote['invoice_number'];
+            $changed = true;
+        }
+
+        if (! empty($remote['payment_status']) && strtolower((string) $remote['payment_status']) === 'paid' && $booking->payment_status !== 'Paid') {
+            $booking->payment_status = 'Paid';
+            $changed = true;
+        }
+
+        if (! empty($remote['assigned_collector_name']) && empty($booking->sample_notes)) {
+            $collector = 'Phlebotomist: '.$remote['assigned_collector_name'].(! empty($remote['assigned_collector_phone']) ? " ({$remote['assigned_collector_phone']})" : '');
+            $booking->sample_notes = $collector;
+            $changed = true;
+        }
+
+        if ($changed) {
+            $booking->lis_synced_at = now();
+            $booking->save();
+        }
+
+        return $changed;
     }
 
     /**

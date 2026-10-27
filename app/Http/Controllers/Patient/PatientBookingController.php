@@ -46,6 +46,25 @@ class PatientBookingController extends Controller
             return redirect('/');
         }
 
+        $activeBookings = $profile->bookings
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->filter(fn ($b) => ! empty($b->lis_booking_reference) || ! empty($b->booking_reference));
+
+        if ($activeBookings->isNotEmpty()) {
+            $lisService = app(PathologyApiService::class);
+            if ($lisService->isConfigured()) {
+                $needsReload = false;
+                foreach ($activeBookings as $bk) {
+                    if ($lisService->syncBookingState($bk)) {
+                        $needsReload = true;
+                    }
+                }
+                if ($needsReload) {
+                    $profile->load(['bookings.agent', 'bookings.familyMember', 'bookings.address']);
+                }
+            }
+        }
+
         return view('patient.pages.bookings', compact('profile'));
     }
 
@@ -523,6 +542,7 @@ class PatientBookingController extends Controller
                         'assigned_collector_name' => $booking->agent?->name,
                         'assigned_collector_phone' => $booking->agent?->phone,
                         'assigned_collector_id' => $booking->agent?->lis_collector_id,
+                        'webhook_url' => url('/api/v1/pathology/webhook'),
                         'notes' => $notes,
                         'items' => $lisItems,
                     ];
