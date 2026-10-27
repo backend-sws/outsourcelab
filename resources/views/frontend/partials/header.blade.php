@@ -9,6 +9,9 @@
     }
     $whatsappUrl = "https://wa.me/{$whatsappClean}?text=" . urlencode("Hello Av Wellcare Diagnostics, I would like to book a test / consultation.");
 @endphp
+    <!-- Master Sticky Header Wrapper (Sticks to top on scroll for both mobile and desktop) -->
+    <header id="mainAppHeader" class="sticky top-0 z-40 bg-white shadow-xs transition-shadow">
+
 @if($siteBannerCoupon)
     @php
         $bannerText = $siteBannerCoupon->banner_text ?: ($siteBannerCoupon->title . ': ' . ($siteBannerCoupon->discount_type === 'percentage' ? $siteBannerCoupon->discount_value . '% OFF' : 'Flat ₹' . number_format($siteBannerCoupon->discount_value) . ' OFF') . ($siteBannerCoupon->min_order_amount > 0 ? ' on bookings above ₹' . number_format($siteBannerCoupon->min_order_amount) : ''));
@@ -112,8 +115,8 @@
         </div>
     @endif
 
-    <!-- Top Header -->
-    <div class="bg-white py-2 sm:py-2.5 px-2.5 sm:px-4 border-b">
+        <!-- Top Header Row -->
+        <div class="bg-white py-2 sm:py-2.5 px-2.5 sm:px-4 border-b border-gray-100">
         <div class="container mx-auto flex justify-between items-center text-sm gap-2">
             <!-- Brand Logo & City Selector -->
             <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-3 min-w-0 flex-1">
@@ -126,7 +129,7 @@
                     $selectedHeaderCity = $activeHeaderCities->firstWhere('id', $selectedHeaderCityId) ?? $defaultHeaderCity;
                 @endphp
                 <a href="{{ route('home') }}" class="block flex-shrink-0">
-                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-8 min-[360px]:h-8.5 sm:h-10 md:h-12 w-auto max-w-[105px] min-[360px]:max-w-[130px] sm:max-w-[170px] md:max-w-none object-contain">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-7 min-[360px]:h-8 sm:h-10 md:h-12 w-auto max-w-[90px] min-[360px]:max-w-[110px] sm:max-w-[170px] md:max-w-none object-contain">
                 </a>
 
                 @if($activeHeaderCities->isNotEmpty())
@@ -135,18 +138,18 @@
                     <button type="button" 
                             id="headerCityDropdownBtn"
                             onclick="toggleHeaderCityDropdown(event)"
-                            class="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl border border-teal-200/90 hover:border-teal-500 bg-teal-50/70 hover:bg-teal-100/70 text-slate-800 transition shadow-2xs group cursor-pointer focus:outline-none"
+                            class="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-teal-200/90 hover:border-teal-500 bg-teal-50/70 hover:bg-teal-100/70 text-slate-800 transition shadow-2xs group cursor-pointer focus:outline-none"
                             title="Select Your City & View Pincodes">
-                        <div class="w-5 h-5 rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform text-[10px] sm:text-xs">
+                        <div class="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform text-[9px] sm:text-xs">
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div class="text-left leading-tight">
                             <span class="hidden sm:block text-[8px] font-bold text-teal-700/80 uppercase tracking-wider">City</span>
-                            <div class="flex items-center gap-1">
-                                <span id="headerSelectedCityName" class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight max-w-[65px] min-[360px]:max-w-[85px] sm:max-w-none truncate">
+                            <div class="flex items-center gap-0.5 sm:gap-1">
+                                <span id="headerSelectedCityName" class="text-[11px] sm:text-sm font-extrabold text-slate-900 tracking-tight max-w-[50px] min-[360px]:max-w-[70px] sm:max-w-none truncate">
                                     {{ $selectedHeaderCity?->name ?? 'Select City' }}
                                 </span>
-                                <i class="fas fa-chevron-down text-[9px] text-teal-600 group-hover:text-teal-800 transition-transform duration-200" id="headerCityChevron"></i>
+                                <i class="fas fa-chevron-down text-[8px] sm:text-[9px] text-teal-600 group-hover:text-teal-800 transition-transform duration-200" id="headerCityChevron"></i>
                             </div>
                         </div>
                     </button>
@@ -321,16 +324,6 @@
             
             <!-- Actions -->
             <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 md:gap-3 flex-shrink-0">
-                <!-- Mobile Quick Contact Icons (Always visible on mobile next to Cart & Menu) -->
-                <div class="flex lg:hidden items-center gap-1.5">
-                    <a href="tel:{{ $helplineClean }}" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-white border border-amber-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Call Helpline {{ $helplinePrimary }}">
-                        <i class="fas fa-phone-alt text-[11px] sm:text-xs animate-pulse"></i>
-                    </a>
-                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-300 flex items-center justify-center shadow-2xs active:scale-95 transition flex-shrink-0" title="Chat on WhatsApp">
-                        <i class="fab fa-whatsapp text-sm sm:text-base"></i>
-                    </a>
-                </div>
-
                 <!-- Desktop Only Options -->
                 <div class="hidden lg:flex items-center space-x-3">
                     <a href="{{ route('pharmacy') }}" class="flex items-center font-medium text-brand-dark hover:text-brand-primary transition px-3 py-2 text-sm rounded-lg hover:bg-gray-50 group">
@@ -363,8 +356,11 @@
                             <span id="patientNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center ring-2 ring-white shadow-sm animate-pulse">0</span>
                         </button>
 
-                        <!-- Patient Notification Dropdown Menu -->
-                        <div id="patientNotifMenu" class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-white border border-gray-200 shadow-2xl z-50 overflow-hidden text-left">
+                        <!-- Mobile Backdrop Overlay for Notifications -->
+                        <div id="patientNotifBackdrop" class="hidden fixed inset-0 bg-black/40 z-40 sm:hidden"></div>
+
+                        <!-- Patient Notification Dropdown Menu (Centered & Responsive on Mobile) -->
+                        <div id="patientNotifMenu" class="hidden fixed inset-x-2.5 top-28 max-w-[360px] mx-auto sm:max-w-none sm:mx-0 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 rounded-2xl bg-white border border-gray-200 shadow-2xl z-50 overflow-hidden text-left">
                             <!-- Dropdown Header -->
                             <div class="p-3.5 px-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -414,10 +410,26 @@
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- Navigation (Desktop) -->
-    <nav class="bg-white shadow-md sticky top-0 z-40 hidden lg:block border-t border-gray-50">
+        <!-- Mobile Sub-Header: 1-Tap Call & WhatsApp (Sticky on mobile & tablet screens < lg) -->
+        <div class="lg:hidden px-2.5 sm:px-4 py-1.5 bg-white border-t border-gray-100 flex items-center justify-between gap-2 shadow-xs">
+            <!-- Call Helpline Button -->
+            <a href="tel:{{ $helplineClean }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-[11px] sm:text-xs border border-amber-300/80 shadow-2xs transition truncate" title="Call Helpline {{ $helplinePrimary }}">
+                <div class="w-4 h-4 rounded-full bg-slate-950/20 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-phone-alt text-[9px] text-slate-950 animate-pulse"></i>
+                </div>
+                <span class="truncate">Call: {{ $helplinePrimary }}</span>
+            </a>
+
+            <!-- WhatsApp Chat Button -->
+            <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-black text-[11px] sm:text-xs shadow-2xs transition truncate" title="Chat on WhatsApp">
+                <i class="fab fa-whatsapp text-sm flex-shrink-0"></i>
+                <span class="truncate">WhatsApp Us</span>
+            </a>
+        </div>
+
+        <!-- Navigation (Desktop) -->
+        <nav class="bg-white shadow-xs hidden lg:block border-t border-gray-100">
         <div class="container mx-auto px-4 flex justify-between items-center h-16 relative">
             <!-- Center: Links -->
             <div class="flex items-center space-x-10">
@@ -471,6 +483,7 @@
             </div>
         </div>
     </nav>
+    </header>
 
     <!-- Mobile Menu Drawer (Small Screens) -->
     <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/60 hidden opacity-0 transition-opacity duration-300">
@@ -748,16 +761,32 @@
             });
         };
 
+        const patientNotifBackdrop = document.getElementById('patientNotifBackdrop');
+
         if (patientNotifBtn && patientNotifMenu) {
+            function togglePatientNotif(show) {
+                const isCurrentlyHidden = patientNotifMenu.classList.contains('hidden');
+                const willShow = (typeof show === 'boolean') ? show : isCurrentlyHidden;
+                patientNotifMenu.classList.toggle('hidden', !willShow);
+                if (patientNotifBackdrop) {
+                    patientNotifBackdrop.classList.toggle('hidden', !willShow);
+                }
+            }
+
             patientNotifBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isHidden = patientNotifMenu.classList.contains('hidden');
-                patientNotifMenu.classList.toggle('hidden', !isHidden);
+                togglePatientNotif();
             });
+
+            if (patientNotifBackdrop) {
+                patientNotifBackdrop.addEventListener('click', () => {
+                    togglePatientNotif(false);
+                });
+            }
 
             document.addEventListener('click', (e) => {
                 if (!patientNotifMenu.contains(e.target) && !patientNotifBtn.contains(e.target)) {
-                    patientNotifMenu.classList.add('hidden');
+                    togglePatientNotif(false);
                 }
             });
         }

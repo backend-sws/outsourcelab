@@ -5,11 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\Booking;
+use App\Models\Coupon;
 use App\Models\Package;
+use App\Models\PatientCoupon;
+use App\Models\PaymentTransaction;
 use App\Models\Setting;
 use App\Models\Test;
 use App\Services\NotificationService;
 use App\Services\PathologyApiService;
+use App\Services\RazorpayService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -38,10 +42,15 @@ class BookingController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('cancellation_requests') || $request->filter === 'cancellation_requests') {
+            $query->where('cancellation_request_status', 'requested');
+        }
+
+        $cancellationRequestsCount = Booking::where('cancellation_request_status', 'requested')->count();
         $bookings = $query->paginate(15)->withQueryString();
         $agents = Agent::where('status', 'active')->orderBy('name')->get();
 
-        return view('admin.pages.bookings.index', compact('bookings', 'agents'));
+        return view('admin.pages.bookings.index', compact('bookings', 'agents', 'cancellationRequestsCount'));
     }
 
     public function show(int $id)
@@ -478,5 +487,138 @@ class BookingController extends Controller
         $booking->save();
 
         return back()->with('success', "Tests and pricing for booking #{$booking->booking_reference} have been updated successfully.");
+    }
+
+    /**
+     * Approve customer cancellation request and process auto-refund via Razorpay if eligible.
+     */
+    public function approveCancellation(Request $request, int $id, RazorpayService $razorpay): RedirectResponse
+    {
+        $booking = Booking::with(['patient', 'agent', 'paymentTransactions'])->findOrFail($id);
+
+        if ($booking->status === 'Cancelled') {
+            return back()->with('error', 'This booking is already cancelled.');
+        }
+
+        $adminNotes = $request->input('admin_notes');
+        $autoRefund = $request->boolean('auto_refund', true);
+
+        $booking->status = 'Cancelled';
+        $booking->cancellation_request_status = 'approved';
+        $booking->cancellation_admin_notes = $adminNotes;
+        $booking->cancellation_processed_at = now();
+
+        $refundAmount = $booking->refundable_amount;
+        $refundId = null;
+        $refundSuccess = false;
+        $refundErrorMsg = null;
+
+        // Auto-refund via Razorpay if customer paid online and autoRefund is enabled
+        if ($autoRefund && $booking->hasOnlinePayment() && $refundAmount > 0) {
+            $paymentId = $booking->razorpay_payment_id
+                ?: $booking->paymentTransactions()->whereNotNull('razorpay_payment_id')->latest()->value('razorpay_payment_id');
+
+            if ($paymentId) {
+                $razorpayResult = $razorpay->refundPayment($paymentId, $refundAmount, [
+                    'booking_reference' => $booking->booking_reference,
+                    'cancelled_by' => 'admin',
+                    'reason' => $booking->cancellation_reason ?: 'Customer cancellation approved by admin',
+                ]);
+
+                if ($razorpayResult['success']) {
+                    $refundSuccess = true;
+                    $refundId = $razorpayResult['refund_id'];
+                    $booking->refund_status = 'refunded';
+                    $booking->refund_id = $refundId;
+                    $booking->refund_amount = $refundAmount;
+                    $booking->refunded_at = now();
+
+                    // Update payment transaction record if available
+                    PaymentTransaction::where('booking_id', $booking->id)
+                        ->where('razorpay_payment_id', $paymentId)
+                        ->update(['status' => 'refunded']);
+                } else {
+                    $booking->refund_status = 'failed';
+                    $refundErrorMsg = $razorpayResult['message'] ?? 'Failed to process refund on Razorpay.';
+                    Log::warning("Razorpay auto-refund failed for booking #{$booking->booking_reference}: {$refundErrorMsg}");
+                }
+            } else {
+                $booking->refund_status = 'failed';
+                $refundErrorMsg = 'Online payment detected but no valid Razorpay Payment ID was found.';
+            }
+        } else {
+            $booking->refund_status = 'not_applicable';
+            $booking->refund_amount = 0.00;
+        }
+
+        // Restore redeemed loyalty coins if any
+        if ((int) $booking->coins_redeemed > 0 && $booking->patient) {
+            $coinVal = (float) Setting::get('reward_coin_value', '1.00');
+            $refundedValue = round($booking->coins_redeemed * $coinVal, 2);
+            $booking->patient->creditCoins(
+                $booking->coins_redeemed,
+                "Coins refunded for cancelled booking #{$booking->booking_reference}",
+                $booking->id,
+                $refundedValue
+            );
+            Log::info("Restored {$booking->coins_redeemed} redeemed coins to patient #{$booking->patient->id} for cancelled booking #{$booking->booking_reference}.");
+        }
+
+        // Restore coupon usage if coupon was applied
+        if (! empty($booking->coupon_code)) {
+            $coupon = Coupon::where('code', $booking->coupon_code)->first();
+            if ($coupon && $coupon->usage_count > 0) {
+                $coupon->decrement('usage_count');
+            }
+            if ($coupon && $booking->patient_id) {
+                PatientCoupon::where('patient_id', $booking->patient_id)
+                    ->where('coupon_id', $coupon->id)
+                    ->delete();
+            }
+        }
+
+        $booking->save();
+
+        try {
+            app(NotificationService::class)->cancellationApproved($booking, $refundSuccess ? $refundAmount : null, $refundId);
+        } catch (\Throwable $e) {
+            Log::warning('Cancellation approval notification failed: '.$e->getMessage());
+        }
+
+        if ($refundErrorMsg) {
+            return back()->with('warning', "Booking #{$booking->booking_reference} has been marked as Cancelled, but Razorpay refund returned an alert: {$refundErrorMsg}. Please check your Razorpay dashboard.");
+        }
+
+        $msg = "Booking #{$booking->booking_reference} successfully cancelled.";
+        if ($refundSuccess) {
+            $msg .= ' Full refund of ₹'.number_format($refundAmount, 2)." has been issued to the customer via Razorpay (Refund ID: {$refundId}).";
+        }
+
+        return back()->with('success', $msg);
+    }
+
+    /**
+     * Reject customer cancellation request with reason note.
+     */
+    public function rejectCancellation(Request $request, int $id): RedirectResponse
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $booking = Booking::with('patient')->findOrFail($id);
+
+        $booking->cancellation_request_status = 'rejected';
+        $booking->cancellation_admin_notes = $request->rejection_reason;
+        $booking->cancellation_processed_at = now();
+        $booking->save();
+
+        try {
+            app(NotificationService::class)->cancellationRejected($booking, $request->rejection_reason);
+        } catch (\Throwable $e) {
+            Log::warning('Cancellation rejection notification failed: '.$e->getMessage());
+        }
+
+        return back()->with('success', "Cancellation request for booking #{$booking->booking_reference} has been declined. The patient has been notified.");
     }
 }

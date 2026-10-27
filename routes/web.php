@@ -177,6 +177,7 @@ Route::prefix('patient')->name('patient.')->group(function () {
     Route::post('/bookings/{id}/modify/verify-payment', [RazorpayController::class, 'verifyModifyPayment'])->name('bookings.modify.verify_payment');
     Route::get('/bookings/{id}/download-report', [PatientBookingController::class, 'downloadReport'])->name('bookings.download_report');
     Route::get('/bookings/{id}/invoice', [PatientBookingController::class, 'invoice'])->name('bookings.invoice');
+    Route::post('/bookings/{id}/request-cancellation', [PatientBookingController::class, 'requestCancellation'])->name('bookings.request_cancellation');
 
     // Payment History & Invoices
     Route::get('/transactions', [PatientPaymentController::class, 'index'])->name('transactions');
@@ -250,6 +251,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/bookings/{id}/report', [AdminBookingController::class, 'deleteReport'])->name('bookings.report.delete');
         Route::post('/bookings/{id}/modify', [AdminBookingController::class, 'modifyBooking'])->name('bookings.modify');
         Route::post('/bookings/{id}/tests', [AdminBookingController::class, 'updateTests'])->name('bookings.updateTests');
+        Route::post('/bookings/{id}/cancellation/approve', [AdminBookingController::class, 'approveCancellation'])->name('bookings.cancellation.approve');
+        Route::post('/bookings/{id}/cancellation/reject', [AdminBookingController::class, 'rejectCancellation'])->name('bookings.cancellation.reject');
 
         // Sample Collection Time Slots Management
         Route::get('/slots', [AdminSlotController::class, 'index'])->name('slots.index');

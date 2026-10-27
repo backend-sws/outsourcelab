@@ -5,31 +5,69 @@
     $activeVip = ($patientModel instanceof \App\Models\Patient) ? $patientModel->activeMembership() : null;
 @endphp
 
-<div class="w-full md:w-1/3 lg:w-1/4 space-y-4">
+<div class="w-full md:w-1/3 lg:w-1/4 space-y-3 sm:space-y-4">
     <!-- User Info -->
-    <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-blue-50 text-brand-dark rounded-full flex items-center justify-center font-bold text-lg border border-blue-100">
+    <div class="bg-white rounded-xl border border-gray-200 p-3.5 sm:p-4 shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-3 min-w-0">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 text-brand-dark rounded-full flex items-center justify-center font-bold text-base sm:text-lg border border-blue-100 flex-shrink-0">
                 <i class="far fa-user"></i>
             </div>
-            <div>
-                <h4 class="font-extrabold text-brand-dark {{ (empty($userName) || strtolower($userName) === 'self') ? 'text-rose-600' : '' }}">
+            <div class="min-w-0">
+                <h4 class="font-extrabold text-brand-dark text-sm sm:text-base truncate {{ (empty($userName) || strtolower($userName) === 'self') ? 'text-rose-600' : '' }}">
                     {{ (!empty($userName) && strtolower($userName) !== 'self') ? $userName : 'Name Missing *' }}
                 </h4>
-                <p class="text-xs font-medium {{ empty($userMobile) ? 'text-rose-600 font-bold' : 'text-gray-500' }}">
+                <p class="text-xs font-medium truncate {{ empty($userMobile) ? 'text-rose-600 font-bold' : 'text-gray-500' }}">
                     {{ !empty($userMobile) ? '+91 ' . $userMobile : 'Phone Missing *' }}
                 </p>
             </div>
         </div>
-        <a href="{{ route('patient.dashboard') }}#profile-form" 
-           id="sidebarEditProfileBtn"
-           onclick="if (typeof switchDashboardTab === 'function') { event.preventDefault(); switchDashboardTab('profile'); const el = document.getElementById('profile-form'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-brand-secondary', 'ring-offset-2'); setTimeout(() => el.classList.remove('ring-2', 'ring-brand-secondary', 'ring-offset-2'), 1500); } if (history.pushState) { history.pushState(null, null, '#profile-form'); } else { window.location.hash = 'profile-form'; } }" 
-           class="text-gray-400 hover:text-brand-secondary hover:bg-teal-50 w-9 h-9 rounded-lg flex items-center justify-center transition cursor-pointer" 
-           title="Edit Profile">
-            <i class="far fa-edit text-base"></i>
-        </a>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+            <a href="{{ route('patient.dashboard') }}#profile-form" 
+               id="sidebarEditProfileBtn"
+               onclick="if (typeof switchDashboardTab === 'function') { event.preventDefault(); switchDashboardTab('profile'); const el = document.getElementById('profile-form'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('ring-2', 'ring-brand-secondary', 'ring-offset-2'); setTimeout(() => el.classList.remove('ring-2', 'ring-brand-secondary', 'ring-offset-2'), 1500); } if (history.pushState) { history.pushState(null, null, '#profile-form'); } else { window.location.hash = 'profile-form'; } }" 
+               class="text-gray-400 hover:text-brand-secondary hover:bg-teal-50 w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition cursor-pointer" 
+               title="Edit Profile">
+                <i class="far fa-edit text-sm sm:text-base"></i>
+            </a>
+
+            <!-- Mobile Menu Toggle Button (Visible only on mobile) -->
+            <button type="button" 
+                    id="mobilePatientMenuToggle"
+                    onclick="togglePatientMobileSidebar()"
+                    class="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-xs font-black transition shadow-2xs cursor-pointer">
+                <i class="fas fa-bars text-teal-700" id="mobileMenuIcon"></i>
+                <span id="mobileMenuText">Menu</span>
+            </button>
+        </div>
     </div>
 
+    <!-- Mobile Quick Navigation Bar (Visible on mobile for 1-tap switching) -->
+    <div class="md:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+        <a href="{{ route('patient.dashboard') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.dashboard') ? 'bg-brand-dark text-white shadow-2xs' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' }}">
+            <i class="fas fa-th-large text-[10px]"></i> Dashboard
+        </a>
+        <a href="{{ route('patient.bookings') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.bookings*') ? 'bg-brand-dark text-white shadow-2xs' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' }}">
+            <i class="far fa-calendar-check text-[10px]"></i> Bookings
+        </a>
+        <a href="{{ route('patient.reports') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.reports*') ? 'bg-brand-dark text-white shadow-2xs' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' }}">
+            <i class="far fa-file-alt text-[10px]"></i> Reports
+        </a>
+        <a href="{{ route('patient.prescriptions') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.prescriptions*') ? 'bg-brand-dark text-white shadow-2xs' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50' }}">
+            <i class="fas fa-file-medical text-[10px]"></i> Rx
+        </a>
+        <a href="{{ route('patient.membership') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.membership*') ? 'bg-amber-500 text-white shadow-2xs' : 'bg-white border border-amber-200 text-amber-800' }}">
+            <i class="fas fa-crown text-[10px]"></i> VIP
+        </a>
+        <a href="{{ route('patient.coupons') }}" class="px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1.5 {{ request()->routeIs('patient.coupons*') ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-white border border-gray-200 text-gray-700' }}">
+            <i class="fas fa-ticket-alt text-[10px]"></i> Coupons
+        </a>
+        <button type="button" onclick="togglePatientMobileSidebar()" class="px-2.5 py-1.5 rounded-xl font-bold whitespace-nowrap bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 flex items-center gap-1 cursor-pointer">
+            <span>More</span> <i class="fas fa-chevron-down text-[9px]"></i>
+        </button>
+    </div>
+
+    <!-- Full Sidebar Cards (Hidden on mobile by default so page content is immediately visible, shown on toggle or md:screens) -->
+    <div id="patientSidebarFullMenu" class="hidden md:block space-y-4">
     @if($activeVip)
         <!-- VIP Member Status Card -->
         <div class="rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 p-4 border border-amber-500/40 text-white shadow-md relative overflow-hidden">
@@ -181,4 +219,25 @@
     <a href="{{ route('patient.logout') }}" class="inline-block bg-white border border-gray-200 rounded-lg py-2 px-4 text-sm font-bold text-gray-500 hover:text-red-500 hover:border-red-200 transition shadow-sm mt-2">
         <i class="fas fa-sign-out-alt mr-2 transform rotate-180"></i> Logout
     </a>
-</div>
+    </div>{{-- End #patientSidebarFullMenu --}}
+</div>{{-- End Outer Sidebar Container --}}
+
+<script>
+    function togglePatientMobileSidebar() {
+        const container = document.getElementById('patientSidebarFullMenu');
+        const icon = document.getElementById('mobileMenuIcon');
+        const text = document.getElementById('mobileMenuText');
+        if (!container) return;
+
+        const isHidden = container.classList.contains('hidden');
+        if (isHidden) {
+            container.classList.remove('hidden');
+            if (icon) icon.className = 'fas fa-times text-teal-700';
+            if (text) text.innerText = 'Close';
+        } else {
+            container.classList.add('hidden');
+            if (icon) icon.className = 'fas fa-bars text-teal-700';
+            if (text) text.innerText = 'Menu';
+        }
+    }
+</script>

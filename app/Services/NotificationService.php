@@ -243,6 +243,96 @@ class NotificationService
         );
     }
 
+    /** Cancellation requested by patient — notify admin + customer */
+    public function cancellationRequested(Booking $booking): void
+    {
+        $booking->load(['patient', 'agent', 'familyMember']);
+        $patient = $booking->patient;
+
+        if ($patient) {
+            $this->sendInApp(
+                notifiable: $patient,
+                event: 'cancellation_requested',
+                recipientName: $patient->name,
+                title: "Cancellation Request Submitted (#{$booking->booking_reference})",
+                message: "Your cancellation request for booking #{$booking->booking_reference} is under review by our medical team.",
+                actionUrl: route('patient.bookings'),
+            );
+        }
+
+        // Admin alert
+        $this->sendInApp(
+            notifiable: null,
+            event: 'cancellation_requested',
+            recipientName: 'Admin',
+            title: "Cancellation Request: #{$booking->booking_reference}",
+            message: "Patient {$booking->beneficiary_display} requested cancellation. Reason: ".($booking->cancellation_reason ?: 'No reason specified'),
+            actionUrl: route('admin.bookings.show', $booking->id),
+        );
+    }
+
+    /** Cancellation approved by admin with auto-refund info */
+    public function cancellationApproved(Booking $booking, ?float $refundAmount = null, ?string $refundId = null): void
+    {
+        $booking->load(['patient', 'agent', 'familyMember']);
+        $patient = $booking->patient;
+
+        $refundMessage = '';
+        if ($refundAmount && $refundAmount > 0) {
+            $refundMessage = ' A refund of ₹'.number_format($refundAmount, 2).' has been initiated to your original payment method via Razorpay'.($refundId ? " (Refund ID: {$refundId})" : '').'.';
+        }
+
+        if ($patient) {
+            $this->sendEmail(
+                event: 'booking_cancelled',
+                notifiable: $patient,
+                recipientName: $patient->name,
+                recipientContact: $patient->email,
+                mailable: new BookingCancelledCustomer($booking),
+            );
+            $this->sendSms($patient->mobile, "Booking #{$booking->booking_reference} has been cancelled.{$refundMessage}", 'booking_cancelled', $patient);
+            $this->sendWhatsApp($patient->mobile, 'booking_cancelled', [$booking->booking_reference], 'booking_cancelled', $patient);
+            $this->sendInApp(
+                notifiable: $patient,
+                event: 'booking_cancelled',
+                recipientName: $patient->name,
+                title: "Booking #{$booking->booking_reference} Cancelled",
+                message: "Your booking #{$booking->booking_reference} has been cancelled.{$refundMessage}",
+                actionUrl: route('patient.bookings'),
+            );
+        }
+
+        $this->sendInApp(
+            notifiable: null,
+            event: 'booking_cancelled',
+            recipientName: 'Admin',
+            title: "Booking Cancelled (#{$booking->booking_reference})",
+            message: "Booking #{$booking->booking_reference} was cancelled.{$refundMessage}",
+            actionUrl: route('admin.bookings.show', $booking->id),
+        );
+    }
+
+    /** Cancellation rejected by admin — notify customer */
+    public function cancellationRejected(Booking $booking, ?string $adminNotes = null): void
+    {
+        $booking->load(['patient', 'familyMember']);
+        $patient = $booking->patient;
+
+        $reasonText = $adminNotes ? " Note: {$adminNotes}" : '';
+
+        if ($patient) {
+            $this->sendSms($patient->mobile, "Your cancellation request for booking #{$booking->booking_reference} was not approved.{$reasonText}", 'cancellation_rejected', $patient);
+            $this->sendInApp(
+                notifiable: $patient,
+                event: 'cancellation_rejected',
+                recipientName: $patient->name,
+                title: "Cancellation Request Declined (#{$booking->booking_reference})",
+                message: "Your cancellation request for booking #{$booking->booking_reference} could not be approved.{$reasonText}",
+                actionUrl: route('patient.bookings'),
+            );
+        }
+    }
+
     /** Payment successful — notify customer + admin */
     public function paymentSuccess(Booking $booking): void
     {

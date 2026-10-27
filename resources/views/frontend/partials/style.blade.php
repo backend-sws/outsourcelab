@@ -35,7 +35,7 @@
     <style>
         html, body {
             max-width: 100%;
-            overflow-x: hidden;
+            overflow-x: clip;
             position: relative;
         }
         body { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; letter-spacing: -0.01em; }
@@ -75,6 +75,17 @@
             animation: zipLine linear infinite, flashElectric 0.1s infinite alternate;
             z-index: 15;
             border-radius: 50%;
+        }
+
+        /* Clean responsive horizontal scroll without ugly browser scrollbar line */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
         }
     </style>
 

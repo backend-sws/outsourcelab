@@ -1002,4 +1002,44 @@ class PatientBookingController extends Controller
 
         return view('patient.pages.invoice', compact('booking'));
     }
+
+    /**
+     * Submit a cancellation request for a booking by the patient.
+     */
+    public function requestCancellation(Request $request, int $id): RedirectResponse
+    {
+        $patientId = session('patient_id');
+        if (! $patientId) {
+            return redirect('/')->with('error', 'Please login to manage bookings.');
+        }
+
+        $request->validate([
+            'reason' => 'required|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $booking = Booking::where('patient_id', $patientId)->findOrFail($id);
+
+        if (! $booking->canRequestCancellation()) {
+            return back()->with('error', 'This booking is not eligible for cancellation. Sample collection may already have started or booking is finalized.');
+        }
+
+        $reason = trim($request->input('reason'));
+        if ($request->filled('notes')) {
+            $reason .= ' - '.trim($request->input('notes'));
+        }
+
+        $booking->cancellation_request_status = 'requested';
+        $booking->cancellation_reason = $reason;
+        $booking->cancellation_requested_at = now();
+        $booking->save();
+
+        try {
+            app(NotificationService::class)->cancellationRequested($booking);
+        } catch (\Throwable $e) {
+            Log::warning('Cancellation requested notification failed: '.$e->getMessage());
+        }
+
+        return back()->with('success', 'Your cancellation request has been submitted to our medical team. We will review and process your request shortly.');
+    }
 }

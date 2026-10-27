@@ -14,7 +14,10 @@ class Booking extends Model
         'test_details', 'collection_type', 'collection_slot', 'amount', 'paid_amount', 'collection_fee', 'coupon_code', 'discount_amount',
         'coins_redeemed', 'coins_discount', 'coins_earned',
         'payment_method', 'payment_status', 'razorpay_order_id', 'razorpay_payment_id', 'razorpay_signature',
-        'status', 'sample_status', 'sample_collected_at',
+        'status', 'cancellation_request_status', 'cancellation_reason', 'cancellation_requested_at',
+        'cancellation_admin_notes', 'cancellation_processed_at',
+        'refund_status', 'refund_amount', 'refund_id', 'refunded_at',
+        'sample_status', 'sample_collected_at',
         'sample_notes', 'money_collected_at', 'money_collected_by', 'money_payment_mode',
         'report_file_path', 'booking_date', 'lis_synced_at',
     ];
@@ -25,14 +28,61 @@ class Booking extends Model
         'sample_collected_at' => 'datetime',
         'money_collected_at' => 'datetime',
         'lis_synced_at' => 'datetime',
+        'cancellation_requested_at' => 'datetime',
+        'cancellation_processed_at' => 'datetime',
+        'refunded_at' => 'datetime',
         'amount' => 'float',
         'paid_amount' => 'float',
+        'refund_amount' => 'float',
         'collection_fee' => 'float',
         'discount_amount' => 'float',
         'coins_redeemed' => 'integer',
         'coins_discount' => 'float',
         'coins_earned' => 'integer',
     ];
+
+    /**
+     * Check if this booking is currently eligible for the patient to request cancellation.
+     */
+    public function canRequestCancellation(): bool
+    {
+        $terminalStatuses = ['Sample Collected', 'In Process', 'Processing', 'Delivered to Lab', 'Dispatched', 'Report Ready', 'Completed', 'Cancelled'];
+
+        if (in_array($this->status, $terminalStatuses, true)) {
+            return false;
+        }
+
+        if (in_array($this->sample_status, ['Sample Collected', 'Dispatched', 'Delivered to Lab', 'Processing', 'Report Ready'], true)) {
+            return false;
+        }
+
+        // Cannot request if already requested or already approved
+        return ! in_array($this->cancellation_request_status, ['requested', 'approved'], true);
+    }
+
+    /**
+     * Net refundable amount that was paid online.
+     */
+    public function getRefundableAmountAttribute(): float
+    {
+        if ((float) ($this->paid_amount ?? 0) > 0) {
+            return round((float) $this->paid_amount, 2);
+        }
+
+        if ($this->payment_status === 'Paid') {
+            return round((float) $this->amount, 2);
+        }
+
+        return 0.00;
+    }
+
+    /**
+     * Check if payment was captured via Razorpay.
+     */
+    public function hasOnlinePayment(): bool
+    {
+        return ! empty($this->razorpay_payment_id) || $this->payment_method === 'Razorpay' || $this->payment_method === 'Online';
+    }
 
     /**
      * Net remaining due amount to be collected from the customer.

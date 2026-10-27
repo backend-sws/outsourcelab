@@ -34,7 +34,18 @@
                 @endforeach
             </select>
 
-            @if(request()->hasAny(['agent_id', 'status']))
+            <!-- Cancellation Requests Filter Pill -->
+            <a href="{{ route('admin.bookings.index', ['filter' => 'cancellation_requests']) }}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition shadow-2xs {{ (request('filter') === 'cancellation_requests' || request('cancellation_requests')) ? 'bg-amber-600 text-white shadow-sm' : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100' }}">
+                <i class="fas fa-exclamation-triangle text-xs"></i>
+                <span>Cancel Requests</span>
+                @if(($cancellationRequestsCount ?? 0) > 0)
+                    <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ (request('filter') === 'cancellation_requests' || request('cancellation_requests')) ? 'bg-white text-amber-800' : 'bg-amber-600 text-white' }}">
+                        {{ $cancellationRequestsCount }}
+                    </span>
+                @endif
+            </a>
+
+            @if(request()->hasAny(['agent_id', 'status', 'filter', 'cancellation_requests']))
                 <a href="{{ route('admin.bookings.index') }}" class="text-xs font-bold text-rose-500 hover:text-rose-700 px-2 py-1">
                     <i class="fas fa-times mr-1"></i> Reset
                 </a>
@@ -58,7 +69,16 @@
             <tbody class="divide-y divide-gray-100 text-sm">
                 @forelse($bookings as $booking)
                 <tr class="hover:bg-gray-50/50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-gray-800 font-mono">{{ $booking->booking_reference }}</td>
+                    <td class="px-6 py-4 font-medium text-gray-800 font-mono">
+                        <div>{{ $booking->booking_reference }}</div>
+                        @if($booking->cancellation_request_status === 'requested')
+                            <div class="mt-1">
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                                    <i class="fas fa-exclamation-circle text-[9px] text-amber-600"></i> Cancel Requested
+                                </span>
+                            </div>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 text-xs">
                         <div class="font-bold text-gray-900 flex items-center gap-1.5">
                             <i class="far fa-calendar-alt text-teal-600"></i>
@@ -159,6 +179,19 @@
                               ($booking->status == 'Pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800')) }}">
                             {{ $booking->status }}
                         </span>
+                        @if($booking->refund_status === 'refunded')
+                            <div class="mt-1">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                    <i class="fas fa-undo text-[9px] text-emerald-600"></i> Refunded (₹{{ number_format($booking->refund_amount, 0) }})
+                                </span>
+                            </div>
+                        @elseif($booking->refund_status === 'failed')
+                            <div class="mt-1">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-rose-50 text-rose-800 border border-rose-200">
+                                    <i class="fas fa-exclamation-triangle text-[9px] text-rose-600"></i> Refund Failed
+                                </span>
+                            </div>
+                        @endif
                     </td>
                     <td class="px-6 py-4 text-right space-x-2">
                         <a href="{{ route('admin.bookings.show', $booking->id) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl font-semibold text-xs transition-colors inline-flex items-center gap-1">

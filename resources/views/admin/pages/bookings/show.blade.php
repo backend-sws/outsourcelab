@@ -233,6 +233,154 @@
     
     <!-- Right Column: Status & Payment -->
     <div class="space-y-6">
+
+        {{-- ════════════════ CANCELLATION & REFUND CARD ════════════════ --}}
+        @if($booking->cancellation_request_status === 'requested')
+            <div class="bg-gradient-to-br from-rose-50 via-white to-amber-50 rounded-2xl shadow-sm border-2 border-rose-300 p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-rose-200 pb-3">
+                    <h3 class="text-base font-black text-rose-950 flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle text-rose-600 animate-pulse text-lg"></i>
+                        <span>Customer Cancellation Request</span>
+                    </h3>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+                        Action Required
+                    </span>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="bg-white/80 p-3 rounded-xl border border-rose-100">
+                        <span class="text-gray-500 font-bold block mb-0.5">Patient's Stated Reason:</span>
+                        <p class="text-rose-950 font-black text-sm">{{ $booking->cancellation_reason ?: 'No detailed reason provided.' }}</p>
+                        <span class="text-[10px] text-gray-400 mt-1 block">
+                            Requested at: {{ $booking->cancellation_requested_at ? $booking->cancellation_requested_at->format('M d, Y • h:i A') : 'Recently' }}
+                        </span>
+                    </div>
+
+                    <!-- Online Payment & Refund Details -->
+                    @if($booking->hasOnlinePayment() && $booking->refundable_amount > 0)
+                        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1">
+                            <div class="flex items-center justify-between font-bold">
+                                <span>Online Paid Amount:</span>
+                                <span class="text-emerald-700 font-black text-sm">₹{{ number_format($booking->refundable_amount, 2) }}</span>
+                            </div>
+                            <p class="text-[11px] text-emerald-800">
+                                <i class="fas fa-bolt text-emerald-600 mr-1"></i>
+                                Razorpay Payment ID: <strong class="font-mono text-emerald-900">{{ $booking->razorpay_payment_id ?: 'Via Transaction' }}</strong>
+                            </p>
+                            <p class="text-[10px] text-emerald-700">
+                                Approving this cancellation will automatically trigger an instant refund of ₹{{ number_format($booking->refundable_amount, 2) }} back to the customer's payment method via Razorpay API.
+                            </p>
+                        </div>
+                    @else
+                        <div class="p-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 text-xs">
+                            <i class="fas fa-money-bill-wave text-gray-500 mr-1"></i>
+                            <strong>Payment Method:</strong> {{ $booking->payment_method ?: 'Cash on collection' }}. No online gateway refund required.
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Approve Form -->
+                <form action="{{ route('admin.bookings.cancellation.approve', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to approve this cancellation? @if($booking->hasOnlinePayment() && $booking->refundable_amount > 0)An automatic refund of ₹{{ number_format($booking->refundable_amount, 2) }} will be processed via Razorpay.@endif')" class="pt-2 border-t border-rose-100 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-bold text-gray-700 mb-1">Admin Notes / Remarks for Patient (Optional)</label>
+                        <input type="text" name="admin_notes" placeholder="e.g. Cancellation approved and refund initiated." class="w-full text-xs font-medium border border-gray-300 rounded-xl px-3 py-2 bg-white">
+                    </div>
+
+                    @if($booking->hasOnlinePayment() && $booking->refundable_amount > 0)
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-800">
+                            <input type="checkbox" name="auto_refund" value="1" checked class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                            <span>Auto-refund ₹{{ number_format($booking->refundable_amount, 2) }} via Razorpay</span>
+                        </label>
+                    @endif
+
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Approve & Cancel</span>
+                        </button>
+                        <button type="button" onclick="document.getElementById('rejectCancellationBox').classList.toggle('hidden')" class="py-2.5 px-3 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-xs transition cursor-pointer flex items-center gap-1">
+                            <i class="fas fa-times"></i>
+                            <span>Decline</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Decline Drawer / Form -->
+                <form id="rejectCancellationBox" action="{{ route('admin.bookings.cancellation.reject', $booking->id) }}" method="POST" class="hidden p-3.5 rounded-xl bg-white border border-rose-200 space-y-2.5">
+                    @csrf
+                    <label class="block text-[11px] font-bold text-rose-900">Reason for Declining Request <span class="text-rose-500">*</span></label>
+                    <input type="text" name="rejection_reason" required placeholder="e.g. Phlebotomist has already arrived at location..." class="w-full text-xs font-medium border border-rose-300 rounded-lg px-3 py-2 bg-white">
+                    <button type="submit" class="w-full py-2 rounded-lg bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs transition shadow-xs">
+                        Confirm Decline
+                    </button>
+                </form>
+            </div>
+        @elseif($booking->status === 'Cancelled')
+            <div class="bg-white rounded-2xl shadow-sm border border-rose-200 p-6 space-y-3">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <h3 class="text-base font-bold text-rose-800 flex items-center gap-2">
+                        <i class="fas fa-ban text-rose-600"></i>
+                        <span>Booking Cancelled</span>
+                    </h3>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800">
+                        {{ $booking->cancellation_request_status === 'approved' ? 'Customer Requested' : 'Cancelled by Admin' }}
+                    </span>
+                </div>
+
+                @if($booking->cancellation_reason)
+                    <div class="text-xs">
+                        <span class="text-gray-500 font-semibold">Reason:</span>
+                        <p class="font-bold text-gray-800">{{ $booking->cancellation_reason }}</p>
+                    </div>
+                @endif
+
+                @if($booking->cancellation_admin_notes)
+                    <div class="text-xs">
+                        <span class="text-gray-500 font-semibold">Admin Notes:</span>
+                        <p class="font-medium text-gray-800">{{ $booking->cancellation_admin_notes }}</p>
+                    </div>
+                @endif
+
+                <!-- Refund Status Summary -->
+                <div class="p-3 rounded-xl border text-xs {{ $booking->refund_status === 'refunded' ? 'bg-emerald-50 border-emerald-200 text-emerald-950' : ($booking->refund_status === 'failed' ? 'bg-rose-50 border-rose-200 text-rose-950' : 'bg-gray-50 border-gray-200 text-gray-700') }}">
+                    <div class="flex items-center justify-between font-bold">
+                        <span>Gateway Refund:</span>
+                        @if($booking->refund_status === 'refunded')
+                            <span class="text-emerald-700 font-black">₹{{ number_format($booking->refund_amount, 2) }} Refunded</span>
+                        @elseif($booking->refund_status === 'failed')
+                            <span class="text-rose-700 font-black">Failed (Manual Check Required)</span>
+                        @else
+                            <span class="text-gray-600 font-semibold">Not Applicable</span>
+                        @endif
+                    </div>
+                    @if($booking->refund_id)
+                        <p class="text-[11px] font-mono mt-1 text-emerald-800">
+                            Refund ID: <strong>{{ $booking->refund_id }}</strong>
+                        </p>
+                    @endif
+                    @if($booking->refunded_at)
+                        <p class="text-[10px] text-gray-500 mt-0.5">
+                            Processed on: {{ $booking->refunded_at->format('M d, Y • h:i A') }}
+                        </p>
+                    @endif
+                </div>
+            </div>
+        @elseif($booking->cancellation_request_status === 'rejected')
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 space-y-2">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h3 class="text-xs font-black uppercase text-gray-700 flex items-center gap-1.5">
+                        <i class="fas fa-times-circle text-rose-500"></i> Cancellation Request Declined
+                    </h3>
+                    <span class="text-[10px] font-bold text-gray-400">
+                        {{ $booking->cancellation_processed_at ? $booking->cancellation_processed_at->format('M d, Y') : '' }}
+                    </span>
+                </div>
+                <p class="text-xs text-gray-600">
+                    <strong class="text-gray-700">Decline Note:</strong> {{ $booking->cancellation_admin_notes ?: 'No note provided' }}
+                </p>
+            </div>
+        @endif
         
         <!-- Actions / Workflow -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

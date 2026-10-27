@@ -186,4 +186,83 @@ class RazorpayService
 
         return null;
     }
+
+    /**
+     * Process a full or partial refund for a Razorpay payment.
+     *
+     * @param  string  $paymentId  Razorpay Payment ID (e.g. 'pay_xxxxxxxxx')
+     * @param  float|null  $amountInRupees  Amount to refund in INR (null for full refund)
+     * @param  array  $notes  Arbitrary metadata key-values for the refund
+     * @return array ['success' => bool, 'refund_id' => string|null, 'amount' => float, 'message' => string, 'raw' => array]
+     */
+    public function refundPayment(string $paymentId, ?float $amountInRupees = null, array $notes = []): array
+    {
+        if (! $this->isConfigured()) {
+            return [
+                'success' => false,
+                'message' => 'Razorpay credentials (Key ID and Secret) are not configured. Cannot process refund automatically.',
+            ];
+        }
+
+        if (empty($paymentId)) {
+            return [
+                'success' => false,
+                'message' => 'No Razorpay Payment ID found for this booking.',
+            ];
+        }
+
+        $payload = [
+            'speed' => 'optimum',
+            'notes' => $notes,
+        ];
+
+        if ($amountInRupees !== null && $amountInRupees > 0) {
+            $payload['amount'] = (int) round($amountInRupees * 100);
+        }
+
+        try {
+            $response = $this->client(20)->post(self::API_BASE.'/payments/'.$paymentId.'/refund', $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $refundId = $data['id'] ?? null;
+                $refundAmountPaise = $data['amount'] ?? 0;
+                $refundAmountRupees = round($refundAmountPaise / 100, 2);
+
+                Log::info("Razorpay refund processed successfully for payment {$paymentId}", [
+                    'refund_id' => $refundId,
+                    'amount' => $refundAmountRupees,
+                    'status' => $data['status'] ?? 'processed',
+                ]);
+
+                return [
+                    'success' => true,
+                    'refund_id' => $refundId,
+                    'amount' => $refundAmountRupees,
+                    'currency' => $data['currency'] ?? 'INR',
+                    'status' => $data['status'] ?? 'processed',
+                    'message' => 'Refund processed successfully via Razorpay.',
+                    'raw' => $data,
+                ];
+            }
+
+            $errBody = $response->json();
+            $errMsg = $errBody['error']['description'] ?? 'Failed to process refund on Razorpay.';
+
+            Log::error("Razorpay refund error for payment {$paymentId}: ".$response->body(), ['payload' => $payload]);
+
+            return [
+                'success' => false,
+                'message' => $errMsg,
+                'raw' => $errBody,
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Razorpay refund exception for payment {$paymentId}: ".$e->getMessage());
+
+            return [
+                'success' => false,
+                'message' => 'Network error connecting to Razorpay refund gateway: '.$e->getMessage(),
+            ];
+        }
+    }
 }

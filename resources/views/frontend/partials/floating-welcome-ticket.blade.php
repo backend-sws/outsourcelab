@@ -4,13 +4,14 @@
         ->latest()
         ->first();
     $isPatientLoggedIn = session()->has('patient_id');
+    $isPatientPortal = request()->routeIs('patient.*');
 @endphp
 
 @if($welcomeOffer)
 <div id="floatingWelcomeTicketWrapper" 
     data-is-logged-in="{{ $isPatientLoggedIn ? '1' : '0' }}" 
     data-coupons-url="{{ route('patient.coupons') }}"
-    class="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-40 select-none">
+    class="fixed bottom-2.5 right-2.5 sm:bottom-5 sm:right-5 z-40 select-none">
     <style>
         /* Irregular Ticket Clip Path with Notches on all 4 sides and cut corners */
         .irregular-ticket-shape {
@@ -65,7 +66,7 @@
     </style>
 
     <!-- Main Floating Square Ticket Container (Compact on Mobile) -->
-    <div id="welcomeTicketCard" class="relative group">
+    <div id="welcomeTicketCard" class="relative group {{ $isPatientPortal ? 'hidden sm:block' : '' }}">
         <!-- Close / Dismiss Button -->
         <button type="button" onclick="event.stopPropagation(); dismissWelcomeTicket();" 
             class="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 z-50 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-slate-900/90 hover:bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center shadow-md border border-white/30 transition-all active:scale-90" 
@@ -76,7 +77,7 @@
         <!-- Drop Shadow wrapper following irregular clip-path -->
         <div class="filter drop-shadow-[0_6px_14px_rgba(245,158,11,0.35)] cursor-pointer" onclick="handleWelcomeTicketClick()">
             <!-- The Compact Square Irregular Ticket -->
-            <div class="irregular-ticket-shape animate-ticket-float w-[130px] h-[134px] sm:w-[180px] sm:h-[180px] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 p-1.5 sm:p-2.5 flex flex-col justify-between text-white relative overflow-hidden">
+            <div class="irregular-ticket-shape animate-ticket-float w-[115px] h-[120px] sm:w-[180px] sm:h-[180px] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 p-1.5 sm:p-2.5 flex flex-col justify-between text-white relative overflow-hidden">
                 <!-- Shimmer Overlay -->
                 <div class="absolute inset-0 ticket-shimmer pointer-events-none"></div>
 
@@ -97,7 +98,7 @@
                     <div class="text-[7px] sm:text-[8px] font-extrabold text-amber-100 uppercase tracking-wider">
                         First Visit Gift
                     </div>
-                    <div class="text-xl sm:text-[26px] font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] leading-tight">
+                    <div class="text-lg sm:text-[26px] font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] leading-tight">
                         @if($welcomeOffer->discount_type === 'percentage')
                             {{ intval($welcomeOffer->discount_value) }}% <span class="text-xs sm:text-lg font-extrabold text-amber-200">OFF</span>
                         @else
@@ -123,7 +124,7 @@
 
                 <!-- 4. Footer: Claim CTA Button & Barcode -->
                 <div class="relative z-10 px-0.5 pb-0.5">
-                    <button type="button" class="w-full py-0.5 sm:py-1 px-1.5 sm:px-2 rounded bg-slate-950 hover:bg-black text-amber-300 font-extrabold text-[8px] sm:text-[9px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-sm border border-amber-400/40 group-hover:scale-[1.02] transition-all">
+                    <button type="button" class="w-full py-0.5 sm:py-1 px-1.5 sm:px-2 rounded bg-slate-950 hover:bg-black text-amber-300 font-extrabold text-[7px] sm:text-[9px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-sm border border-amber-400/40 group-hover:scale-[1.02] transition-all">
                         <span>Claim Offer</span>
                         <i class="fas fa-arrow-right text-[7px] sm:text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
                     </button>
@@ -139,12 +140,12 @@
         </div>
     </div>
 
-    <!-- Minimized Pill (Shown when closed so customer can re-open) -->
-    <div id="welcomeTicketMiniPill" class="hidden">
+    <!-- Minimized Pill (Shown when closed so customer can re-open, or defaulted on patient portal mobile) -->
+    <div id="welcomeTicketMiniPill" class="{{ $isPatientPortal ? 'block sm:hidden' : 'hidden' }}">
         <button type="button" onclick="reopenWelcomeTicket()" 
-            class="flex items-center gap-2 px-3.5 py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all border-2 border-white">
-            <i class="fas fa-gift text-amber-200 animate-bounce"></i>
-            <span>{{ $welcomeOffer->discount_type === 'percentage' ? intval($welcomeOffer->discount_value) . '% OFF' : '₹' . number_format($welcomeOffer->discount_value) . ' OFF' }} Ticket</span>
+            class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] sm:text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all border-2 border-white">
+            <i class="fas fa-gift text-amber-200"></i>
+            <span>{{ $welcomeOffer->discount_type === 'percentage' ? intval($welcomeOffer->discount_value) . '% OFF' : '₹' . number_format($welcomeOffer->discount_value) . ' OFF' }}</span>
         </button>
     </div>
 </div>
