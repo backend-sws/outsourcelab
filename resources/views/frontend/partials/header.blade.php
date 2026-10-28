@@ -115,9 +115,9 @@
         </div>
     @endif
 
-        <!-- Top Header Row -->
-        <div class="bg-white py-3.5 sm:py-4 px-3 sm:px-5 border-b border-gray-100 shadow-2xs min-h-[64px] sm:min-h-[72px] flex items-center">
-        <div class="container mx-auto flex justify-between items-center text-sm gap-2">
+        <!-- Top Header Row (Section 1) -->
+        <div class="bg-white py-3.5 sm:py-4 lg:py-2.5 px-3 sm:px-5 lg:px-0 border-b border-gray-100 shadow-2xs">
+        <div class="container mx-auto px-0 lg:px-4 flex justify-between items-center text-sm gap-2 min-h-[52px] sm:min-h-[58px] lg:min-h-0">
             <!-- Brand Logo & City Selector -->
             <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
                 @php
@@ -410,9 +410,10 @@
                 </button>
             </div>
         </div>
+    </div>
 
-        <!-- Navigation (Desktop) -->
-        <nav class="bg-white shadow-xs hidden lg:block border-t border-gray-100">
+    <!-- Navigation (Desktop - Section 2) -->
+    <nav class="bg-white shadow-xs hidden lg:block border-t border-gray-100">
         <div class="container mx-auto px-4 flex justify-between items-center h-16 relative">
             <!-- Center: Links -->
             <div class="flex items-center space-x-10">
