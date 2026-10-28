@@ -152,19 +152,14 @@
         const html5Player = document.getElementById('floatingVideoHtml5Player');
         const spinner = document.getElementById('floatingVideoSpinner');
 
-        // Dynamic Right-Side Positioning to coordinate seamlessly with Welcome Ticket (if present)
+        // Dynamic Right-Side Positioning to coordinate seamlessly with Welcome Ticket & Floating Actions
         function updateRightSidePosition() {
             if (!widget) return;
             const ticketWrapper = document.getElementById('floatingWelcomeTicketWrapper');
-            const ticketCard = document.getElementById('welcomeTicketCard');
-            const miniPill = document.getElementById('welcomeTicketMiniPill');
 
-            if (ticketWrapper && ticketCard && !ticketCard.classList.contains('hidden') && ticketCard.offsetHeight > 0) {
-                // Sit above full ticket card
-                widget.style.bottom = (ticketCard.offsetHeight + 28) + 'px';
-            } else if (miniPill && !miniPill.classList.contains('hidden')) {
-                // Sit above mini pill
-                widget.style.bottom = '75px';
+            if (ticketWrapper && ticketWrapper.offsetHeight > 0) {
+                // Sit comfortably above the floating quick action buttons
+                widget.style.bottom = (ticketWrapper.offsetHeight + 20) + 'px';
             } else {
                 // Default bottom position on right side
                 widget.style.bottom = '20px';

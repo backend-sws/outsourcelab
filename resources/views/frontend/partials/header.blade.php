@@ -116,10 +116,10 @@
     @endif
 
         <!-- Top Header Row -->
-        <div class="bg-white py-2 sm:py-2.5 px-2.5 sm:px-4 border-b border-gray-100">
+        <div class="bg-white py-3.5 sm:py-4 px-3 sm:px-5 border-b border-gray-100 shadow-2xs min-h-[64px] sm:min-h-[72px] flex items-center">
         <div class="container mx-auto flex justify-between items-center text-sm gap-2">
             <!-- Brand Logo & City Selector -->
-            <div class="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-3 min-w-0 flex-1">
+            <div class="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
                 @php
                     $headerLogoUrl = \App\Models\Setting::getLogoUrl();
                     $siteName = \App\Models\Setting::get('site_name', 'Av Wellcare Diagnostics');
@@ -128,8 +128,8 @@
                     $selectedHeaderCityId = session('selected_city_id', $defaultHeaderCity?->id);
                     $selectedHeaderCity = $activeHeaderCities->firstWhere('id', $selectedHeaderCityId) ?? $defaultHeaderCity;
                 @endphp
-                <a href="{{ route('home') }}" class="block flex-shrink-0">
-                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-7 min-[360px]:h-8 sm:h-10 md:h-12 w-auto max-w-[90px] min-[360px]:max-w-[110px] sm:max-w-[170px] md:max-w-none object-contain">
+                <a href="{{ route('home') }}" class="block flex-shrink-0 py-0.5">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-10 min-[360px]:h-11 sm:h-12 md:h-13 w-auto max-w-[155px] min-[360px]:max-w-[185px] sm:max-w-[220px] md:max-w-none object-contain">
                 </a>
 
                 @if($activeHeaderCities->isNotEmpty())
@@ -138,15 +138,15 @@
                     <button type="button" 
                             id="headerCityDropdownBtn"
                             onclick="toggleHeaderCityDropdown(event)"
-                            class="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-teal-200/90 hover:border-teal-500 bg-teal-50/70 hover:bg-teal-100/70 text-slate-800 transition shadow-2xs group cursor-pointer focus:outline-none"
+                            class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-teal-200/90 hover:border-teal-500 bg-teal-50/70 hover:bg-teal-100/70 text-slate-800 transition shadow-2xs group cursor-pointer focus:outline-none"
                             title="Select Your City & View Pincodes">
-                        <div class="w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform text-[9px] sm:text-xs">
+                        <div class="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-md sm:rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs group-hover:scale-105 transition-transform text-[10px] sm:text-xs">
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <div class="text-left leading-tight">
                             <span class="hidden sm:block text-[8px] font-bold text-teal-700/80 uppercase tracking-wider">City</span>
                             <div class="flex items-center gap-0.5 sm:gap-1">
-                                <span id="headerSelectedCityName" class="text-[11px] sm:text-sm font-extrabold text-slate-900 tracking-tight max-w-[50px] min-[360px]:max-w-[70px] sm:max-w-none truncate">
+                                <span id="headerSelectedCityName" class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight max-w-[60px] min-[360px]:max-w-[80px] sm:max-w-none truncate">
                                     {{ $selectedHeaderCity?->name ?? 'Select City' }}
                                 </span>
                                 <i class="fas fa-chevron-down text-[8px] sm:text-[9px] text-teal-600 group-hover:text-teal-800 transition-transform duration-200" id="headerCityChevron"></i>
@@ -227,10 +227,10 @@
                             <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1 font-medium">
                                 <span>Showing <strong id="headerCityFilteredCount" class="text-teal-700 font-extrabold">{{ $activeHeaderCities->count() }}</strong> serviceable cities</span>
                                 <span class="text-emerald-700 font-bold flex items-center gap-1">
-                                    <i class="fas fa-check-circle text-[10px]"></i> Free Sample Pickup
+                                    <i class="fas fa-check-circle text-[10px]"></i> Sample Pickup At Home
                                 </span>
                             </div>
-                        </div>
+                        </div>m   
 
                         <!-- List of Cities (Clean, Compact, Pincode-Free Cards) -->
                         <div id="headerCityList" class="flex-1 max-h-[58vh] sm:max-h-80 overflow-y-auto p-3 sm:p-4 space-y-2 overscroll-contain bg-slate-50/40">
@@ -342,8 +342,8 @@
                 </div>
 
                 <!-- Cart Button (Responsive) -->
-                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border border-gray-200 rounded-full w-8 h-8 sm:w-9 sm:h-9 lg:w-auto lg:h-auto p-0 lg:px-5 lg:py-2 justify-center shadow-2xs lg:shadow-xs hover:bg-gray-50 transition text-sm relative flex-shrink-0" title="View Cart">
-                    <i class="fas fa-shopping-cart text-gray-600 lg:mr-2 text-sm lg:text-base"></i> 
+                <button onclick="proceedToCheckout()" class="flex items-center font-semibold border border-gray-200/90 rounded-full w-10 h-10 sm:w-11 sm:h-11 lg:w-auto lg:h-auto p-0 lg:px-5 lg:py-2.5 justify-center shadow-2xs hover:bg-teal-50/50 hover:border-teal-400 transition text-sm relative flex-shrink-0" title="View Cart">
+                    <i class="fas fa-shopping-cart text-gray-700 lg:mr-2 text-sm sm:text-base"></i> 
                     <span class="hidden lg:inline">Cart</span> 
                     <span id="cartCount" class="bg-brand-secondary text-white text-[9px] min-[360px]:text-[10px] lg:text-xs rounded-full px-1.5 py-0.2 lg:px-2 lg:ml-1 font-bold absolute lg:static -top-1 -right-1 lg:top-auto lg:right-auto {{ $initialCartCount > 0 ? '' : 'hidden' }}">{{ $initialCartCount }}</span>
                 </button>
@@ -351,7 +351,7 @@
                 @if($loggedInPatient)
                     <!-- Patient Notification Bell & Dropdown -->
                     <div class="relative" id="patientNotifDropdownContainer">
-                        <button id="patientNotifBtn" type="button" aria-label="My Notifications" class="relative w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 flex items-center justify-center text-gray-600 hover:text-teal-700 transition focus:outline-none shadow-xs">
+                        <button id="patientNotifBtn" type="button" aria-label="My Notifications" class="relative w-9 h-9 sm:w-10 sm:h-10 lg:w-10 lg:h-10 rounded-full bg-gray-50 hover:bg-teal-50 border border-gray-200 hover:border-teal-300 flex items-center justify-center text-gray-600 hover:text-teal-700 transition focus:outline-none shadow-xs">
                             <i class="fas fa-bell text-xs sm:text-sm"></i>
                             <span id="patientNotifBadge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center ring-2 ring-white shadow-sm animate-pulse">0</span>
                         </button>
@@ -405,27 +405,10 @@
                 </div>
 
                 <!-- Mobile Menu Hamburger -->
-                <button id="mobileMenuBtn" class="lg:hidden text-slate-700 font-bold flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl hover:bg-slate-100 hover:text-brand-primary transition focus:outline-none flex-shrink-0" aria-label="Open Navigation Menu">
-                    <i class="fas fa-bars text-base sm:text-lg"></i>
+                <button id="mobileMenuBtn" class="lg:hidden text-slate-700 font-bold flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 hover:border-teal-400 hover:text-brand-primary transition focus:outline-none flex-shrink-0 shadow-2xs" aria-label="Open Navigation Menu">
+                    <i class="fas fa-bars text-lg sm:text-xl"></i>
                 </button>
             </div>
-        </div>
-
-        <!-- Mobile Sub-Header: 1-Tap Call & WhatsApp (Sticky on mobile & tablet screens < lg) -->
-        <div class="lg:hidden px-2.5 sm:px-4 py-1.5 bg-white border-t border-gray-100 flex items-center justify-between gap-2 shadow-xs">
-            <!-- Call Helpline Button -->
-            <a href="tel:{{ $helplineClean }}" class="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-black text-[11px] sm:text-xs border border-amber-300/80 shadow-2xs transition truncate" title="Call Helpline {{ $helplinePrimary }}">
-                <div class="w-4 h-4 rounded-full bg-slate-950/20 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-phone-alt text-[9px] text-slate-950 animate-pulse"></i>
-                </div>
-                <span class="truncate">Call: {{ $helplinePrimary }}</span>
-            </a>
-
-            <!-- WhatsApp Chat Button -->
-            <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="flex-1 inline-flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white font-black text-[11px] sm:text-xs shadow-2xs transition truncate" title="Chat on WhatsApp">
-                <i class="fab fa-whatsapp text-sm flex-shrink-0"></i>
-                <span class="truncate">WhatsApp Us</span>
-            </a>
         </div>
 
         <!-- Navigation (Desktop) -->
@@ -486,148 +469,200 @@
     </header>
 
     <!-- Mobile Menu Drawer (Small Screens) -->
-    <div id="mobileMenu" class="fixed inset-0 z-50 bg-black/60 hidden opacity-0 transition-opacity duration-300">
-        <div class="absolute right-0 top-0 bottom-0 w-[85%] max-w-sm bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col" id="mobileMenuDrawer">
+    <div id="mobileMenu" class="fixed inset-0 z-50 bg-slate-950/60 hidden opacity-0 transition-opacity duration-300 backdrop-blur-2xs">
+        <div class="absolute right-0 top-0 bottom-0 w-[80%] max-w-[310px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col" id="mobileMenuDrawer">
             <!-- Drawer Header -->
-            <div class="flex justify-between items-center px-5 py-4 border-b border-gray-100 bg-white">
-                <a href="{{ route('home') }}" class="flex items-center group" title="{{ $siteName }}">
-                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-10 sm:h-11 w-auto max-w-[210px] object-contain transition-transform duration-200 group-hover:scale-105">
+            <div class="flex justify-between items-center px-4 py-3 border-b border-gray-100 bg-white">
+                <a href="{{ route('home') }}" class="flex items-center" title="{{ $siteName }}">
+                    <img src="{{ $headerLogoUrl }}" alt="{{ $siteName }}" class="h-7 sm:h-8 w-auto max-w-[140px] object-contain">
                 </a>
-                <button id="closeMobileMenuBtn" class="text-gray-400 hover:text-red-500 p-2 focus:outline-none transition-colors rounded-full hover:bg-red-50" aria-label="Close menu">
-                    <i class="fas fa-times text-2xl"></i>
+                <button id="closeMobileMenuBtn" class="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-full bg-slate-100 hover:bg-slate-200 transition" aria-label="Close menu">
+                    <i class="fas fa-times text-xs"></i>
                 </button>
             </div>
             
             <!-- Drawer Content -->
-            <div class="flex-1 overflow-y-auto py-5 px-5 flex flex-col gap-6">
-                <!-- User Section -->
-                <div class="flex flex-col gap-3 pb-5 border-b border-gray-100">
+            <div class="flex-1 overflow-y-auto py-3 px-3.5 flex flex-col gap-3 text-left">
+                <!-- User / Login Section -->
+                <div class="pb-2.5 border-b border-gray-100">
                     @if($loggedInPatient)
-                        <div class="mb-2">
-                            <p class="text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">Logged In As</p>
-                            <a href="{{ route('patient.dashboard') }}" class="flex items-center text-brand-dark font-bold text-lg">
-                                <div class="bg-brand-light/20 w-10 h-10 rounded-full flex items-center justify-center mr-3 border border-brand-secondary/30 text-brand-secondary">
-                                    <i class="far fa-user"></i>
-                                </div>
-                                {{ $loggedInPatient->name ?? 'Guest' }}
+                        <div class="p-2.5 rounded-xl bg-teal-50/70 border border-teal-100 flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-[11px] flex-shrink-0 shadow-2xs">
+                                <i class="far fa-user"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <span class="text-[8px] uppercase font-bold text-teal-700 block leading-tight">Logged In</span>
+                                <span class="text-xs font-bold text-slate-900 truncate block">{{ $loggedInPatient->name ?? 'Guest' }}</span>
+                            </div>
+                            <a href="{{ route('patient.dashboard') }}" class="text-[9px] font-bold text-teal-700 bg-white px-2 py-0.5 rounded-md border border-teal-200 shadow-2xs">
+                                Dashboard
                             </a>
                         </div>
                     @else
-                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex justify-center items-center bg-brand-secondary text-white font-bold px-4 py-3.5 rounded-xl shadow-md hover:bg-brand-primary transition w-full">
-                            <i class="far fa-user mr-2 text-lg"></i> Login / Sign Up
+                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex justify-center items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-bold px-3 py-2 rounded-xl shadow-xs active:scale-[0.98] transition w-full text-xs">
+                            <i class="far fa-user text-xs"></i>
+                            <span>Login / Sign Up</span>
                         </button>
                     @endif
                 </div>
 
                 @if($activeHeaderCities->isNotEmpty())
                 <!-- City Selector (Mobile Drawer) -->
-                <div class="pb-5 border-b border-gray-100">
-                    <p class="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider px-1">Diagnostic City</p>
+                <div class="pb-2.5 border-b border-gray-100">
+                    <p class="text-[10px] text-slate-400 font-bold mb-1.5 uppercase tracking-widest px-1">Diagnostic City</p>
                     <button type="button" 
                             onclick="closeMobileMenu(); setTimeout(() => toggleHeaderCityDropdown(), 200);"
-                            class="w-full flex items-center justify-between p-3 rounded-2xl bg-teal-50/70 border border-teal-200/80 hover:bg-teal-50 active:scale-[0.99] transition text-left group">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs">
-                                <i class="fas fa-map-marker-alt text-xs"></i>
+                            class="w-full flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200/80 hover:bg-teal-50/60 hover:border-teal-300 active:scale-[0.99] transition text-left group">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center flex-shrink-0 shadow-2xs text-[10px]">
+                                <i class="fas fa-map-marker-alt"></i>
                             </div>
-                            <div>
-                                <span class="text-[10px] uppercase font-bold text-teal-700 block leading-tight">Selected City</span>
-                                <span class="text-sm font-extrabold text-gray-900 group-hover:text-teal-700 transition-colors">
+                            <div class="min-w-0">
+                                <span class="text-[8px] uppercase font-bold text-slate-400 block leading-none mb-0.5">Selected City</span>
+                                <span class="text-xs font-bold text-slate-800 group-hover:text-teal-700 truncate block">
                                     {{ $selectedHeaderCity?->name ?? 'Select City' }}
                                 </span>
                             </div>
                         </div>
-                        <span class="text-xs font-bold text-teal-700 bg-white px-2.5 py-1 rounded-lg border border-teal-200/70 shadow-2xs flex items-center gap-1">
+                        <span class="text-[9px] font-bold text-teal-700 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs flex items-center gap-1 flex-shrink-0 group-hover:border-teal-300">
                             <span>Change</span>
-                            <i class="fas fa-chevron-right text-[10px]"></i>
+                            <i class="fas fa-chevron-right text-[7px]"></i>
                         </span>
                     </button>
                 </div>
                 @endif
 
-                <!-- New Header Options -->
-                <div class="flex flex-col gap-2 pb-5 border-b border-gray-100">
-                    <p class="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider px-2">Services</p>
-                    <a href="{{ route('pharmacy') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition justify-between">
-                        <div class="flex items-center">
-                            <div class="bg-emerald-50 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-emerald-600">
+                <!-- Services Section -->
+                <div class="flex flex-col gap-0.5 pb-2.5 border-b border-gray-100">
+                    <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-widest px-1">Services</p>
+                    <a href="{{ route('pharmacy') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-emerald-100 transition-colors">
                                 <i class="fas fa-prescription-bottle-alt"></i>
                             </div>
                             <span>Pharmacy</span>
                         </div>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800">Coming Soon</span>
+                        <span class="px-1.5 py-0.2 rounded-md text-[8px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200/60">Soon</span>
                     </a>
-                    <a href="{{ route('download.report') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition">
-                        <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-brand-secondary">
-                            <i class="fas fa-file-download"></i>
+                    <a href="{{ route('download.report') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-amber-100 transition-colors">
+                                <i class="fas fa-file-download"></i>
+                            </div>
+                            <span>Download Report</span>
                         </div>
-                        Download Report
+                        <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                     </a>
                     @if(config('pathology.sso_enabled', true))
-                    <a href="{{ route('lis.login') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-gray-50 transition">
-                        <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-3 text-brand-secondary">
-                            <i class="fas fa-sign-in-alt"></i>
+                    <a href="{{ route('lis.login') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-indigo-100 transition-colors">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </div>
+                            <span>Login (LIS)</span>
                         </div>
-                        Login (LIS)
+                        <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                     </a>
                     @endif
                 </div>
 
-                <!-- Navigation Links -->
-                <div class="flex flex-col gap-1 pb-5">
-                    <p class="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider px-2">Navigation</p>
-                    <a href="{{ route('home') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition">
-                        <i class="fas fa-home text-gray-400 w-6 text-center mr-3 text-lg"></i> Home
+                <!-- Navigation Section -->
+                <div class="flex flex-col gap-0.5 pb-2.5 border-b border-gray-100">
+                    <p class="text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-widest px-1">Navigation</p>
+                    <a href="{{ route('home') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <span>Home</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                     </a>
                     @if($loggedInPatient)
-                        <a href="{{ route('patient.bookings') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition">
-                            <i class="far fa-calendar-check text-gray-400 w-6 text-center mr-3 text-lg"></i> My Bookings
+                        <a href="{{ route('patient.bookings') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                    <i class="far fa-calendar-check"></i>
+                                </div>
+                                <span>My Bookings</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                         </a>
-                        <a href="{{ route('patient.reports') }}" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition">
-                            <i class="far fa-file-alt text-gray-400 w-6 text-center mr-3 text-lg"></i> My Reports
+                        <a href="{{ route('patient.reports') }}" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                    <i class="far fa-file-alt"></i>
+                                </div>
+                                <span>My Reports</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                         </a>
                     @else
-                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition w-full text-left">
-                            <i class="far fa-calendar-check text-gray-400 w-6 text-center mr-3 text-lg"></i> My Bookings
+                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold w-full text-left group">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                    <i class="far fa-calendar-check"></i>
+                                </div>
+                                <span>My Bookings</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                         </button>
-                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition w-full text-left">
-                            <i class="far fa-file-alt text-gray-400 w-6 text-center mr-3 text-lg"></i> My Reports
+                        <button onclick="window.openLoginModal(); closeMobileMenu();" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold w-full text-left group">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-6 h-6 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] flex-shrink-0 group-hover:bg-teal-50 group-hover:text-teal-600 transition-colors">
+                                    <i class="far fa-file-alt"></i>
+                                </div>
+                                <span>My Reports</span>
+                            </div>
+                            <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                         </button>
                     @endif
-                    <a href="{{ route('home') }}#reviews" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition">
-                        <i class="fas fa-star text-amber-400 w-6 text-center mr-3 text-lg"></i> Reviews
+                    <a href="{{ route('home') }}#reviews" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-500 flex items-center justify-center text-[10px] flex-shrink-0">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <span>Reviews</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                     </a>
-                    <a href="{{ route('home') }}#contact-enquiry" class="flex items-center text-gray-700 hover:text-brand-primary font-bold p-3 rounded-xl hover:bg-brand-light/10 transition">
-                        <i class="fas fa-envelope-open-text text-teal-500 w-6 text-center mr-3 text-lg"></i> Enquiry
+                    <a href="{{ route('home') }}#contact-enquiry" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition text-slate-700 hover:text-teal-800 text-xs font-semibold group">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-md bg-teal-50 text-teal-600 flex items-center justify-center text-[10px] flex-shrink-0">
+                                <i class="fas fa-envelope-open-text"></i>
+                            </div>
+                            <span>Enquiry</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-[8px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all"></i>
                     </a>
                 </div>
                 
                 <!-- Contact & WhatsApp Box (Mobile Drawer) -->
-                <div class="mt-auto flex flex-col gap-2.5">
-                    <a href="tel:{{ $helplineClean }}" class="bg-gradient-to-r from-brand-dark to-teal-950 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md hover:opacity-95 transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center font-bold">
-                                <i class="fas fa-phone-alt text-xs animate-pulse"></i>
+                <div class="mt-auto pt-1 flex flex-col gap-1.5">
+                    <a href="tel:{{ $helplineClean }}" class="bg-gradient-to-r from-slate-900 to-teal-950 text-white rounded-xl p-2 px-3 flex items-center justify-between shadow-2xs hover:opacity-95 transition">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-[9px] flex-shrink-0">
+                                <i class="fas fa-phone-alt"></i>
                             </div>
                             <div class="text-left">
-                                <span class="text-[10px] text-teal-200 uppercase font-bold block">24/7 Helpline</span>
-                                <span class="text-sm font-black">{{ $helplinePrimary }}</span>
+                                <span class="text-[8px] text-teal-200 uppercase font-bold block leading-none">24/7 Helpline</span>
+                                <span class="text-[11px] font-extrabold text-white">{{ $helplinePrimary }}</span>
                             </div>
                         </div>
-                        <span class="text-xs bg-white/20 px-2.5 py-1 rounded-lg font-bold">Call</span>
+                        <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-md font-bold text-white">Call</span>
                     </a>
 
-                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl p-3.5 flex items-center justify-between shadow-md transition">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
-                                <i class="fab fa-whatsapp text-lg text-white"></i>
+                    <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-2 px-3 flex items-center justify-between shadow-2xs transition">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs text-white flex-shrink-0">
+                                <i class="fab fa-whatsapp"></i>
                             </div>
                             <div class="text-left">
-                                <span class="text-[10px] text-emerald-100 uppercase font-bold block">Instant Assistance</span>
-                                <span class="text-sm font-black">Chat on WhatsApp</span>
+                                <span class="text-[8px] text-emerald-100 uppercase font-bold block leading-none">Instant Help</span>
+                                <span class="text-[11px] font-extrabold text-white">Chat on WhatsApp</span>
                             </div>
                         </div>
-                        <span class="text-xs bg-white/20 px-2.5 py-1 rounded-lg font-bold">Chat</span>
+                        <span class="text-[9px] bg-white/20 px-2 py-0.5 rounded-md font-bold text-white">Chat</span>
                     </a>
                 </div>
             </div>

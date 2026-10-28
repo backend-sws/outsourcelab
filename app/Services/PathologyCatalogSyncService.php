@@ -19,6 +19,8 @@ class PathologyCatalogSyncService
      */
     public function syncAll(bool $overwritePricing = false): array
     {
+        @set_time_limit(300);
+
         if (! $this->api->isConfigured()) {
             return [
                 'success' => false,
@@ -92,112 +94,131 @@ class PathologyCatalogSyncService
 
     /**
      * Sync tests catalog — including parameters, department, sample type, TAT.
+     * Iterates across all paginated pages from LIS API to ensure no tests are missed.
      */
     public function syncTests(bool $overwritePricing = false): int
     {
-        $data = $this->api->getTests(['per_page' => 500]);
-
-        // API may return paginated {tests: [...]} or bare array
-        $tests = $data['tests'] ?? $data;
-        if (! is_array($tests)) {
-            return 0;
-        }
-
         $count = 0;
+        $page = 1;
+        $lastPage = 1;
 
-        foreach ($tests as $item) {
-            $lisId = (int) ($item['id'] ?? 0);
-            $testCode = trim($item['test_code'] ?? '');
-            $name = trim($item['name'] ?? '');
-            $lisPrice = (float) ($item['price'] ?? 0);
-            $tatHours = isset($item['tat_hours']) ? (int) $item['tat_hours'] : null;
-            $sampleType = $item['sample_type'] ?? null;
-            $fastingRequired = ! empty($item['fasting_required']);
+        do {
+            $data = $this->api->getTests([
+                'per_page' => 100,
+                'page' => $page,
+            ]);
 
-            // LIS uses "department" (not "department_name")
-            $deptName = trim($item['department'] ?? $item['department_name'] ?? '');
-
-            // Extract parameters — LIS returns objects [{name, unit, ref_range}]
-            $parameterNames = $this->extractParamNames($item['parameters'] ?? []);
-
-            if (empty($name)) {
-                continue;
-            }
-
-            // Match or create department
-            $testCategoryId = null;
-            if ($deptName !== '') {
-                $category = TestCategory::firstOrCreate(['name' => $deptName]);
-                $testCategoryId = $category->id;
-            }
-
-            // Find existing test by lis_test_id → test_code → name
-            $test = null;
-            if ($lisId > 0) {
-                $test = Test::where('lis_test_id', $lisId)->first();
-            }
-            if (! $test && ! empty($testCode)) {
-                $test = Test::where('test_code', $testCode)->first();
-            }
-            if (! $test) {
-                $test = Test::where('name', $name)->first();
-            }
-
-            if ($test) {
-                $test->lis_test_id = $lisId ?: $test->lis_test_id;
-                $test->test_code = $testCode ?: $test->test_code;
-                $test->lis_price = $lisPrice;
-                $test->sample_type = $sampleType ?: $test->sample_type;
-                $test->tat_hours = $tatHours ?: $test->tat_hours;
-                $test->fasting_required = $fastingRequired;
-
-                // Assign department if not already set
-                if ($testCategoryId && ! $test->test_category_id) {
-                    $test->test_category_id = $testCategoryId;
-                }
-
-                // Update parameters from LIS or fallback to single parameter [name]
-                if (! empty($parameterNames)) {
-                    $test->parameters = $parameterNames;
-                } elseif (empty($test->parameters)) {
-                    $test->parameters = [$test->name];
-                }
-
-                $test->lis_synced_at = now();
-
-                // Only overwrite selling price if not locked and no custom price yet
-                if (! $test->lock_pricing && ($overwritePricing || empty($test->price) || $test->price == 0)) {
-                    $test->price = $lisPrice;
-                }
-
-                $test->save();
+            // API may return paginated {tests: [...], last_page: ...} or bare array
+            if (isset($data['tests']) && is_array($data['tests'])) {
+                $tests = $data['tests'];
+                $lastPage = (int) ($data['last_page'] ?? $page);
+            } elseif (is_array($data)) {
+                $tests = $data;
+                $lastPage = $page;
             } else {
-                // Create new Test record
-                $test = new Test;
-                $test->name = $name;
-                $test->test_code = $testCode;
-                $test->lis_test_id = $lisId;
-                $test->lis_price = $lisPrice;
-                $test->price = $lisPrice;
-                $test->sample_type = $sampleType;
-                $test->tat_hours = $tatHours;
-                $test->fasting_required = $fastingRequired;
-                $test->test_category_id = $testCategoryId;
-                $test->parameters = ! empty($parameterNames) ? $parameterNames : [$name];
-                $test->is_active = true;
-                $test->home_collection_available = true;
-                $test->report_delivery_time = $tatHours
-                    ? ($tatHours >= 24 ? round($tatHours / 24).' Day(s)' : "{$tatHours} Hours")
-                    : 'Within 24 Hours';
-                $test->preparation_instructions = $fastingRequired
-                    ? 'Requires 8 to 10 hours overnight fasting.'
-                    : null;
-                $test->lis_synced_at = now();
-                $test->save();
+                break;
             }
 
-            $count++;
-        }
+            if (empty($tests)) {
+                break;
+            }
+
+            foreach ($tests as $item) {
+                $lisId = (int) ($item['id'] ?? 0);
+                $testCode = trim($item['test_code'] ?? '');
+                $name = trim($item['name'] ?? '');
+                $lisPrice = (float) ($item['price'] ?? 0);
+                $tatHours = isset($item['tat_hours']) ? (int) $item['tat_hours'] : null;
+                $sampleType = $item['sample_type'] ?? null;
+                $fastingRequired = ! empty($item['fasting_required']);
+
+                // LIS uses "department" (not "department_name")
+                $deptName = trim($item['department'] ?? $item['department_name'] ?? '');
+
+                // Extract parameters — LIS returns objects [{name, unit, ref_range}]
+                $parameterNames = $this->extractParamNames($item['parameters'] ?? []);
+
+                if (empty($name)) {
+                    continue;
+                }
+
+                // Match or create department
+                $testCategoryId = null;
+                if ($deptName !== '') {
+                    $category = TestCategory::firstOrCreate(['name' => $deptName]);
+                    $testCategoryId = $category->id;
+                }
+
+                // Find existing test by lis_test_id → test_code → name
+                $test = null;
+                if ($lisId > 0) {
+                    $test = Test::where('lis_test_id', $lisId)->first();
+                }
+                if (! $test && ! empty($testCode)) {
+                    $test = Test::where('test_code', $testCode)->first();
+                }
+                if (! $test) {
+                    $test = Test::where('name', $name)->first();
+                }
+
+                if ($test) {
+                    $test->lis_test_id = $lisId ?: $test->lis_test_id;
+                    $test->test_code = $testCode ?: $test->test_code;
+                    $test->lis_price = $lisPrice;
+                    $test->sample_type = $sampleType ?: $test->sample_type;
+                    $test->tat_hours = $tatHours ?: $test->tat_hours;
+                    $test->fasting_required = $fastingRequired;
+
+                    // Assign department if not already set
+                    if ($testCategoryId && ! $test->test_category_id) {
+                        $test->test_category_id = $testCategoryId;
+                    }
+
+                    // Update parameters from LIS or fallback to single parameter [name]
+                    if (! empty($parameterNames)) {
+                        $test->parameters = $parameterNames;
+                    } elseif (empty($test->parameters)) {
+                        $test->parameters = [$test->name];
+                    }
+
+                    $test->lis_synced_at = now();
+
+                    // Only overwrite selling price if not locked and no custom price yet
+                    if (! $test->lock_pricing && ($overwritePricing || empty($test->price) || $test->price == 0)) {
+                        $test->price = $lisPrice;
+                    }
+
+                    $test->save();
+                } else {
+                    // Create new Test record
+                    $test = new Test;
+                    $test->name = $name;
+                    $test->test_code = $testCode;
+                    $test->lis_test_id = $lisId;
+                    $test->lis_price = $lisPrice;
+                    $test->price = $lisPrice;
+                    $test->sample_type = $sampleType;
+                    $test->tat_hours = $tatHours;
+                    $test->fasting_required = $fastingRequired;
+                    $test->test_category_id = $testCategoryId;
+                    $test->parameters = ! empty($parameterNames) ? $parameterNames : [$name];
+                    $test->is_active = true;
+                    $test->home_collection_available = true;
+                    $test->report_delivery_time = $tatHours
+                        ? ($tatHours >= 24 ? round($tatHours / 24).' Day(s)' : "{$tatHours} Hours")
+                        : 'Within 24 Hours';
+                    $test->preparation_instructions = $fastingRequired
+                        ? 'Requires 8 to 10 hours overnight fasting.'
+                        : null;
+                    $test->lis_synced_at = now();
+                    $test->save();
+                }
+
+                $count++;
+            }
+
+            $page++;
+        } while ($page <= $lastPage);
 
         return $count;
     }

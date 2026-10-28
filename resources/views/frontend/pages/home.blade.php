@@ -58,7 +58,7 @@
                             <i class="fas fa-stethoscope text-teal-600"></i> Doctor-Curated Panels
                         </span>
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-                            <i class="fas fa-circle text-[5px] text-emerald-500"></i> Free Home Sample Pickup
+                            <i class="fas fa-circle text-[5px] text-emerald-500"></i>Home Sample Pickup
                         </span>
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hidden sm:inline-flex">
                             <i class="fas fa-circle text-[5px] text-cyan-500"></i> Same-Day Reports

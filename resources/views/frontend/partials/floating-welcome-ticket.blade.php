@@ -5,13 +5,24 @@
         ->first();
     $isPatientLoggedIn = session()->has('patient_id');
     $isPatientPortal = request()->routeIs('patient.*');
+
+    $helplinePrimary = \App\Models\Setting::get('helpline_primary', '9311229458');
+    $helplineClean = preg_replace('/[^0-9]/', '', $helplinePrimary);
+    $whatsappNumber = \App\Models\Setting::get('whatsapp_number', $helplineClean ?: '9311229458');
+    $whatsappClean = preg_replace('/[^0-9]/', '', $whatsappNumber);
+    if (strlen($whatsappClean) === 10) {
+        $whatsappClean = '91' . $whatsappClean;
+    }
+    $whatsappUrl = "https://wa.me/{$whatsappClean}?text=" . urlencode("Hello Av Wellcare Diagnostics, I would like to book a test / consultation.");
 @endphp
 
-@if($welcomeOffer)
 <div id="floatingWelcomeTicketWrapper" 
-    data-is-logged-in="{{ $isPatientLoggedIn ? '1' : '0' }}" 
-    data-coupons-url="{{ route('patient.coupons') }}"
-    class="fixed bottom-2.5 right-2.5 sm:bottom-5 sm:right-5 z-40 select-none">
+    @if($welcomeOffer)
+        data-is-logged-in="{{ $isPatientLoggedIn ? '1' : '0' }}" 
+        data-coupons-url="{{ route('patient.coupons') }}"
+    @endif
+    class="fixed bottom-3 right-3 sm:bottom-5 sm:right-5 z-40 select-none flex items-end gap-2.5 pointer-events-auto">
+    
     <style>
         /* Irregular Ticket Clip Path with Notches on all 4 sides and cut corners */
         .irregular-ticket-shape {
@@ -29,10 +40,10 @@
 
         @keyframes welcomeTicketFloat {
             0%, 100% {
-                transform: translateY(0px) rotate(-3deg);
+                transform: translateY(0px) rotate(-2deg);
             }
             50% {
-                transform: translateY(-6px) rotate(-1deg);
+                transform: translateY(-5px) rotate(0deg);
             }
         }
 
@@ -44,7 +55,7 @@
 
         .animate-ticket-float:hover {
             animation-play-state: paused;
-            transform: translateY(-4px) rotate(0deg) scale(1.03);
+            transform: translateY(-3px) rotate(0deg) scale(1.02);
         }
 
         /* Subtle ticket shine */
@@ -63,91 +74,128 @@
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
+
+        @keyframes actionPillGlow {
+            0%, 100% {
+                box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+            }
+            50% {
+                box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+            }
+        }
+
+        .animate-ticket-glow {
+            animation: actionPillGlow 2.5s infinite ease-in-out;
+        }
     </style>
 
-    <!-- Main Floating Square Ticket Container (Compact on Mobile) -->
-    <div id="welcomeTicketCard" class="relative group {{ $isPatientPortal ? 'hidden sm:block' : '' }}">
-        <!-- Close / Dismiss Button -->
-        <button type="button" onclick="event.stopPropagation(); dismissWelcomeTicket();" 
-            class="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 z-50 w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full bg-slate-900/90 hover:bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center shadow-md border border-white/30 transition-all active:scale-90" 
-            title="Close offer">
-            <i class="fas fa-times"></i>
-        </button>
+    @if($welcomeOffer)
+    <!-- 15% OFF Ticket Wrapper (Minimized pill by default on mobile, full card when expanded) -->
+    <div class="flex flex-col items-end">
+        <!-- Main Floating Square Ticket Container (Minimized on Mobile by default, opens only on tap) -->
+        <div id="welcomeTicketCard" class="relative group hidden sm:block">
+            <!-- Close / Minimize Button -->
+            <button type="button" onclick="event.stopPropagation(); dismissWelcomeTicket();" 
+                class="absolute -top-1.5 -right-1.5 z-50 w-5 h-5 rounded-full bg-slate-900/95 hover:bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center shadow-lg border border-white/40 transition-all active:scale-90" 
+                title="Minimize offer">
+                <i class="fas fa-times"></i>
+            </button>
 
-        <!-- Drop Shadow wrapper following irregular clip-path -->
-        <div class="filter drop-shadow-[0_6px_14px_rgba(245,158,11,0.35)] cursor-pointer" onclick="handleWelcomeTicketClick()">
-            <!-- The Compact Square Irregular Ticket -->
-            <div class="irregular-ticket-shape animate-ticket-float w-[115px] h-[120px] sm:w-[180px] sm:h-[180px] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 p-1.5 sm:p-2.5 flex flex-col justify-between text-white relative overflow-hidden">
-                <!-- Shimmer Overlay -->
-                <div class="absolute inset-0 ticket-shimmer pointer-events-none"></div>
+            <!-- Drop Shadow wrapper following irregular clip-path -->
+            <div class="filter drop-shadow-[0_8px_18px_rgba(245,158,11,0.4)] cursor-pointer" onclick="handleWelcomeTicketClick()">
+                <!-- The Compact Square Irregular Ticket -->
+                <div class="irregular-ticket-shape animate-ticket-float w-[150px] h-[155px] sm:w-[180px] sm:h-[180px] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 p-2 sm:p-2.5 flex flex-col justify-between text-white relative overflow-hidden">
+                    <!-- Shimmer Overlay -->
+                    <div class="absolute inset-0 ticket-shimmer pointer-events-none"></div>
 
-                <!-- Ticket Inner Dashed Border Frame -->
-                <div class="absolute inset-1 sm:inset-1.5 border border-dashed border-white/40 rounded pointer-events-none"></div>
+                    <!-- Ticket Inner Dashed Border Frame -->
+                    <div class="absolute inset-1 sm:inset-1.5 border border-dashed border-white/40 rounded pointer-events-none"></div>
 
-                <!-- 1. Header: Admit One / Welcome Pass -->
-                <div class="relative z-10 flex items-center justify-between px-1 pt-0.5">
-                    <span class="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-full bg-slate-950/40 backdrop-blur-xs text-[7px] sm:text-[8px] font-black uppercase tracking-wider text-amber-200 border border-amber-300/30">
-                        <i class="fas fa-ticket-alt text-[6px] sm:text-[7px] text-amber-300 -rotate-12"></i>
-                        <span>WELCOME</span>
-                    </span>
-                    <span class="text-[7px] sm:text-[8px] font-mono font-bold text-white/90">#{{ $welcomeOffer->code }}</span>
-                </div>
-
-                <!-- 2. Center: Discount Details -->
-                <div class="relative z-10 text-center my-auto px-1">
-                    <div class="text-[7px] sm:text-[8px] font-extrabold text-amber-100 uppercase tracking-wider">
-                        First Visit Gift
-                    </div>
-                    <div class="text-lg sm:text-[26px] font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] leading-tight">
-                        @if($welcomeOffer->discount_type === 'percentage')
-                            {{ intval($welcomeOffer->discount_value) }}% <span class="text-xs sm:text-lg font-extrabold text-amber-200">OFF</span>
-                        @else
-                            ₹{{ number_format($welcomeOffer->discount_value) }} <span class="text-xs sm:text-lg font-extrabold text-amber-200">OFF</span>
-                        @endif
-                    </div>
-                    <div class="text-[7px] sm:text-[8px] font-medium text-white/90 leading-none mt-0.5">
-                        1st Lab Booking
-                    </div>
-
-                    <!-- Coupon Code Tag -->
-                    <div class="mt-0.5 sm:mt-1 inline-block">
-                        <span class="px-1.5 py-0.2 sm:px-2 sm:py-0.5 rounded bg-slate-950 text-amber-300 font-mono font-black text-[8px] sm:text-[10px] uppercase tracking-wider border border-amber-400/50 shadow-xs">
-                            {{ $welcomeOffer->code }}
+                    <!-- 1. Header: Admit One / Welcome Pass -->
+                    <div class="relative z-10 flex items-center justify-between px-1 pt-0.5">
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-950/40 backdrop-blur-xs text-[7px] sm:text-[8px] font-black uppercase tracking-wider text-amber-200 border border-amber-300/30">
+                            <i class="fas fa-ticket-alt text-[6px] sm:text-[7px] text-amber-300 -rotate-12"></i>
+                            <span>WELCOME</span>
                         </span>
+                        <span class="text-[7px] sm:text-[8px] font-mono font-bold text-white/90">#{{ $welcomeOffer->code }}</span>
                     </div>
-                </div>
 
-                <!-- 3. Perforated Dashed Tear Line -->
-                <div class="relative z-10 my-0.5 flex items-center justify-center">
-                    <div class="w-full border-b border-dashed border-white/40"></div>
-                </div>
+                    <!-- 2. Center: Discount Details -->
+                    <div class="relative z-10 text-center my-auto px-1">
+                        <div class="text-[7px] sm:text-[8px] font-extrabold text-amber-100 uppercase tracking-wider">
+                            First Visit Gift
+                        </div>
+                        <div class="text-xl sm:text-[26px] font-black tracking-tight text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] leading-tight">
+                            @if($welcomeOffer->discount_type === 'percentage')
+                                {{ intval($welcomeOffer->discount_value) }}% <span class="text-xs sm:text-lg font-extrabold text-amber-200">OFF</span>
+                            @else
+                                ₹{{ number_format($welcomeOffer->discount_value) }} <span class="text-xs sm:text-lg font-extrabold text-amber-200">OFF</span>
+                            @endif
+                        </div>
+                        <div class="text-[7px] sm:text-[8px] font-medium text-white/90 leading-none mt-0.5">
+                            1st Lab Booking
+                        </div>
 
-                <!-- 4. Footer: Claim CTA Button & Barcode -->
-                <div class="relative z-10 px-0.5 pb-0.5">
-                    <button type="button" class="w-full py-0.5 sm:py-1 px-1.5 sm:px-2 rounded bg-slate-950 hover:bg-black text-amber-300 font-extrabold text-[7px] sm:text-[9px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-sm border border-amber-400/40 group-hover:scale-[1.02] transition-all">
-                        <span>Claim Offer</span>
-                        <i class="fas fa-arrow-right text-[7px] sm:text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
-                    </button>
+                        <!-- Coupon Code Tag -->
+                        <div class="mt-1 inline-block">
+                            <span class="px-2 py-0.5 rounded bg-slate-950 text-amber-300 font-mono font-black text-[9px] sm:text-[10px] uppercase tracking-wider border border-amber-400/50 shadow-xs">
+                                {{ $welcomeOffer->code }}
+                            </span>
+                        </div>
+                    </div>
 
-                    <!-- Mini Barcode & Notice -->
-                    <div class="flex items-center justify-between text-[6px] sm:text-[7px] font-mono text-white/75 mt-0.5 px-0.5">
-                        <span class="hidden min-[360px]:inline">||||</span>
-                        <span>{{ $isPatientLoggedIn ? 'My Coupons' : 'Login & Claim' }}</span>
-                        <span class="hidden min-[360px]:inline">||||</span>
+                    <!-- 3. Perforated Dashed Tear Line -->
+                    <div class="relative z-10 my-0.5 flex items-center justify-center">
+                        <div class="w-full border-b border-dashed border-white/40"></div>
+                    </div>
+
+                    <!-- 4. Footer: Claim CTA Button & Barcode -->
+                    <div class="relative z-10 px-0.5 pb-0.5">
+                        <button type="button" class="w-full py-1 px-2 rounded bg-slate-950 hover:bg-black text-amber-300 font-extrabold text-[8px] sm:text-[9px] uppercase tracking-wider flex items-center justify-center gap-1 shadow-sm border border-amber-400/40 group-hover:scale-[1.02] transition-all">
+                            <span>Claim Offer</span>
+                            <i class="fas fa-arrow-right text-[7px] sm:text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
+                        </button>
+
+                        <!-- Mini Barcode & Notice -->
+                        <div class="flex items-center justify-between text-[6px] sm:text-[7px] font-mono text-white/75 mt-0.5 px-0.5">
+                            <span class="hidden min-[360px]:inline">||||</span>
+                            <span>{{ $isPatientLoggedIn ? 'My Coupons' : 'Login & Claim' }}</span>
+                            <span class="hidden min-[360px]:inline">||||</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 15% OFF Minimized Pill (Default state on mobile screens; opens full ticket on click) -->
+        <div id="welcomeTicketMiniPill" class="block sm:hidden">
+            <button type="button" onclick="reopenWelcomeTicket()" 
+                class="flex items-center gap-1.5 h-11 px-3.5 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-500 text-white text-xs font-black shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all border-2 border-white/90 animate-ticket-glow"
+                title="Tap to view special discount ticket">
+                <i class="fas fa-gift text-amber-200"></i>
+                <span>{{ $welcomeOffer->discount_type === 'percentage' ? intval($welcomeOffer->discount_value) . '% OFF' : '₹' . number_format($welcomeOffer->discount_value) . ' OFF' }}</span>
+            </button>
+        </div>
+    </div>
+    @endif
+
+    <!-- Vertical Stack: WhatsApp (Top) & Call (Bottom) Circular Floating Action Buttons -->
+    <div class="flex flex-col items-center gap-2.5">
+        <!-- WhatsApp Circular Button (Top) -->
+        <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" 
+           class="flex items-center justify-center w-12 h-12 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer" 
+           title="Chat on WhatsApp">
+            <i class="fab fa-whatsapp text-2xl"></i>
+        </a>
+
+        <!-- Call Helpline Circular Button (Bottom) -->
+        <a href="tel:{{ $helplineClean }}" 
+           class="flex items-center justify-center w-12 h-12 rounded-full bg-[#eab308] hover:bg-[#ca8a04] text-slate-950 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer" 
+           title="Call Helpline {{ $helplinePrimary }}">
+            <i class="fas fa-phone-alt text-lg"></i>
+        </a>
     </div>
 
-    <!-- Minimized Pill (Shown when closed so customer can re-open, or defaulted on patient portal mobile) -->
-    <div id="welcomeTicketMiniPill" class="{{ $isPatientPortal ? 'block sm:hidden' : 'hidden' }}">
-        <button type="button" onclick="reopenWelcomeTicket()" 
-            class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[11px] sm:text-xs font-black shadow-xl hover:scale-105 active:scale-95 transition-all border-2 border-white">
-            <i class="fas fa-gift text-amber-200"></i>
-            <span>{{ $welcomeOffer->discount_type === 'percentage' ? intval($welcomeOffer->discount_value) . '% OFF' : '₹' . number_format($welcomeOffer->discount_value) . ' OFF' }}</span>
-        </button>
-    </div>
 </div>
 
 <script>
@@ -170,19 +218,23 @@
     function dismissWelcomeTicket() {
         const card = document.getElementById('welcomeTicketCard');
         const pill = document.getElementById('welcomeTicketMiniPill');
-        if (card && pill) {
+        if (card) {
             card.classList.add('hidden');
+        }
+        if (pill) {
             pill.classList.remove('hidden');
+            pill.classList.remove('sm:hidden');
         }
     }
 
     function reopenWelcomeTicket() {
         const card = document.getElementById('welcomeTicketCard');
         const pill = document.getElementById('welcomeTicketMiniPill');
-        if (card && pill) {
-            pill.classList.add('hidden');
+        if (card) {
             card.classList.remove('hidden');
+        }
+        if (pill) {
+            pill.classList.add('hidden');
         }
     }
 </script>
-@endif
